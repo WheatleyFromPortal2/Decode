@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.odometry.odometry;
 
-@TeleOp(name="SimpleTeleOp", group="TeleOp")
-public class SimpleTeleOp extends LinearOpMode {
+@TeleOp(name="BozoTeleOp", group="TeleOp")
+public class BozoTeleOp extends LinearOpMode {
     private DcMotor frontLeft, frontRight, backLeft, backRight;
     private DcMotor arm, intake, shooter;
     private Servo claw;
