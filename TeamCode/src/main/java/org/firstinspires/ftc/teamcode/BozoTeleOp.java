@@ -1,23 +1,22 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.hardware.bosch.BNO055IMU;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.Servo;
-import org.firstinspires.ftc.teamcode.odometry.odometry;
+
+import com.qualcomm.robotcore.hardware.IMU; // import IMU
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot; // import IMU orientation
+
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles; // import angles for IMU orientation
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit; // import angle units for easy conversion
 
 @TeleOp(name="BozoTeleOp", group="TeleOp")
 public class BozoTeleOp extends LinearOpMode {
     private DcMotor frontLeft, frontRight, backLeft, backRight;
-    private DcMotor arm, intake, shooter;
-    private Servo claw;
+    //private DcMotor intake, launch;
 
-    // Optional: if you want odometry + IMU combo
-    private DcMotor verticalLeft, verticalRight, horizontal;
-    private odometry odo;
-    private BNO055IMU imu;
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -26,21 +25,21 @@ public class BozoTeleOp extends LinearOpMode {
         frontRight = hardwareMap.dcMotor.get("frontRight");
         backLeft = hardwareMap.dcMotor.get("backLeft");
         backRight = hardwareMap.dcMotor.get("backRight");
-        arm = hardwareMap.dcMotor.get("arm");
-        intake = hardwareMap.dcMotor.get("intake");
-        shooter = hardwareMap.dcMotor.get("shooter");
-        claw = hardwareMap.servo.get("claw");
-
-        // Odometry wheels (if you have them)
-        verticalLeft = hardwareMap.dcMotor.get("verticalLeft");
-        verticalRight = hardwareMap.dcMotor.get("verticalRight");
-        horizontal = hardwareMap.dcMotor.get("horizontal");
+        //intake = hardwareMap.dcMotor.get("intake");
+        //launch = hardwareMap.dcMotor.get("launch");
 
         // IMU initialization
-        imu = hardwareMap.get(BNO055IMU.class, "imu");
-        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
-        parameters.angleUnit = BNO055IMU.AngleUnit.RADIANS;
-        imu.initialize(parameters);
+        IMU imu;
+        imu = hardwareMap.get(IMU.class, "imu");
+        IMU.Parameters IMUParameters = new IMU.Parameters(
+                new RevHubOrientationOnRobot(
+                        RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, // control hub sticker faces to the right
+                        RevHubOrientationOnRobot.UsbFacingDirection.UP // control hub usb ports face up
+                )
+        );
+
+        imu.initialize(IMUParameters); // initialize IMU with our params
+        imu.resetYaw(); // set IMU yaw to 0deg
 
         // Drive motor directions
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
@@ -48,17 +47,10 @@ public class BozoTeleOp extends LinearOpMode {
         frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
         backRight.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        arm.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        shooter.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        // Start odometry thread (optional)
-        odo = new odometry(verticalLeft, verticalRight, horizontal, 1000.0, 75);
-        Thread odometryThread = new Thread(odo);
-        odometryThread.start();
+        //launch.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time
 
         waitForStart();
-
-        double clawPos = 0.5;
 
         while (opModeIsActive()) {
             // Read raw joystick inputs
@@ -67,7 +59,8 @@ public class BozoTeleOp extends LinearOpMode {
             double rx = gamepad1.right_stick_x; // rotation
 
             // Read IMU heading (radians)
-            double botHeading = imu.getAngularOrientation().firstAngle;
+            YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+            double botHeading = orientation.getYaw(AngleUnit.RADIANS); //
 
             // Field-centric transform
             double rotatedX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
@@ -92,42 +85,21 @@ public class BozoTeleOp extends LinearOpMode {
             frontRight.setPower(frPower);
             backRight.setPower(brPower);
 
-            // Arm control
-            if (Math.abs(gamepad2.left_stick_y) > 0.05)
-                arm.setPower(-gamepad2.left_stick_y * 0.6);
-            else
-                arm.setPower(0);
+            //intake.setPower(1);
 
-            // Intake control
-            if (gamepad2.right_bumper)
-                intake.setPower(1);
-            else if (gamepad2.left_bumper)
-                intake.setPower(-1);
-            else
-                intake.setPower(0);
-
-            // Shooter control
-            if (gamepad2.a)
-                shooter.setPower(1);
-            else if (gamepad2.b)
-                shooter.setPower(0.6);
-            else if (gamepad2.x)
-                shooter.setPower(0);
-
-            // Claw control
-            if (gamepad1.a) clawPos = 1.0;
-            if (gamepad1.b) clawPos = 0.0;
-            if (gamepad1.y) clawPos = 0.5;
-            claw.setPosition(clawPos);
+            // launch motor control
+            /*if (gamepad1.a)
+                launch.setPower(1);
+            else if (gamepad1.b)
+                launch.setPower(0.6);
+            else if (gamepad1.x)
+                launch.setPower(0);*/
 
             telemetry.addData("Heading (rad)", botHeading);
-            telemetry.addData("Odometry X", odo.returnXCoordinate());
-            telemetry.addData("Odometry Y", odo.returnYCoordinate());
             telemetry.update();
 
             idle();
         }
 
-        odo.stop();
     }
 }
