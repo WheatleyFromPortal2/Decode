@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.IMU; // import IMU
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot; // import IMU orientation
 
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles; // import angles for IMU orientation
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit; // import angle units for easy conversion
 
@@ -25,7 +26,6 @@ public class BozoTeleOp extends LinearOpMode {
     public static final double launchF = 0.5;
 
     public static final double launchRatio = 1; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, but if we change to any other motor, we need to update this
-    //public int launchRPM = 3000; // max RPM with 5202-0002-0001 is 6000, so this should be good for tuning
 
 
     @Override
@@ -108,11 +108,11 @@ public class BozoTeleOp extends LinearOpMode {
             backRight.setPower(brPower);
             intake.setPower(1); // permanently set intake to 100% BRRRRRRR
 
-            int launchRPM = (int) (ry * 600); // TODO: fix this to adapt to diff gear ratios
-            double launchTPS = ((double) launchRPM / 60) * launchRatio; // calculate the desired TPS (ticks per second) of our launch motor
-            launch.setVelocity(launchTPS);
-            telemetry.addData("desired launch RPM", "%.04f", launchTPS * 60);
+            int launchRPM = (int) (ry * (6000 / launchRatio)); // calculates max motor speed and multiplies it by the float of the joystick y value
+            launch.setVelocity((double) launchRPM / 60); // convert RPM to TPS by dividing by 60
+            telemetry.addData("desired launch RPM", "%.04f", launchRPM);
             telemetry.addData("launch RPM", "%.04f", launch.getVelocity() * 60);
+            telemetry.addData("launch current", "%.0f", (double) launch.getCurrent(CurrentUnit.AMPS)); // display current
 
             telemetry.addData("Heading (rad)", botHeading);
             telemetry.update();
