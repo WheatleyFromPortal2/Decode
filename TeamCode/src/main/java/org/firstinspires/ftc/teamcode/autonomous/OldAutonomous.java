@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import org.firstinspires.ftc.teamcode.odometry.odometry;
 
 @Autonomous(name = "AutoDriveToGoal", group = "Competition")
-public class autonomous extends LinearOpMode {
+public class OldAutonomous extends LinearOpMode {
     DcMotor frontLeft, frontRight, backLeft, backRight, verticalLeft, verticalRight, horizontal;
     odometry globalPositionUpdate;
 

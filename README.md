@@ -26,12 +26,12 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 
 ### DC motors
 
-| motor port | verbatim name |
-|:-----------|:--------------|
-| 0          | `frontLeft`   |
-| 1          | `frontRight`  |
-| 2          | `backLeft`    |
-| 3          | `backRight`   |
+| motor port | verbatim name | encoder? |
+|:-----------|:--------------|:---------|
+| 0          | `frontLeft`   | ❌        |
+| 1          | `frontRight`  | ❌        |
+| 2          | `backLeft`    | ❌        |
+| 3          | `backRight`   | ❌        |
 
 ### servos
 
@@ -49,12 +49,12 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 
 ### DC motors
 
-| motor port | verbatim name |
-|:-----------|:--------------|
-| 0          | `intake`      |
-| 1          | `launch`      |
-| 2          | none          |
-| 3          | none          |
+| motor port | verbatim name | encoder? |
+|:-----------|:--------------|:---------|
+| 0          | `intake`      | ❌        |
+| 1          | `launch`      | ✅        |
+| 2          | none          | ❌        |
+| 3          | none          | ❌        |
 
 # Controller Map
 ## Sticks
@@ -66,3 +66,4 @@ right stick:
 - Y: launch power (experimental)
 
 ## bumpers
+- left bumper: slow mode
