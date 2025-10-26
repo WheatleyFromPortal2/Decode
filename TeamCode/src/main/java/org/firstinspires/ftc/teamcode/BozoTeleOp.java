@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import com.qualcomm.robotcore.hardware.IMU; // import IMU
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot; // import IMU orientation
+import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles; // import angles for IMU orientation
@@ -18,8 +19,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit; // import 
 @TeleOp(name="BozoTeleOp", group="TeleOp")
 public class BozoTeleOp extends LinearOpMode {
     private DcMotor frontLeft, frontRight, backLeft, backRight, intake;
+    private Servo lowerTransfer, upperTransfer;
     private DcMotorEx launch; // we need current monitoring and PIDF control
-
+    private boolean isIntakePowered = false;
+    private boolean isLaunchPowered = false;
+    private double lowerTransferLowerLimit = 0.25;
+    private double lowerTransferUpperLimit = 0.40;
+    private static final double debounceTime = 0.5; // wait for half a second before reading new button inputs
     public static final double launchP = 2.5;
     public static final double launchI = 0.1;
     public static final double launchD = 0.2;
@@ -27,6 +33,8 @@ public class BozoTeleOp extends LinearOpMode {
 
     public static final double launchRatio = 1; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, but if we change to any other motor, we need to update this
 
+    private double time = getRuntime();
+    private double oldTime = getRuntime();
 
     @Override
     public void runOpMode() throws InterruptedException {
@@ -37,6 +45,8 @@ public class BozoTeleOp extends LinearOpMode {
         backRight = hardwareMap.dcMotor.get("backRight");
         intake = hardwareMap.dcMotor.get("intake");
         launch = (DcMotorEx) hardwareMap.dcMotor.get("launch");
+        lowerTransfer = hardwareMap.servo.get("lowerTransfer");
+        upperTransfer = hardwareMap.servo.get("upperTransfer");
 
         // IMU initialization
         IMU imu;
@@ -60,7 +70,7 @@ public class BozoTeleOp extends LinearOpMode {
         launch.setDirection(DcMotorSimple.Direction.FORWARD); // will prob need to be changed
 
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
-
+        /*
         // Get the PIDF coefficients for the RUN_USING_ENCODER RunMode.
         PIDFCoefficients pidfOrig = launch.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -70,19 +80,34 @@ public class BozoTeleOp extends LinearOpMode {
 
         telemetry.addData("P,I,D,F (orig)", "%.04f, %.04f, %.04f, %.04f",
                 pidfOrig.p, pidfOrig.i, pidfOrig.d, pidfOrig.f);
+        */
+        telemetry.update();
+        lowerTransfer.setPosition(0);
+        upperTransfer.setPosition(0);
 
         waitForStart();
 
         while (opModeIsActive()) {
+            time = getRuntime();
             // Read raw joystick inputs
-            double y = -gamepad1.left_stick_y; // forward
-            double x = gamepad1.left_stick_x * 1.1; // strafe
-            double rx = gamepad1.right_stick_x; // rotation
+            double x = gamepad1.left_stick_y; // forward (idk why this is cooked)
+            double y = -gamepad1.left_stick_x; // strafe (idk why this is cooked)
+            double rx = -gamepad1.right_stick_x; // rotation (idk why this is cooked)
             double ry = gamepad1.right_stick_y; // launch power (temporary until algorithm)
+
+            if (gamepad1.a && oldTime + debounceTime < time) {
+                isIntakePowered = !isIntakePowered;
+                oldTime = getRuntime();
+            }
+            if (gamepad1.b && oldTime + debounceTime < time) {
+                isLaunchPowered = !isLaunchPowered;
+            }
 
             // Read IMU heading (radians)
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
-            double botHeading = orientation.getYaw(AngleUnit.RADIANS); //
+            double botHeading = orientation.getYaw(AngleUnit.RADIANS);
+            telemetry.addData("Heading (rad)", botHeading);
+            //double botHeading = 0;
 
             // Field-centric transform
             double rotatedX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
@@ -106,15 +131,30 @@ public class BozoTeleOp extends LinearOpMode {
             backLeft.setPower(blPower);
             frontRight.setPower(frPower);
             backRight.setPower(brPower);
-            intake.setPower(1); // permanently set intake to 100% BRRRRRRR
 
-            int launchRPM = (int) (ry * (6000 / launchRatio)); // calculates max motor speed and multiplies it by the float of the joystick y value
-            launch.setVelocity((double) launchRPM / 60); // convert RPM to TPS by dividing by 60
-            telemetry.addData("desired launch RPM", "%.04f", launchRPM);
-            telemetry.addData("launch RPM", "%.04f", launch.getVelocity() * 60);
-            telemetry.addData("launch current", "%.0f", (double) launch.getCurrent(CurrentUnit.AMPS)); // display current
+            if (isIntakePowered) intake.setPower(1);
+            else intake.setPower(0);
 
-            telemetry.addData("Heading (rad)", botHeading);
+            if (isLaunchPowered) launch.setPower(1);
+            else launch.setPower(0);
+
+            //intake.setPower(1); // permanently set intake to 100% BRRRRRRR
+            //lowerTransfer.setPosition(ry);
+            if (gamepad1.y) {
+                lowerTransfer.setPosition(lowerTransferUpperLimit);
+            } else {
+                lowerTransfer.setPosition(lowerTransferLowerLimit);
+            }
+
+            int launchRPM = (int) (-ry * (6000 / launchRatio)); // calculates max motor speed and multiplies it by the float of the joystick y value
+            //launch.setVelocity((double) launchRPM / 60); // convert RPM to TPS by dividing by 60
+            //launch.setPower(1);
+            telemetry.addData("desired launch RPM", (double) launchRPM);
+            telemetry.addData("launch RPM", launch.getVelocity());
+            telemetry.addData("launch current", (double) launch.getCurrent(CurrentUnit.AMPS)); // display current
+            telemetry.addData("y", y);
+            telemetry.addData("x", x);
+            telemetry.addData("lowerTransfer", lowerTransfer.getPosition());
             telemetry.update();
 
             idle();

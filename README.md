@@ -12,10 +12,12 @@ driver station config name: `parallel plate v0`
 ## control hub
 
 ### I2C Bus 0
-| port |     device     | verbatim name |
-|:-----|:---------------|:--------------|
-| 0    | BN0055         | `imu`         |
+| port | device                | verbatim name |
+|:-----|:----------------------|:--------------|
+| 0    | BN0055                | `imu`         |
+| 1    | Pinpoint Odo Computer | `odo`         |
 
+(the `BN0055` is internal so you don't need to *physically* connect it)
 make sure you set the device specifically to `REV internal IMU (BN0055)`, control hubs <2022 have older, less accurate and different ones that we don't want to use
 
 ### USB port
