@@ -30,7 +30,7 @@ public class BozoTeleOp extends LinearOpMode {
     public static final double launchI = 0.1;
     public static final double launchD = 0.2;
     public static final double launchF = 0.5;
-
+    public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
     public static final double launchRatio = 1; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, but if we change to any other motor, we need to update this
 
     private double time = getRuntime();
@@ -70,7 +70,6 @@ public class BozoTeleOp extends LinearOpMode {
         launch.setDirection(DcMotorSimple.Direction.FORWARD); // will prob need to be changed
 
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
-        /*
         // Get the PIDF coefficients for the RUN_USING_ENCODER RunMode.
         PIDFCoefficients pidfOrig = launch.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -80,9 +79,8 @@ public class BozoTeleOp extends LinearOpMode {
 
         telemetry.addData("P,I,D,F (orig)", "%.04f, %.04f, %.04f, %.04f",
                 pidfOrig.p, pidfOrig.i, pidfOrig.d, pidfOrig.f);
-        */
         telemetry.update();
-        lowerTransfer.setPosition(0);
+        //lowerTransfer.setPosition(0);
         upperTransfer.setPosition(0);
 
         waitForStart();
@@ -107,7 +105,7 @@ public class BozoTeleOp extends LinearOpMode {
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
             double botHeading = orientation.getYaw(AngleUnit.RADIANS);
             telemetry.addData("Heading (rad)", botHeading);
-            //double botHeading = 0;
+            botHeading = 0;
 
             // Field-centric transform
             double rotatedX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
@@ -132,11 +130,14 @@ public class BozoTeleOp extends LinearOpMode {
             frontRight.setPower(frPower);
             backRight.setPower(brPower);
 
+
+            double launchRPM = ((-ry + 1) * (((double) 6000) / launchRatio) / 2); // calculates max motor speed and multiplies it by the float of the joystick y value
+
             if (isIntakePowered) intake.setPower(1);
             else intake.setPower(0);
 
-            if (isLaunchPowered) launch.setPower(1);
-            else launch.setPower(0);
+            if (isLaunchPowered) launch.setVelocity((double) (launchRPM / 60) * TICKS_PER_REV);
+            else launch.setVelocity(0);
 
             //intake.setPower(1); // permanently set intake to 100% BRRRRRRR
             //lowerTransfer.setPosition(ry);
@@ -146,14 +147,14 @@ public class BozoTeleOp extends LinearOpMode {
                 lowerTransfer.setPosition(lowerTransferLowerLimit);
             }
 
-            int launchRPM = (int) (-ry * (6000 / launchRatio)); // calculates max motor speed and multiplies it by the float of the joystick y value
-            //launch.setVelocity((double) launchRPM / 60); // convert RPM to TPS by dividing by 60
             //launch.setPower(1);
             telemetry.addData("desired launch RPM", (double) launchRPM);
-            telemetry.addData("launch RPM", launch.getVelocity());
+            telemetry.addData("launch RPM", (launch.getVelocity() / TICKS_PER_REV ) * 60); // convert from ticks/sec to rev/min
             telemetry.addData("launch current", (double) launch.getCurrent(CurrentUnit.AMPS)); // display current
             telemetry.addData("y", y);
             telemetry.addData("x", x);
+            telemetry.addData("rx", rx);
+            telemetry.addData("ry", ry);
             telemetry.addData("lowerTransfer", lowerTransfer.getPosition());
             telemetry.update();
 
