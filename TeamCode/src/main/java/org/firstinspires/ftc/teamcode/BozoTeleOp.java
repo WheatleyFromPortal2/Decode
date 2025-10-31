@@ -23,13 +23,13 @@ public class BozoTeleOp extends LinearOpMode {
     private DcMotorEx launch; // we need current monitoring and PIDF control
     private boolean isIntakePowered = false;
     private boolean isLaunchPowered = false;
-    private double lowerTransferLowerLimit = 0.25;
-    private double lowerTransferUpperLimit = 0.40;
-    private static final double debounceTime = 0.5; // wait for half a second before reading new button inputs
-    public static final double launchP = 2.5;
-    public static final double launchI = 0.1;
-    public static final double launchD = 0.2;
-    public static final double launchF = 0.5;
+    private double lowerTransferLowerLimit = 0.28;
+    private double lowerTransferUpperLimit = 0.49;
+    private static final double debounceTime = 1; // wait for half a second before reading new button inputs
+    public static final double launchP = 20; // orig 2.5
+    public static final double launchI = 0.01; // orig 0.1
+    public static final double launchD = 0.01; // orig 0.2
+    public static final double launchF = 1 / 3000; // full velocity is ~2436tps so this is our feedforward
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
     public static final double launchRatio = 1; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, but if we change to any other motor, we need to update this
 
@@ -137,7 +137,10 @@ public class BozoTeleOp extends LinearOpMode {
             else intake.setPower(0);
 
             if (isLaunchPowered) launch.setVelocity((double) (launchRPM / 60) * TICKS_PER_REV);
-            else launch.setVelocity(0);
+            else {
+                launch.setPower(0);
+                launchRPM = 0; // indicate that launch isn't powered
+            }
 
             //intake.setPower(1); // permanently set intake to 100% BRRRRRRR
             //lowerTransfer.setPosition(ry);
@@ -149,7 +152,9 @@ public class BozoTeleOp extends LinearOpMode {
 
             //launch.setPower(1);
             telemetry.addData("desired launch RPM", (double) launchRPM);
+            telemetry.addData("desired launch TPS", (launchRPM / 60) * TICKS_PER_REV);
             telemetry.addData("launch RPM", (launch.getVelocity() / TICKS_PER_REV ) * 60); // convert from ticks/sec to rev/min
+            telemetry.addData("launch velocity", launch.getVelocity());
             telemetry.addData("launch current", (double) launch.getCurrent(CurrentUnit.AMPS)); // display current
             telemetry.addData("y", y);
             telemetry.addData("x", x);
