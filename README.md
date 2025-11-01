@@ -5,6 +5,13 @@ if `adb devices` doesn't show any devices:
 2. use `adb connect 192.168.43.1`
 3. now try `adb devices`
 
+## programming conventions
+### units
+- all distance units: millimeters
+- all angle units: radians
+- all speed units: TPS or radians/s
+  - TPS for commanding motors directly
+  - radians/s for math (bcuz it's easy for physics)
 # Hardware Map
 
 driver station config name: `parallel plate v0`

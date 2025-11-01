@@ -6,7 +6,6 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 import com.qualcomm.robotcore.hardware.IMU; // import IMU
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot; // import IMU orientation
@@ -18,70 +17,23 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit; // import 
 
 @TeleOp(name="BozoTeleOp", group="TeleOp")
 public class BozoTeleOp extends LinearOpMode {
-    private DcMotor frontLeft, frontRight, backLeft, backRight, intake;
-    private Servo lowerTransfer, upperTransfer;
-    private DcMotorEx launch; // we need current monitoring and PIDF control
+    private Robot robot;
     private boolean isIntakePowered = false;
     private boolean isLaunchPowered = false;
-    private double lowerTransferLowerLimit = 0.28;
-    private double lowerTransferUpperLimit = 0.49;
     private static final double debounceTime = 1; // wait for half a second before reading new button inputs
-    public static final double launchP = 20; // orig 2.5
-    public static final double launchI = 0.01; // orig 0.1
-    public static final double launchD = 0.01; // orig 0.2
-    public static final double launchF = 1 / 3000; // full velocity is ~2436tps so this is our feedforward
-    public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
-    public static final double launchRatio = 1; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, but if we change to any other motor, we need to update this
 
     private double time = getRuntime();
     private double oldTime = getRuntime();
 
     @Override
     public void runOpMode() throws InterruptedException {
-        // Initialize hardware
-        frontLeft = hardwareMap.dcMotor.get("frontLeft");
-        frontRight = hardwareMap.dcMotor.get("frontRight");
-        backLeft = hardwareMap.dcMotor.get("backLeft");
-        backRight = hardwareMap.dcMotor.get("backRight");
-        intake = hardwareMap.dcMotor.get("intake");
-        launch = (DcMotorEx) hardwareMap.dcMotor.get("launch");
-        lowerTransfer = hardwareMap.servo.get("lowerTransfer");
-        upperTransfer = hardwareMap.servo.get("upperTransfer");
-
-        // IMU initialization
-        IMU imu;
-        imu = hardwareMap.get(IMU.class, "imu");
-        IMU.Parameters IMUParameters = new IMU.Parameters(
-                new RevHubOrientationOnRobot(
-                        RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, // control hub sticker faces to the right
-                        RevHubOrientationOnRobot.UsbFacingDirection.UP // control hub usb ports face up
-                )
-        );
-
-        imu.initialize(IMUParameters); // initialize IMU with our params
-        imu.resetYaw(); // set IMU yaw to 0deg
+        robot = new Robot(hardwareMap); // create our robot class
 
         // Drive motor directions
-        frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        intake.setDirection(DcMotorSimple.Direction.FORWARD); // will prob need to be changed
-        launch.setDirection(DcMotorSimple.Direction.FORWARD); // will prob need to be changed
 
-        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
-        // Get the PIDF coefficients for the RUN_USING_ENCODER RunMode.
-        PIDFCoefficients pidfOrig = launch.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
-
-        // Change coefficients using methods included with DcMotorEx class.
-        PIDFCoefficients pidfNew = new PIDFCoefficients(launchP, launchI, launchD, launchF);
-        launch.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
-
-        telemetry.addData("P,I,D,F (orig)", "%.04f, %.04f, %.04f, %.04f",
-                pidfOrig.p, pidfOrig.i, pidfOrig.d, pidfOrig.f);
         telemetry.update();
         //lowerTransfer.setPosition(0);
-        upperTransfer.setPosition(0);
+        robot.upperTransfer.setPosition(0);
 
         waitForStart();
 
@@ -102,10 +54,9 @@ public class BozoTeleOp extends LinearOpMode {
             }
 
             // Read IMU heading (radians)
-            YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
-            double botHeading = orientation.getYaw(AngleUnit.RADIANS);
+
+            double botHeading = robot.odo.getHeading(AngleUnit.RADIANS); // get our heading in radians
             telemetry.addData("Heading (rad)", botHeading);
-            botHeading = 0;
 
             // Field-centric transform
             double rotatedX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
@@ -117,50 +68,49 @@ public class BozoTeleOp extends LinearOpMode {
             double frPower = (rotatedY - rotatedX - rx) / denominator;
             double brPower = (rotatedY + rotatedX - rx) / denominator;
 
-            // Slow mode
-            if (gamepad1.left_bumper) {
+            if (gamepad1.left_bumper) { // Slow mode
                 flPower *= 0.5;
                 blPower *= 0.5;
                 frPower *= 0.5;
                 brPower *= 0.5;
             }
 
-            frontLeft.setPower(flPower);
-            backLeft.setPower(blPower);
-            frontRight.setPower(frPower);
-            backRight.setPower(brPower);
+            robot.frontLeft.setPower(flPower);
+            robot.backLeft.setPower(blPower);
+            robot.frontRight.setPower(frPower);
+            robot.backRight.setPower(brPower);
 
 
-            double launchRPM = ((-ry + 1) * (((double) 6000) / launchRatio) / 2); // calculates max motor speed and multiplies it by the float of the joystick y value
+            double launchRPM = ((-ry + 1) * (((double) 6000) / Robot.launchRatio) / 2); // calculates max motor speed and multiplies it by the float of the joystick y value
 
-            if (isIntakePowered) intake.setPower(1);
-            else intake.setPower(0);
+            if (isIntakePowered) robot.intake.setPower(1);
+            else robot.intake.setPower(0);
 
-            if (isLaunchPowered) launch.setVelocity((double) (launchRPM / 60) * TICKS_PER_REV);
+            if (isLaunchPowered) robot.launch.setVelocity((launchRPM / 60) * Robot.TICKS_PER_REV);
             else {
-                launch.setPower(0);
+                robot.launch.setPower(0);
                 launchRPM = 0; // indicate that launch isn't powered
             }
 
             //intake.setPower(1); // permanently set intake to 100% BRRRRRRR
             //lowerTransfer.setPosition(ry);
             if (gamepad1.y) {
-                lowerTransfer.setPosition(lowerTransferUpperLimit);
+                robot.lowerTransfer.setPosition(Robot.lowerTransferUpperLimit);
             } else {
-                lowerTransfer.setPosition(lowerTransferLowerLimit);
+                robot.lowerTransfer.setPosition(Robot.lowerTransferLowerLimit);
             }
 
-            //launch.setPower(1);
-            telemetry.addData("desired launch RPM", (double) launchRPM);
-            telemetry.addData("desired launch TPS", (launchRPM / 60) * TICKS_PER_REV);
-            telemetry.addData("launch RPM", (launch.getVelocity() / TICKS_PER_REV ) * 60); // convert from ticks/sec to rev/min
-            telemetry.addData("launch velocity", launch.getVelocity());
-            telemetry.addData("launch current", (double) launch.getCurrent(CurrentUnit.AMPS)); // display current
+            telemetry.addData("odo status", robot.odo.getDeviceStatus());
+            telemetry.addData("desired launch RPM", launchRPM);
+            telemetry.addData("desired launch TPS", (launchRPM / 60) * Robot.TICKS_PER_REV);
+            telemetry.addData("launch RPM", (robot.launch.getVelocity() / Robot.TICKS_PER_REV ) * 60); // convert from ticks/sec to rev/min
+            telemetry.addData("launch velocity", robot.launch.getVelocity());
+            telemetry.addData("launch current", robot.getLaunchCurrent()); // display current
             telemetry.addData("y", y);
             telemetry.addData("x", x);
             telemetry.addData("rx", rx);
             telemetry.addData("ry", ry);
-            telemetry.addData("lowerTransfer", lowerTransfer.getPosition());
+            telemetry.addData("lowerTransfer", robot.lowerTransfer.getPosition());
             telemetry.update();
 
             idle();
