@@ -42,7 +42,7 @@ public class BozoTeleOp extends LinearOpMode {
             // Read raw joystick inputs
             double x = gamepad1.left_stick_y; // forward (idk why this is cooked)
             double y = -gamepad1.left_stick_x; // strafe (idk why this is cooked)
-            double rx = -gamepad1.right_stick_x; // rotation (idk why this is cooked)
+            double rx = gamepad1.right_stick_x; // rotation (idk why this is cooked)
             double ry = gamepad1.right_stick_y; // launch power (temporary until algorithm)
 
             if (gamepad1.a && oldTime + debounceTime < time) {
