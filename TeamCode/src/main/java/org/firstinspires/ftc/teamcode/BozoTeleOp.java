@@ -2,117 +2,119 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
-import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 
-import com.qualcomm.robotcore.hardware.IMU; // import IMU
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot; // import IMU orientation
-import com.qualcomm.robotcore.hardware.Servo;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.pedroPathing.Tuning;
 
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles; // import angles for IMU orientation
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit; // import angle units for easy conversion
+import com.bylazar.configurables.annotations.Configurable;
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.HeadingInterpolator;
+import com.pedropathing.paths.Path;
+import com.pedropathing.paths.PathChain;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import java.util.function.Supplier;
 
-// this whole teleop should be refactored to use pedro pathing: https://pedropathing.com/docs/pathing/examples/teleop
+@Configurable
 @TeleOp(name="BozoTeleOp", group="TeleOp")
-public class BozoTeleOp extends LinearOpMode {
+public class BozoTeleOp extends OpMode {
     private Robot robot;
+    private Follower follower;
+    public static Pose startingPose;
+    private boolean automatedDrive = false;
+    private Supplier<PathChain> pathChain;
+    private TelemetryManager telemetryM;
+    private final double slowModeMultiplier = 0.5;
+    private final double turnRateMultiplier = 0.75;
     private boolean isIntakePowered = false;
     private boolean isLaunchPowered = false;
     private static final double debounceTime = 1; // wait for half a second before reading new button inputs
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void init() {
         robot = new Robot(hardwareMap); // create our robot class
 
-        // Drive motor directions
+        follower = Constants.createFollower(hardwareMap);
+        follower.setStartingPose(startingPose == null ? new Pose() : startingPose); // if we don't already have a starting pose, set it
+        follower.update();
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
-        telemetry.update();
-        //lowerTransfer.setPosition(0);
-        robot.upperTransfer.setPosition(0);
+        // no idea what this is
+        pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
+                .addPath(new Path(new BezierLine(follower::getPose, new Pose(45, 98))))
+                .setHeadingInterpolation(HeadingInterpolator.linearFromPoint(follower::getHeading, Math.toRadians(45), 0.8))
+                .build();
+    }
 
-        waitForStart();
+    public void start() {
+        follower.startTeleopDrive(true); // start the teleop, and use brakes
 
-        while (opModeIsActive()) {
-            time = getRuntime();
-            // Read raw joystick inputs
-            double x = gamepad1.left_stick_y; // forward (idk why this is cooked)
-            double y = -gamepad1.left_stick_x; // strafe (idk why this is cooked)
-            double rx = -gamepad1.right_stick_x; // rotation (idk why this is cooked)
-            double ry = gamepad1.right_stick_y; // launch power (temporary until algorithm)
+        robot.upperTransfer.setPosition(Robot.upperTransferClosed); // make sure balls cannot launch
+        robot.lowerTransfer.setPosition(Robot.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
+    }
 
-            if (gamepad1.aWasReleased()) {
-                isIntakePowered = !isIntakePowered;
-            }
-            if (gamepad1.bWasReleased()) {
-                isLaunchPowered = !isLaunchPowered;
-            }
-            if (gamepad1.yWasReleased()) {
+    @Override
+    public void loop() {
+        follower.update();
+        telemetryM.update(); // update telemetry manager (Panels)
+        telemetry.update();  // update driver station telemetry
+
+        // Read raw joystick inputs
+        double ry = gamepad1.right_stick_y; // launch power (temporary until algorithm)
+
+        if (gamepad1.aWasReleased()) {
+            isIntakePowered = !isIntakePowered;
+        }
+        if (gamepad1.bWasReleased()) {
+            isLaunchPowered = !isLaunchPowered;
+        }
+        if (gamepad1.yWasReleased()) {
+            try {
                 robot.launchBall();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
-
-            // Read IMU heading (radians)
-
-            double botHeading = robot.odo.getHeading(AngleUnit.RADIANS); // get our heading in radians
-            telemetry.addData("Heading (rad)", botHeading);
-
-            // Field-centric transform
-            double rotatedX = x * Math.cos(-botHeading) - y * Math.sin(-botHeading);
-            double rotatedY = x * Math.sin(-botHeading) + y * Math.cos(-botHeading);
-
-            double denominator = Math.max(Math.abs(rotatedY) + Math.abs(rotatedX) + Math.abs(rx), 1.0);
-            double flPower = (rotatedY + rotatedX + rx) / denominator;
-            double blPower = (rotatedY - rotatedX - rx) / denominator;
-            double frPower = (rotatedY - rotatedX - rx) / denominator;
-            double brPower = (rotatedY + rotatedX - rx) / denominator;
-
-            if (gamepad1.left_bumper) { // Slow mode
-                flPower *= 0.5;
-                blPower *= 0.5;
-                frPower *= 0.5;
-                brPower *= 0.5;
-            }
-
-            robot.frontLeft.setPower(flPower);
-            robot.backLeft.setPower(blPower);
-            robot.frontRight.setPower(frPower);
-            robot.backRight.setPower(brPower);
-
-
-            double launchRPM = ((-ry + 1) * (((double) 6000) / Robot.launchRatio) / 2); // calculates max motor speed and multiplies it by the float of the joystick y value
-
-            if (isIntakePowered) robot.intake.setPower(1);
-            else robot.intake.setPower(0);
-
-            if (isLaunchPowered) robot.launch.setVelocity((launchRPM / 60) * Robot.TICKS_PER_REV);
-            else {
-                robot.launch.setPower(0);
-                launchRPM = 0; // indicate that launch isn't powered
-            }
-
-            if (gamepad1.y) {
-                robot.lowerTransfer.setPosition(Robot.lowerTransferUpperLimit);
-            } else {
-                robot.lowerTransfer.setPosition(Robot.lowerTransferLowerLimit);
-            }
-
-            telemetry.addData("odo status", robot.odo.getDeviceStatus());
-            telemetry.addData("desired launch RPM", launchRPM);
-            telemetry.addData("desired launch TPS", (launchRPM / 60) * Robot.TICKS_PER_REV);
-            telemetry.addData("launch RPM", (robot.launch.getVelocity() / Robot.TICKS_PER_REV ) * 60); // convert from ticks/sec to rev/min
-            telemetry.addData("launch velocity", robot.launch.getVelocity());
-            telemetry.addData("launch current", robot.getLaunchCurrent()); // display current
-            telemetry.addData("y", y);
-            telemetry.addData("x", x);
-            telemetry.addData("rx", rx);
-            telemetry.addData("ry", ry);
-            telemetry.addData("lowerTransfer", robot.lowerTransfer.getPosition());
-            telemetry.update();
-
-            idle();
         }
 
+        if (!automatedDrive) {
+            if (!gamepad1.left_bumper) follower.setTeleOpDrive(
+                    -gamepad1.left_stick_y, // fix skewed directions
+                    gamepad1.left_stick_x,
+                    gamepad1.right_stick_x * turnRateMultiplier,
+                    true // true = robot centric; false = field centric
+            );
+            else follower.setTeleOpDrive( // slow mode
+                    -gamepad1.left_stick_y * slowModeMultiplier, // reduce speed by our slow mode multiplier
+                    gamepad1.left_stick_x * slowModeMultiplier,
+                    gamepad1.right_stick_x * slowModeMultiplier * turnRateMultiplier,
+                    true // true = robot centric; false = field centric
+            );
+        }
+
+        double launchRPM = ((-ry + 1) * (double) 6000 / 2); // calculates max motor speed and multiplies it by the float of the joystick y value
+
+        if (isIntakePowered) robot.intake.setPower(1);
+        else robot.intake.setPower(0);
+
+        if (isLaunchPowered) robot.launch.setVelocity((launchRPM / (60)) * Robot.TICKS_PER_REV );
+        else {
+            robot.launch.setPower(0);
+            launchRPM = 0; // indicate that launch isn't powered
+        }
+
+        telemetryM.debug("desired launch RPM", launchRPM * Robot.launchRatio); // account for the launch ratio
+        //telemetry.addData("desired launch TPS", (launchRPM / 60) * Robot.TICKS_PER_REV);
+        telemetryM.debug("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
+        telemetryM.debug("launch current", robot.getLaunchCurrent()); // display launch current
+        telemetryM.debug("intake current", robot.getIntakeCurrent()); // display intake current
+        telemetryM.debug("lowerTransfer", robot.lowerTransfer.getPosition());
+        telemetryM.debug("x:" + follower.getPose().getX());
+        telemetryM.debug("y:" + follower.getPose().getY());
+        telemetryM.debug("heading:" + follower.getPose().getHeading());
+        telemetryM.update(telemetry); // update telemetry
     }
 }
