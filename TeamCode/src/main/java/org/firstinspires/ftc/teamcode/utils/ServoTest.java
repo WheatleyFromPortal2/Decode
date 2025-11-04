@@ -1,10 +1,12 @@
 // the purpose of OpMode is to just test and record servo endpoints
 // MAKE SURE BOTH SERVOS ARE NOT GOING TO RUN INTO ANYTHING!!!
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.utils;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+
+import org.firstinspires.ftc.teamcode.Robot;
 
 @TeleOp(name="ServoTest", group="TeleOp")
 public class ServoTest extends LinearOpMode {
