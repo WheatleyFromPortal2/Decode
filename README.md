@@ -12,6 +12,9 @@ if `adb devices` doesn't show any devices:
 - all speed units: TPS or radians/s
   - TPS for commanding motors directly
   - radians/s for math (bcuz it's easy for physics)
+### odo distances
+- robot length (back to front) is **420mm**
+- robot width (left to right) is **400mm**
 # Hardware Map
 
 driver station config name: `parallel plate v0`

@@ -15,11 +15,12 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-import org.firstinspires.ftc.teamcode.drivers.GoBildaPinpointDriver;
+import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 public class Robot { // create our global class for our robot
     public DcMotorEx frontLeft, frontRight, backLeft, backRight, intake, launch;
     public Servo lowerTransfer, upperTransfer;
-    public org.firstinspires.ftc.teamcode.drivers.GoBildaPinpointDriver odo;
+    public com.qualcomm.hardware.gobilda.GoBildaPinpointDriver odo;
+
 
 
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
@@ -63,6 +64,14 @@ public class Robot { // create our global class for our robot
         backRight.setDirection(DcMotorSimple.Direction.FORWARD); // used to be reversed
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
         launch.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        frontLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE); // brake when we turn off the motor
+        frontRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE); // brake when we turn off the motor
+        backLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE); // brake when we turn off the motor
+        backRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.BRAKE); // brake when we turn off the motor
+
+        intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
+        launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
 
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
         // Get the PIDF coefficients for the RUN_USING_ENCODER RunMode.
