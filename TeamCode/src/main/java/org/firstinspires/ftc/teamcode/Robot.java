@@ -1,3 +1,6 @@
+/*
+this is basically our mega-class that holds all robot data that is shared between auto and teleop
+ */
 package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Thread.sleep;
