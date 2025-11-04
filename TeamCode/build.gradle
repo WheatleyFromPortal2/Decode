@@ -24,11 +24,9 @@ android {
     }
 }
 
-buildscript {
-    repositories {
-        maven {
-            url = 'https://maven.brott.dev/'
-        }
+repositories {
+    maven {
+        url = 'https://maven.brott.dev/'
     }
 }
 
