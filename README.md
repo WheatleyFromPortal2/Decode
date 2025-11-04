@@ -82,6 +82,7 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 - left bumper: slow mode
 
 # multipliers
+when moving around the field and back to the same place, our position was within ~0.25" so we prob won't need to recalibrate the pinpoint
 ## forward (48") tests
 1. 19839.220040170083
 2. 24006.84554319875
@@ -117,3 +118,16 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 ## lateral zero power acceleration (deceleration)
 1. -38.25290065185062
 2. -33.778581054706926
+
+# OpModes
+## TeleOp
+- `BlueTeleOp`: blue team goal position for launch calculations
+- `RedTeleOp`: red team goal position for launch calculations
+
+## Auto
+### Blue Team
+- `BlueTriAuto`: starting by bottom triangle
+- `BlueGoalAuto`: starting by blue team goal
+### Red Team
+- `RedTriAuto`: starting by bottom triangle
+- `RedGoalAuto`: starting by red team goal
