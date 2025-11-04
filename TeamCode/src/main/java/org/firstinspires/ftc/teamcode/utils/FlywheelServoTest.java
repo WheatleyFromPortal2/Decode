@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
 
-@TeleOp(name="ServoTest", group="TeleOp")
-public class ServoTest extends LinearOpMode {
+@TeleOp(name="FlywheelServoTest", group="TeleOp")
+public class FlywheelServoTest extends LinearOpMode {
     private Robot robot;
 
     @Override
@@ -30,8 +30,15 @@ public class ServoTest extends LinearOpMode {
             telemetry.addData("lowerTransfer:", robot.lowerTransfer.getPosition());
             telemetry.addData("upperTransfer:", robot.upperTransfer.getPosition());
 
-            telemetry.update();
 
+            if (gamepad1.x) robot.launch.setPower(1);
+            else robot.launch.setPower(0);
+
+            telemetry.addData("launch TPS", robot.launch.getVelocity());
+            telemetry.addData("launch RPM", robot.getLaunchRPM());
+            telemetry.addData("launch current", robot.getLaunchCurrent());
+
+            telemetry.update();
             idle();
         }
     }
