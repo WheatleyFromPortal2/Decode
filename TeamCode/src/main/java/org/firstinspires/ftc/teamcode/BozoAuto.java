@@ -16,7 +16,6 @@ public class BozoAuto extends OpMode {
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
-
     public enum PathState { // TODO: fill this out
         START,
         ACTION1,

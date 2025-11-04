@@ -15,6 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles; // import angles for IMU orientation
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit; // import angle units for easy conversion
 
+// this whole teleop should be refactored to use pedro pathing: https://pedropathing.com/docs/pathing/examples/teleop
 @TeleOp(name="BozoTeleOp", group="TeleOp")
 public class BozoTeleOp extends LinearOpMode {
     private Robot robot;

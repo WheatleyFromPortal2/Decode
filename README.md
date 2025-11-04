@@ -70,12 +70,50 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 
 # Controller Map
 ## Sticks
-left stick:
+### left stick
 - X: move X (absolute coordinates)
 - Y: move Y (absolute coordinates)
-right stick:
+
+### right stick:
 - X: rotate clockwise/counterclockwise
 - Y: launch power (experimental)
 
 ## bumpers
 - left bumper: slow mode
+
+# multipliers
+## forward (48") tests
+1. 19839.220040170083
+2. 24006.84554319875
+3. 24431.005099513706
+4. 24949.657374839462
+5. 25468.686568540168
+- avg: _____
+
+## lateral (48") tests
+### going left
+1. -24898.2422102001
+2. -25300.129015353705
+### going right
+1. 26475.23513389474
+2. 25923.59967956919
+
+## turning
+1. -1.0046447450070208
+2. 1.0092479734478739
+
+## forward velocity
+1. 57.62592321681226
+2. 57.19646592027559
+
+## strafe velocity
+1. 47.61915456216167
+2. 46.422831377645174
+
+## forward zero power acceleration (deceleration)
+1. -46.364970304550404
+2. -43.0153804561628
+
+## lateral zero power acceleration (deceleration)
+1. -38.25290065185062
+2. -33.778581054706926
