@@ -20,17 +20,22 @@ public class Robot { // create our global class for our robot
 
 
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
-    public static final double launchRatio = 1; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, but if we change to any other motor, we need to update this
+    public static final double launchRatio = (double) 16 / 24; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 24tooth pulley
 
     // PIDF coefficients
     public static final double launchP = 20; // orig 2.5
     public static final double launchI = 0.01; // orig 0.1
     public static final double launchD = 0.01; // orig 0.2
-    public static final double launchF = (double) 1 / 3000; // full velocity is ~2436tps so this is our feedforward
+    public static final double launchF = (double) 1 / 2000; // TODO: fix this complete guess
     public static final double lowerTransferLowerLimit = 0.28;
     public static final double lowerTransferUpperLimit = 0.49;
+
+    public static final double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
+    public static final double upperTransferOpen = 0.66; // servo position where upper transfer allows balls to pass into launch
+
     public static final double turnMaxPower = 1; // our max turn power is max (this is prob a bad idea)
     public static final double turnWait = 20;
+    public static final int launchDelay = 500; // time to wait for servos to move during launch (in ms)
 
     public Robot(HardwareMap hw) { // create all of our hardware
         // DC motors (all are DcMotorEx for current monitoring)
@@ -51,8 +56,8 @@ public class Robot { // create our global class for our robot
         // set motor directions
         frontLeft.setDirection(DcMotorSimple.Direction.FORWARD);
         backLeft.setDirection(DcMotorSimple.Direction.FORWARD);
-        frontRight.setDirection(DcMotorSimple.Direction.REVERSE);
-        backRight.setDirection(DcMotorSimple.Direction.REVERSE);
+        frontRight.setDirection(DcMotorSimple.Direction.FORWARD); // used to be reversed
+        backRight.setDirection(DcMotorSimple.Direction.FORWARD); // used to be reversed
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
         launch.setDirection(DcMotorSimple.Direction.FORWARD);
 
@@ -71,14 +76,15 @@ public class Robot { // create our global class for our robot
         odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD);
         odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.REVERSED, GoBildaPinpointDriver.EncoderDirection.FORWARD);
         odo.resetPosAndIMU(); // set pos to 0, 0, 0 and recalibrate IMU
-
     }
-    public void stopAllMotors() {
+
+    public void stopAllMotors() { // stops all motors
         frontLeft.setPower(0);
         frontRight.setPower(0);
         backLeft.setPower(0);
         backRight.setPower(0);
     }
+
     public double[] getXYFromGoal(double goalX, double goalY) {
         double botX = odo.getPosX(DistanceUnit.MM);
         double botY = odo.getPosY(DistanceUnit.MM);
@@ -87,16 +93,19 @@ public class Robot { // create our global class for our robot
         double[] dists = {xDst, yDst};
         return dists;
     }
+
     public double getDstFromGoal(double goalX, double goalY) {
         double xDst = getXYFromGoal(goalX, goalY)[0];
         double yDst = getXYFromGoal(goalX, goalY)[1];
         return Math.pow(Math.pow(xDst, 2) + Math.pow(yDst, 2), 0.5); // use pythag to find dst from goal
     }
+
     public double getGoalHeading(double goalX, double goalY) { // return bot heading to point towards goal in radians
         double xDst = getXYFromGoal(goalX, goalY)[0];
         double yDst = getXYFromGoal(goalX, goalY)[1];
         return Math.atan(xDst / yDst);
     }
+
     public double getHeading() { // return current bot heading in radians
         return odo.getHeading(AngleUnit.RADIANS);
     }
@@ -160,5 +169,15 @@ public class Robot { // create our global class for our robot
         // it basically needs to be a relation between the rotational speed of launch and the actual output speed of the ball
         // at the end, we will output the desired TPS of our motor to monitor once it reaches it
         return TPS;
+    }
+    public void launchBall() throws InterruptedException { // launch a ball
+        // TODO: make this asynchronous (eliminate all the waits)
+        upperTransfer.setPosition(upperTransferOpen);
+        sleep(launchDelay); // allow time for upper transfer to move
+        lowerTransfer.setPosition(lowerTransferUpperLimit);
+        sleep(launchDelay); // allow time for lower transfer to move
+        // hopefully the ball has launched by now
+        upperTransfer.setPosition(upperTransferClosed); // close upper transfer
+        lowerTransfer.setPosition(lowerTransferLowerLimit); // set lower transfer to its lowest
     }
 }
