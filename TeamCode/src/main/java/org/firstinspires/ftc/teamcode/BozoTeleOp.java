@@ -63,7 +63,7 @@ public class BozoTeleOp extends LinearOpMode {
 
             double denominator = Math.max(Math.abs(rotatedY) + Math.abs(rotatedX) + Math.abs(rx), 1.0);
             double flPower = (rotatedY + rotatedX + rx) / denominator;
-            double blPower = (rotatedY - rotatedX + rx) / denominator;
+            double blPower = (rotatedY - rotatedX - rx) / denominator;
             double frPower = (rotatedY - rotatedX - rx) / denominator;
             double brPower = (rotatedY + rotatedX - rx) / denominator;
 
