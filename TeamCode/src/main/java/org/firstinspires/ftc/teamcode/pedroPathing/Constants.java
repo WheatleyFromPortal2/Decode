@@ -14,7 +14,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10); // mass in kilograms TODO: fix this
+            .mass(10.8); // mass in kilograms
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
             .leftFrontMotorName("frontRight") // needs to be reversed for some reason
@@ -24,15 +24,16 @@ public class Constants {
             .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD) // this should be correct
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD) // this should be correct
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .useBrakeModeInTeleOp(true); // use brake mode
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(158) // i think this is in mm?
-            .strafePodX(135) // i think this is in mm?
+            .forwardPodY(158) // this is in mm
+            .strafePodX(135) // this is in mm
             .distanceUnit(DistanceUnit.MM) // let's keep this in metric 👍
             .hardwareMapName("odo") // from README.md
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD)
-            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED) // double check this
+            .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.FORWARD);
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
