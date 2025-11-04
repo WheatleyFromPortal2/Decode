@@ -16,12 +16,14 @@ public class ServoTest extends LinearOpMode {
 
         telemetry.update();
 
+        waitForStart();
+
         while (opModeIsActive()) {
             double lowerTransferAmount = (gamepad1.left_stick_y + 1) / 2; // map from (-1)<->(1) to (0)<->(1)
             double upperTransferAmount = (gamepad1.right_stick_y + 1) / 2; // map from (-1)<->(1) to (0)<->(1)
 
             robot.lowerTransfer.setPosition(lowerTransferAmount);
-            robot.lowerTransfer.setPosition(upperTransferAmount);
+            robot.upperTransfer.setPosition(upperTransferAmount);
 
             telemetry.addData("lowerTransfer:", robot.lowerTransfer.getPosition());
             telemetry.addData("upperTransfer:", robot.upperTransfer.getPosition());
