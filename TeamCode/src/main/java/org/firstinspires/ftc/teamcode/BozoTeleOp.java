@@ -22,9 +22,6 @@ public class BozoTeleOp extends LinearOpMode {
     private boolean isLaunchPowered = false;
     private static final double debounceTime = 1; // wait for half a second before reading new button inputs
 
-    private double time = getRuntime();
-    private double oldTime = getRuntime();
-
     @Override
     public void runOpMode() throws InterruptedException {
         robot = new Robot(hardwareMap); // create our robot class
@@ -45,12 +42,14 @@ public class BozoTeleOp extends LinearOpMode {
             double rx = -gamepad1.right_stick_x; // rotation (idk why this is cooked)
             double ry = gamepad1.right_stick_y; // launch power (temporary until algorithm)
 
-            if (gamepad1.a && oldTime + debounceTime < time) {
+            if (gamepad1.aWasReleased()) {
                 isIntakePowered = !isIntakePowered;
-                oldTime = getRuntime();
             }
-            if (gamepad1.b && oldTime + debounceTime < time) {
+            if (gamepad1.bWasReleased()) {
                 isLaunchPowered = !isLaunchPowered;
+            }
+            if (gamepad1.yWasReleased()) {
+                robot.launchBall();
             }
 
             // Read IMU heading (radians)
@@ -92,8 +91,6 @@ public class BozoTeleOp extends LinearOpMode {
                 launchRPM = 0; // indicate that launch isn't powered
             }
 
-            //intake.setPower(1); // permanently set intake to 100% BRRRRRRR
-            //lowerTransfer.setPosition(ry);
             if (gamepad1.y) {
                 robot.lowerTransfer.setPosition(Robot.lowerTransferUpperLimit);
             } else {
