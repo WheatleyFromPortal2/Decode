@@ -35,7 +35,7 @@ public class Robot { // create our global class for our robot
 
 
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
-    public static final double launchRatio = (double) 0.6666666666666667; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 24tooth pulley
+    public static final double launchRatio = (double) 0.8; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
 
     // PIDF coefficients
     public static final double launchP = 300; // orig 2.5
