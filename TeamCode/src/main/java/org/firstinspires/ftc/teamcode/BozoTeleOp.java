@@ -83,15 +83,15 @@ public class BozoTeleOp extends OpMode {
         if (!automatedDrive) {
             if (!gamepad1.left_bumper) follower.setTeleOpDrive(
                     -gamepad1.left_stick_y, // fix skewed directions
-                    gamepad1.left_stick_x,
-                    gamepad1.right_stick_x * turnRateMultiplier,
-                    true // true = robot centric; false = field centric
+                    -gamepad1.left_stick_x,
+                    -gamepad1.right_stick_x * turnRateMultiplier,
+                    false // true = robot centric; false = field centric
             );
             else follower.setTeleOpDrive( // slow mode
                     -gamepad1.left_stick_y * slowModeMultiplier, // reduce speed by our slow mode multiplier
-                    gamepad1.left_stick_x * slowModeMultiplier,
-                    gamepad1.right_stick_x * slowModeMultiplier * turnRateMultiplier,
-                    true // true = robot centric; false = field centric
+                    -gamepad1.left_stick_x * slowModeMultiplier,
+                    -gamepad1.right_stick_x * slowModeMultiplier * turnRateMultiplier,
+                    false // true = robot centric; false = field centric
             );
         }
 

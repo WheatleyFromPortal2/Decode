@@ -17,10 +17,10 @@ public class Constants {
             .mass(10.8); // mass in kilograms
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
-            .leftFrontMotorName("frontRight") // needs to be reversed for some reason
-            .rightFrontMotorName("frontLeft") // needs to be reversed for some reason
-            .leftRearMotorName("backRight") // needs to be reversed for some reason
-            .rightRearMotorName("backLeft") // needs to be reversed for some reason
+            .leftFrontMotorName("frontLeft")
+            .rightFrontMotorName("frontRight")
+            .leftRearMotorName("backLeft")
+            .rightRearMotorName("backRight")
             .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD) // this should be correct
             .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD) // this should be correct
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)

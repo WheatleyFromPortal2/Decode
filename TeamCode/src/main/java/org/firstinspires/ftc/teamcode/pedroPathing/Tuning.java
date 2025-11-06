@@ -151,7 +151,7 @@ class LocalizationTest extends OpMode {
      */
     @Override
     public void loop() {
-        Tuning.follower.setTeleOpDrive(-gamepad1.left_stick_y, gamepad1.left_stick_x, gamepad1.right_stick_x, true); // fix skewed directions
+        Tuning.follower.setTeleOpDrive(-gamepad1.left_stick_y, -gamepad1.left_stick_x, -gamepad1.right_stick_x, true); // fix skewed directions
         Tuning.follower.update();
 
         Tuning.telemetryM.debug("x:" + Tuning.follower.getPose().getX());
