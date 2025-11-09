@@ -15,19 +15,6 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-import com.bylazar.configurables.annotations.Configurable;
-import com.bylazar.telemetry.PanelsTelemetry;
-import com.bylazar.telemetry.TelemetryManager;
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.HeadingInterpolator;
-import com.pedropathing.paths.Path;
-import com.pedropathing.paths.PathChain;
-import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import java.util.function.Supplier;
 public class Robot { // create our global class for our robot
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer;
@@ -49,6 +36,7 @@ public class Robot { // create our global class for our robot
     public static final double upperTransferOpen = 0.66; // servo position where upper transfer allows balls to pass into launch
 
     public static final int launchDelay = 250; // time to wait for servos to move during launch (in ms)
+    public final double scoreVelocityMargin = 100; // margin of 100tps TODO: tune this
 
     public Robot(HardwareMap hw) { // create all of our hardware
         // DC motors (all are DcMotorEx for current monitoring)
@@ -148,8 +136,15 @@ public class Robot { // create our global class for our robot
     public double getLaunchCurrent() { // return launch current in amps
         return launch.getCurrent(CurrentUnit.AMPS);
     }
+    public boolean isLaunchWithinMargin(double desiredScoreVelocity) {
+        return Math.abs(desiredScoreVelocity - launch.getVelocity()) < scoreVelocityMargin; // measure if our velocity is within our margin of error
+    }
     public double getIntakeCurrent() {
         return intake.getCurrent(CurrentUnit.AMPS);
+    }
+    public void initServos() { // set servos to starting state
+        upperTransfer.setPosition(Robot.upperTransferClosed); // make sure balls cannot launch
+        lowerTransfer.setPosition(Robot.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
     }
     public void launchBall() throws InterruptedException { // launch a ball
         // TODO: make this asynchronous (eliminate all the waits)
