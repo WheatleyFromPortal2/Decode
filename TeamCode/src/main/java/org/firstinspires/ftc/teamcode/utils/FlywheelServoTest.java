@@ -1,4 +1,4 @@
-// the purpose of OpMode is to just test and record servo endpoints
+// the purpose of OpMode is to test servo endpoints and max flywheel speed
 // MAKE SURE BOTH SERVOS ARE NOT GOING TO RUN INTO ANYTHING!!!
 
 package org.firstinspires.ftc.teamcode.utils;
@@ -13,8 +13,10 @@ public class FlywheelServoTest extends LinearOpMode {
     private Robot robot;
 
     @Override
-    public void runOpMode() throws InterruptedException {
+    public void runOpMode() {
         robot = new Robot(hardwareMap); // create our robot class
+
+        telemetry.addLine("MAKE SURE BOTH SERVOS ARE NOT GOING TO RUN INTO ANYTHING!!!"); // we're still prob gonna break some servos :(
 
         telemetry.update();
 
