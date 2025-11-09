@@ -84,19 +84,26 @@ public class Robot { // create our global class for our robot
         return Math.atan2(yDst, xDst);
     }
 
-    public double getNeededVelocity(Pose currentPosition) { // returns dst from goal in MM
+    public double getTangentialSpeed(Pose currentPosition) { // returns needed tangential speed to launch ball to the goal
         double d = getDstFromGoal(currentPosition);
         double numerator = 19.62 * Math.pow(d, 2);
         double denominator = (Math.pow(3, 0.5) * d) - 0.8;
         return Math.pow(numerator / denominator, 0.5); // thank u rahul
     }
 
-    public double setLaunchTangentialSpeed(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
+    public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
         double TPS = 0;
         // this will be the hardest function to code
         // it basically needs to be a relation between the rotational speed of launch and the actual output speed of the ball
         // at the end, we will output the desired TPS of our motor to monitor once it reaches it
         return TPS;
+    }
+
+    public double setAutomatedLaunch(Pose currentPosition) {
+        double neededTangentialSpeed = getTangentialSpeed(currentPosition);
+        double neededVelocity = getNeededVelocity(neededTangentialSpeed);
+        launch.setVelocity(neededVelocity);
+        return neededVelocity; // allow TeleOp to see our desired velocity
     }
 
     public double TPSToRPM(double TPS) {
