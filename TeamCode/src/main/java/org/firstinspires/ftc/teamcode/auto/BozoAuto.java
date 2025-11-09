@@ -13,8 +13,12 @@ import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Robot;
 
+
 //@Autonomous(name = "BozoAuto", group = "Auto") // this is the base file which will just be extended so we don't want this OpMode to be directly run
-public class BozoAuto extends OpMode {
+public abstract class BozoAuto extends OpMode {
+    protected AutoConfig config;
+    protected abstract AutoConfig buildConfig();
+    protected abstract Pose getStartPose();
     private Robot robot = new Robot(hardwareMap); // create our robot class
     private final double scoreEndTime = 0.5; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
@@ -34,16 +38,16 @@ public class BozoAuto extends OpMode {
     State state = State.START; // set PathState to start
     private int ballTripletsRemaining = 4; // start with 4 ball triplets, decrements every launch
 
-    // example poses, these will be filled in by the specific OpModes
-    private final Pose startPose = new Pose(28.5, 128, Math.toRadians(180)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(60, 85, Math.toRadians(135)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1StartPose = new Pose(37, 121, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup1EndPose = new Pose(0, 0, 0);
-    private final Pose pickup2StartPose = new Pose(43, 130, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2EndPose = new Pose(0, 0, 0);
-    private final Pose pickup3StartPose = new Pose(49, 135, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
-    private final Pose pickup3EndPose = new Pose(0, 0, 0);
-    private final Pose endPose = new Pose(0, 0, 0);
+    // filler poses, these will be filled in by the specific OpModes
+    private final Pose startPose = getStartPose(); // the getStartPose method will be included in different classes for start points
+    private final Pose scorePose = null;
+    private final Pose pickup1StartPose = null;
+    private final Pose pickup1EndPose = null;
+    private final Pose pickup2StartPose = null;
+    private final Pose pickup2EndPose = null;
+    private final Pose pickup3StartPose = null;
+    private final Pose pickup3EndPose = null;
+    private final Pose endPose = null;
 
     private final double scoreVelocity = 2333.333333333334; // should be ~4000rpm TODO: tune this
     private final int interLaunchWait = 1500; // wait 1.5s between ball launches
@@ -64,6 +68,8 @@ public class BozoAuto extends OpMode {
             goToEnd;
 
     public void buildPaths() {
+        config = buildConfig(); // get our config
+
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
         scorePreload = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, scorePose))

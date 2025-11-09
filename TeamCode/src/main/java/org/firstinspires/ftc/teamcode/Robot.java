@@ -4,6 +4,7 @@ this is basically our mega-class that holds all robot data that is shared betwee
 package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Thread.sleep;
+import static java.lang.Math.*;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
