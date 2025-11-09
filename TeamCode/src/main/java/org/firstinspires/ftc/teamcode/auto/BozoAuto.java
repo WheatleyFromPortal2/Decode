@@ -252,13 +252,13 @@ public abstract class BozoAuto extends OpMode {
         }
 
         // Feedback to Driver Hub for debugging
-        telemetryM.addData("path state", state);
-        telemetryM.addData("ball triplets remaining", ballTripletsRemaining);
-        telemetryM.addData("desired launch RPM", robot.TPSToRPM(scoreVelocity));
-        telemetryM.addData("launch RPM", robot.getLaunchRPM());
-        telemetryM.addData("x", follower.getPose().getX());
-        telemetryM.addData("y", follower.getPose().getY());
-        telemetryM.addData("heading", follower.getPose().getHeading());
+        telemetryM.debug("path state", state);
+        telemetryM.debug("ball triplets remaining", ballTripletsRemaining);
+        telemetryM.debug("desired launch RPM", robot.TPSToRPM(scoreVelocity));
+        telemetryM.debug("launch RPM", robot.getLaunchRPM());
+        telemetryM.debug("x", follower.getPose().getX());
+        telemetryM.debug("y", follower.getPose().getY());
+        telemetryM.debug("heading", follower.getPose().getHeading());
         telemetryM.update(telemetry); // update telemetry
     }
 
