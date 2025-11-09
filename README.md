@@ -76,15 +76,20 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 
 ### right stick:
 - X: rotate clockwise/counterclockwise
-- Y: launch power (experimental)
+- Y: not used
 
 ## bumpers
 - left bumper: slow mode
+- right bumper: launch ball
+
+## triggers
+- left trigger: not used
+- right trigger: launch power (when manually controlled)
 
 ## buttons
 - A: toggle intake
 - B: toggle launch (speed controlled with RY)
-- Y: launch ball
+- Y: switch between manual and automatic control of launch velocity
 - X: turn to goal or cancel turning to goal
 
 - start: toggle field/robot centric
