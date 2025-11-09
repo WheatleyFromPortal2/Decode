@@ -82,9 +82,11 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 - left bumper: slow mode
 
 ## buttons
-- Y: launch ball
-- B: toggle launch (speed controlled with RY)
 - A: toggle intake
+- B: toggle launch (speed controlled with RY)
+- Y: launch ball
+- X: turn to goal or cancel turning to goal
+
 - start: toggle field/robot centric
 
 # multipliers
