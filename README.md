@@ -81,6 +81,12 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 ## bumpers
 - left bumper: slow mode
 
+## buttons
+- Y: launch ball
+- B: toggle launch (speed controlled with RY)
+- A: toggle intake
+- start: toggle field/robot centric
+
 # multipliers
 when moving around the field and back to the same place, our position was within ~0.25" so we prob won't need to recalibrate the pinpoint
 ## forward (48") tests
@@ -131,3 +137,20 @@ when moving around the field and back to the same place, our position was within
 ### Red Team
 - `RedTriAuto`: starting by bottom triangle
 - `RedGoalAuto`: starting by red team goal
+
+## other/util
+- `FlywheelServoTest`: test servo endpoints and max flywheel speed
+
+# State Machine
+## main states
+1. START
+2. TRAVEL_TO_LAUNCH
+3. LAUNCH
+4. TRAVEL_TO_BALLS
+5. RELOAD
+6. GO_TO_END
+7. END
+
+## ball triplets remaining
+- starts at 4 (1 in robot, 3 on field)
+- decrements every launch
