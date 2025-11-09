@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.auto;
 import static java.lang.Thread.sleep;
 
 import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierCurve; // hopefully use these in the future
+//import com.pedropathing.geometry.BezierCurve; // hopefully use these in the future
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
@@ -23,7 +23,7 @@ public abstract class BozoAuto extends OpMode {
     private final double scoreEndTime = 0.5; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private Follower follower;
-    private Timer pathTimer, actionTimer, opmodeTimer;
+    private Timer pathTimer, opmodeTimer;
     public enum State { // define our possible states for our FSM
         START, // starting state, waiting for OpMode to begin
         TRAVEL_TO_LAUNCH, // travel to our defined position to launch balls from. an internal switch statement control which path it will take
@@ -40,15 +40,6 @@ public abstract class BozoAuto extends OpMode {
 
     // filler poses, these will be filled in by the specific OpModes
     private final Pose startPose = getStartPose(); // the getStartPose method will be included in different classes for start points
-    private final Pose scorePose = null;
-    private final Pose pickup1StartPose = null;
-    private final Pose pickup1EndPose = null;
-    private final Pose pickup2StartPose = null;
-    private final Pose pickup2EndPose = null;
-    private final Pose pickup3StartPose = null;
-    private final Pose pickup3EndPose = null;
-    private final Pose endPose = null;
-
     private final double scoreVelocity = 2333.333333333334; // should be ~4000rpm TODO: tune this
     private final int interLaunchWait = 1500; // wait 1.5s between ball launches
 
@@ -72,66 +63,66 @@ public abstract class BozoAuto extends OpMode {
 
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
         scorePreload = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, scorePose))
-                .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading(), scoreEndTime)
+                .addPath(new BezierLine(startPose, config.scorePose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), config.scorePose.getHeading(), scoreEndTime)
                 .build();
 
 
     /* Here is an example for Constant Interpolation
     scorePreload.setConstantInterpolation(startPose.getHeading()); */
         startPickup1 = follower.pathBuilder() // this brings us to the beginning of the first set of balls
-                .addPath(new BezierLine(scorePose, pickup1StartPose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup1StartPose.getHeading(), grabEndTime)
+                .addPath(new BezierLine(config.scorePose, config.pickup1StartPose))
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup1StartPose.getHeading(), grabEndTime)
                 .build();
 
         /* This is our grabPickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         grabPickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1StartPose, pickup1EndPose))
-                .setLinearHeadingInterpolation(pickup1StartPose.getHeading(), pickup1EndPose.getHeading())
+                .addPath(new BezierLine(config.pickup1StartPose, config.pickup1EndPose))
+                .setLinearHeadingInterpolation(config.pickup1StartPose.getHeading(), config.pickup1EndPose.getHeading())
                 .build();
 
         /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1EndPose, scorePose))
-                .setLinearHeadingInterpolation(pickup1EndPose.getHeading(), scorePose.getHeading(), scoreEndTime)
+                .addPath(new BezierLine(config.pickup1EndPose, config.scorePose))
+                .setLinearHeadingInterpolation(config.pickup1EndPose.getHeading(), config.scorePose.getHeading(), scoreEndTime)
                 .build();
 
         startPickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, pickup2StartPose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2StartPose.getHeading(), grabEndTime)
+                .addPath(new BezierLine(config.scorePose, config.pickup2StartPose))
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup2StartPose.getHeading(), grabEndTime)
                 .build();
 
         /* This is our grabPickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         grabPickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup2StartPose, pickup2EndPose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2StartPose.getHeading())
+                .addPath(new BezierLine(config.pickup2StartPose, config.pickup2EndPose))
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup2StartPose.getHeading())
                 .build();
 
         /* This is our scorePickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup2EndPose, scorePose))
-                .setLinearHeadingInterpolation(pickup2EndPose.getHeading(), scorePose.getHeading(), scoreEndTime)
+                .addPath(new BezierLine(config.pickup2EndPose, config.scorePose))
+                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.scorePose.getHeading(), scoreEndTime)
                 .build();
 
         startPickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, pickup3StartPose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3StartPose.getHeading(), grabEndTime)
+                .addPath(new BezierLine(config.scorePose, config.pickup3StartPose))
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup3StartPose.getHeading(), grabEndTime)
                 .build();
 
         /* This is our grabPickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         grabPickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup3StartPose, pickup3EndPose))
-                .setLinearHeadingInterpolation(pickup2StartPose.getHeading(), pickup3EndPose.getHeading())
+                .addPath(new BezierLine(config.pickup3StartPose, config.pickup3EndPose))
+                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup3EndPose.getHeading())
                 .build();
 
         /* This is our scorePickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup3EndPose, scorePose))
-                .setLinearHeadingInterpolation(pickup3EndPose.getHeading(), scorePose.getHeading(), scoreEndTime)
+                .addPath(new BezierLine(config.pickup3EndPose, config.scorePose))
+                .setLinearHeadingInterpolation(config.pickup3EndPose.getHeading(), config.scorePose.getHeading(), scoreEndTime)
                 .build();
         goToEnd = follower.pathBuilder() // go to our ending position
-                .addPath(new BezierLine(scorePose, endPose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), endPose.getHeading())
+                .addPath(new BezierLine(config.scorePose, config.endPose))
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.endPose.getHeading())
                 .build();
     }
 
