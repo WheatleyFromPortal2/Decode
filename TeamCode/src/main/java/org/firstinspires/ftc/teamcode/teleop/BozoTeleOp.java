@@ -17,7 +17,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 @TeleOp(name="BozoTeleOp", group="TeleOp")
 public class BozoTeleOp extends OpMode {
     private Robot robot;
-    private static Pose goal = new Pose(0, 0, 0); // filler goal position on field (for calculating launch), this will be overridden by the red and blue specific teleops
     private Follower follower;
     public static Pose startingPose;
     private boolean automatedDrive = false;
@@ -47,7 +46,6 @@ public class BozoTeleOp extends OpMode {
     public void loop() {
         follower.update();
         telemetryM.update(); // update telemetry manager (Panels)
-        telemetry.update();  // update driver station telemetry
 
         // Read raw joystick inputs
         double ry = gamepad1.right_stick_y; // launch power (temporary until algorithm)

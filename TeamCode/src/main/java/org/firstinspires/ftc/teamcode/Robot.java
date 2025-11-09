@@ -4,7 +4,6 @@ this is basically our mega-class that holds all robot data that is shared betwee
 package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Thread.sleep;
-import static java.lang.Math.*;
 
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -13,9 +12,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.pedropathing.geometry.Pose;
 public class Robot { // create our global class for our robot
     private static Robot instance;
@@ -25,7 +22,7 @@ public class Robot { // create our global class for our robot
 
 
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
-    public static final double launchRatio = (double) 0.8; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
+    public static final double launchRatio = 0.8; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
 
     // PIDF coefficients
     public static final double launchP = 300; // orig 2.5
@@ -61,7 +58,7 @@ public class Robot { // create our global class for our robot
 
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
         // Get the PIDF coefficients for the RUN_USING_ENCODER RunMode.
-        PIDFCoefficients pidfOrig = launch.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+        //PIDFCoefficients pidfOrig = launch.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Change coefficients using methods included with DcMotorEx class.
         PIDFCoefficients pidfNew = new PIDFCoefficients(launchP, launchI, launchD, launchF);
@@ -102,11 +99,15 @@ public class Robot { // create our global class for our robot
         return TPS;
     }
 
+    public double TPSToRPM(double TPS) {
+        return (TPS / TICKS_PER_REV) * 60 * launchRatio;
+    }
+
     public double getLaunchRPM() { // return launch velocity in RPM
-        return (launch.getVelocity() / Robot.TICKS_PER_REV ) * 60 * launchRatio;
+        return TPSToRPM(launch.getVelocity());
     }
     public double getLaunchRadians() { // return launch velocity in radians/second
-        return ((launch.getVelocity() / Robot.TICKS_PER_REV) * 2 * Math.PI);
+        return ((launch.getVelocity() / TICKS_PER_REV) * 2 * Math.PI);
     }
     public double getLaunchCurrent() { // return launch current in amps
         return launch.getCurrent(CurrentUnit.AMPS);
