@@ -16,7 +16,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import com.pedropathing.geometry.Pose;
 public class Robot { // create our global class for our robot
+    private static Robot instance;
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer;
 
@@ -38,6 +40,7 @@ public class Robot { // create our global class for our robot
 
     public static final int launchDelay = 250; // time to wait for servos to move during launch (in ms)
     public final double scoreVelocityMargin = 100; // margin of 100tps TODO: tune this
+    public static Pose goalPose; // this must be initialized by the auto
 
     public Robot(HardwareMap hw) { // create all of our hardware
         // DC motors (all are DcMotorEx for current monitoring)
@@ -63,61 +66,32 @@ public class Robot { // create our global class for our robot
         // Change coefficients using methods included with DcMotorEx class.
         PIDFCoefficients pidfNew = new PIDFCoefficients(launchP, launchI, launchD, launchF);
         launch.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
-
-        //telemetry.addData("P,I,D,F (orig)", "%.04f, %.04f, %.04f, %.04f",
-        //        pidfOrig.p, pidfOrig.i, pidfOrig.d, pidfOrig.f);
-    }
-    /*
-    public double[] getXYFromGoal(double goalX, double goalY) { // TODO: fix this to use pedro pathing odo
-        double botX = odo.getPosX(DistanceUnit.MM);
-        double botY = odo.getPosY(DistanceUnit.MM);
-        double xDst = goalX - botX;
-        double yDst = goalY - botY;
-        double[] dists = {xDst, yDst};
-        return dists;
     }
 
-    public double getDstFromGoal(double goalX, double goalY) {
-        double xDst = getXYFromGoal(goalX, goalY)[0];
-        double yDst = getXYFromGoal(goalX, goalY)[1];
+    public static Robot getInstance(HardwareMap hw) { // this allows us to preserve the Robot instance from auto->teleop
+        if (instance == null) {
+            instance = new Robot(hw);
+        }
+        return instance;
+    }
+
+    public double getDstFromGoal(Pose currentPosition) {
+        double xDst = Math.abs(currentPosition.getX() - goalPose.getX());
+        double yDst = Math.abs(currentPosition.getY() - goalPose.getY());
         return Math.pow(Math.pow(xDst, 2) + Math.pow(yDst, 2), 0.5); // use pythag to find dst from goal
     }
 
-    public double getGoalHeading(double goalX, double goalY) { // return bot heading to point towards goal in radians
-        double xDst = getXYFromGoal(goalX, goalY)[0];
-        double yDst = getXYFromGoal(goalX, goalY)[1];
-        return Math.atan(xDst / yDst);
+    public double getGoalHeading(Pose currentPosition) { // return bot heading to point towards goal in radians
+        double xDst = goalPose.getX() - currentPosition.getX();
+        double yDst = goalPose.getY() - currentPosition.getY();
+        return Math.atan2(yDst, xDst);
     }
 
-    public double getHeading() { // return current bot heading in radians
-        // TODO: fix this
-        //return odo.getHeading(AngleUnit.RADIANS);
-        return 1;
-    }
-    public double getNeededVelocity(double goalX, double goalY) { // returns dst from goal in MM
-        double d = getDstFromGoal(goalX, goalY);
+    public double getNeededVelocity(Pose currentPosition) { // returns dst from goal in MM
+        double d = getDstFromGoal(currentPosition);
         double numerator = 19.62 * Math.pow(d, 2);
         double denominator = (Math.pow(3, 0.5) * d) - 0.8;
         return Math.pow(numerator / denominator, 0.5); // thank u rahul
-    }
-    public void moveMM(double x, double y) { // move x and y
-
-    }
-    public double getLaunchHeading(double goalX, double goalY) { // TODO: fix this
-        double botX = odo.getPosX(DistanceUnit.MM);
-        double botY = odo.getPosY(DistanceUnit.MM);
-        double xDst = goalX - botX;
-        double yDst = goalY - botY;
-        return Math.pow(Math.pow(xDst, 2) + Math.pow(yDst, 2), 0.5); // use pythag to find dst from goal
-    }
-
-    public double angleDifference(double target) { // calculate the shortest difference between 2 angles in radians
-        double currentHeading = getHeading();
-        double diff = target - currentHeading;
-        // makes sure we always turn the shortest amount to a heading (don't go all the way around)
-        while (diff > Math.PI) diff -= 2 * Math.PI;
-        while (diff < -Math.PI) diff += 2 * Math.PI;
-        return diff;
     }
 
     public double setLaunchTangentialSpeed(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
@@ -127,7 +101,7 @@ public class Robot { // create our global class for our robot
         // at the end, we will output the desired TPS of our motor to monitor once it reaches it
         return TPS;
     }
-    */
+
     public double getLaunchRPM() { // return launch velocity in RPM
         return (launch.getVelocity() / Robot.TICKS_PER_REV ) * 60 * launchRatio;
     }

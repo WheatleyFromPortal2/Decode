@@ -7,6 +7,7 @@ public abstract class RedAuto extends BozoAuto { // these positions override the
     @Override
     protected AutoConfig buildConfig() {
         return new AutoConfig(
+                new Pose (132, 138), // goal position (we don't need a heading)
                 new Pose(84, 84, Math.toRadians(44)), // scorePose
                 new Pose(102, 84, Math.toRadians(0)), // pickup1StartPose
                 new Pose(128, 84, Math.toRadians(0)), // pickup1EndPose

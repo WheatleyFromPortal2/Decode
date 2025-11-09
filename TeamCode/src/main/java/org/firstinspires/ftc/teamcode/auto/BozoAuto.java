@@ -19,7 +19,7 @@ public abstract class BozoAuto extends OpMode {
     protected AutoConfig config;
     protected abstract AutoConfig buildConfig();
     protected abstract Pose getStartPose();
-    private Robot robot = new Robot(hardwareMap); // create our robot class
+    Robot robot = Robot.getInstance(hardwareMap); // create our robot class
     private final double scoreEndTime = 0.5; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private Follower follower;
@@ -60,6 +60,8 @@ public abstract class BozoAuto extends OpMode {
 
     public void buildPaths() {
         config = buildConfig(); // get our config
+
+        Robot.goalPose = config.goalPose; // add our goalPose to the Robot class so it can be used in teleop
 
         /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
         scorePreload = follower.pathBuilder()

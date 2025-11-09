@@ -30,7 +30,7 @@ public class BozoTeleOp extends OpMode {
 
     @Override
     public void init() {
-        robot = new Robot(hardwareMap); // create our robot class
+        robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose); // if we don't already have a starting pose, set it
