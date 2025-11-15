@@ -22,13 +22,13 @@ public class Robot { // create our global class for our robot
 
 
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
-    public static final double launchRatio = 0.8; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 22tooth pulley
+    public static final double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
 
     // PIDF coefficients
     public static final double launchP = 300; // orig 2.5
-    public static final double launchI = 0.01; // orig 0.1
-    public static final double launchD = 0.01; // orig 0.2
-    public static final double launchF = (double) 1 / 2340; // 6000 rpm motor
+    public static final double launchI = 0.1; // orig 0.1
+    public static final double launchD = 0.2; // orig 0.2
+    public static final double launchF = (double) 1 / 2800; // 6000 rpm motor; 2333.333333333333 ideal
     public static final double lowerTransferLowerLimit = 0.28;
     public static final double lowerTransferUpperLimit = 0.49;
 
@@ -109,7 +109,7 @@ public class Robot { // create our global class for our robot
     public double TPSToRPM(double TPS) {
         return (TPS / TICKS_PER_REV) * 60 * launchRatio;
     }
-    public double RPMToTPS(double RPM) { return ((RPM * TICKS_PER_REV / 60) / launchRatio);}
+    public double RPMToTPS(double RPM) { return (RPM * TICKS_PER_REV / 60) / launchRatio;}
     public double getLaunchRPM() { // return launch velocity in RPM
         return TPSToRPM(launch.getVelocity());
     }

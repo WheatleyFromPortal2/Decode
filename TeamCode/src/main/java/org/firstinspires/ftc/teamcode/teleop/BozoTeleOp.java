@@ -84,7 +84,7 @@ public class BozoTeleOp extends OpMode {
         }
         if (gamepad1.backWasReleased()) { // reset field-centric heading
             Pose headingPose = follower.getPose();
-            headingPose.setHeading(0);
+            headingPose.setHeading(Math.toRadians(90));
             follower.setPose(headingPose); // see if this works
         }
         if (!automatedDrive) {
@@ -97,27 +97,26 @@ public class BozoTeleOp extends OpMode {
             );
         }
 
-        double launchRPM = ((gamepad1.right_trigger) * (6000 * Robot.launchRatio)); // calculates max motor speed and multiplies it by the float of the right trigger
+        double launchTPS = ((gamepad1.right_trigger) * (2800)); // calculates max motor speed and multiplies it by the float of the right trigger
 
         if (isIntakePowered) robot.intake.setPower(1); // our intake is 0% or 100%
         else robot.intake.setPower(0);
 
         if (isLaunchPowered) {
-            if (automatedLaunch) {
-                double launchTPS = robot.setAutomatedLaunch(follower.getPose()); // set our launch to its needed speed and get our needed TPS
-                launchRPM = robot.TPSToRPM(launchTPS); // tell the driver our automated desired launch RPM
+            if (automatedLaunch) { // overwrite launchTPS with automatically calculated one
+                double launchRPM = robot.setAutomatedLaunch(follower.getPose()); // set our launch to its needed speed and get our needed TPS
+                launchTPS = robot.RPMToTPS(launchRPM); // tell the driver our correct desired RPM
                 if (robot.isLaunchWithinMargin(launchTPS)) { // check if our current launch speed is within our margin
                     telemetryM.addLine("launch within margin!"); // tell the driver we're good to go
                 } else telemetryM.addLine("launch out of margin!"); // tell the driver they need to wait
-            } else {
-                robot.launch.setVelocity((launchRPM / (60)) * Robot.TICKS_PER_REV); // set our launch velocity based off of user input
             }
+            robot.launch.setVelocity(launchTPS);
         } else { // launch not powered
             robot.launch.setPower(0); // setting velocity to 0 causes oscillations
-            launchRPM = 0; // indicate that launch isn't powered
+            launchTPS = 0; // indicate that launch isn't powered
         }
 
-        telemetryM.debug("desired launch RPM", launchRPM);
+        telemetryM.debug("desired launch RPM", (launchTPS / Robot.TICKS_PER_REV) * 60 * Robot.launchRatio);
         telemetryM.debug("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
         telemetryM.debug("launch current", robot.getLaunchCurrent()); // display launch current
         telemetryM.debug("intake current", robot.getIntakeCurrent()); // display intake current

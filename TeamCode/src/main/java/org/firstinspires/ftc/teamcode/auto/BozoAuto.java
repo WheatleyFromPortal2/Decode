@@ -43,9 +43,9 @@ public abstract class BozoAuto extends OpMode {
 
     // variables to be tuned
     // TODO: tune these
-    private final double scoreRPM = 3100;
-    private final int interLaunchWait = 1500; // wait 1.5s between ball launches
-    private final double scoreEndTime = 0.5; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
+    private final double scoreRPM = 2700; // 2850 pretty good
+    private final int interLaunchWait = 1000; // wait 0.5s between ball launches
+    private final double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
 
 
@@ -101,7 +101,7 @@ public abstract class BozoAuto extends OpMode {
         // this path picks up the second set of balls
         grabPickup2 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup2StartPose, config.pickup2EndPose))
-                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup2StartPose.getHeading())
+                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup2EndPose.getHeading())
                 .build();
 
         // this path goes from the endpoint of the ball pickup to our score position
@@ -294,6 +294,7 @@ public abstract class BozoAuto extends OpMode {
         robot.initServos(); // get servos ready
         robot.intake.setPower(1); // start intake
         robot.launch.setVelocity(robot.RPMToTPS(scoreRPM)); // we're just gonna keep our score RPM constant for now
+        //robot.launch.setVelocity(2800); // full speed BRRRR
         setPathState(State.START);
     }
 
