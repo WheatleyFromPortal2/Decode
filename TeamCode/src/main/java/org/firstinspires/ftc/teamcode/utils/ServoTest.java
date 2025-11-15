@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
 
-@TeleOp(name="FlywheelServoTest", group="Util")
-public class FlywheelServoTest extends LinearOpMode {
+@TeleOp(name="ServoTest", group="Util")
+public class ServoTest extends LinearOpMode {
     private Robot robot;
 
     @Override

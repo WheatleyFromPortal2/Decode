@@ -22,7 +22,7 @@ public class Robot { // create our global class for our robot
 
 
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
-    public static final double launchRatio = 0.8; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
+    public static final double launchRatio = 0.8; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 22tooth pulley
 
     // PIDF coefficients
     public static final double launchP = 300; // orig 2.5
@@ -36,7 +36,7 @@ public class Robot { // create our global class for our robot
     public static final double upperTransferOpen = 0.66; // servo position where upper transfer allows balls to pass into launch
 
     public static final int launchDelay = 250; // time to wait for servos to move during launch (in ms)
-    public final double scoreVelocityMargin = 100; // margin of 100tps TODO: tune this
+    public final double scoreRPMMargin = 100; // margin of 100RPM
     public static Pose goalPose; // this must be initialized by the auto
 
     public Robot(HardwareMap hw) { // create all of our hardware
@@ -109,7 +109,7 @@ public class Robot { // create our global class for our robot
     public double TPSToRPM(double TPS) {
         return (TPS / TICKS_PER_REV) * 60 * launchRatio;
     }
-
+    public double RPMToTPS(double RPM) { return ((RPM * TICKS_PER_REV / 60) / launchRatio);}
     public double getLaunchRPM() { // return launch velocity in RPM
         return TPSToRPM(launch.getVelocity());
     }
@@ -119,8 +119,8 @@ public class Robot { // create our global class for our robot
     public double getLaunchCurrent() { // return launch current in amps
         return launch.getCurrent(CurrentUnit.AMPS);
     }
-    public boolean isLaunchWithinMargin(double desiredScoreVelocity) {
-        return Math.abs(desiredScoreVelocity - launch.getVelocity()) < scoreVelocityMargin; // measure if our velocity is within our margin of error
+    public boolean isLaunchWithinMargin(double desiredScoreRPM) {
+        return Math.abs(desiredScoreRPM - TPSToRPM(launch.getVelocity())) < scoreRPMMargin; // measure if our RPM is within our margin of error
     }
     public double getIntakeCurrent() {
         return intake.getCurrent(CurrentUnit.AMPS);

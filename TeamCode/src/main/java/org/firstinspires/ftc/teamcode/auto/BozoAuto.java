@@ -21,11 +21,11 @@ public abstract class BozoAuto extends OpMode {
     protected AutoConfig config;
     protected abstract AutoConfig buildConfig();
     protected abstract Pose getStartPose();
-    Robot robot = Robot.getInstance(hardwareMap); // create our robot class
+    Robot robot;
     private Follower follower;
     private Timer pathTimer, opmodeTimer;
     private TelemetryManager telemetryM; // create our telemetry object
-    private final Pose startPose = getStartPose(); // the getStartPose method will be included in different classes for start points
+    private Pose startPose;
 
     public enum State { // define our possible states for our FSM
         START, // starting state, waiting for OpMode to begin
@@ -37,13 +37,13 @@ public abstract class BozoAuto extends OpMode {
         END // end state: do nothing
     }
 
-    // these are the only 2 variables that should change throughout the auto
+    // these are the **only 2 variables** that should change throughout the auto
     State state = State.START; // set PathState to start
     private int ballTripletsRemaining = 4; // start with 4 ball triplets, decrements every launch
 
     // variables to be tuned
     // TODO: tune these
-    private final double scoreVelocity = 2333.333333333334; // should be ~4000rpm
+    private final double scoreRPM = 3100;
     private final int interLaunchWait = 1500; // wait 1.5s between ball launches
     private final double scoreEndTime = 0.5; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
@@ -165,12 +165,13 @@ public abstract class BozoAuto extends OpMode {
                             follower.followPath(scorePickup3);
                             break;
                     }
-                    state = State.TRAVEL_TO_BALLS; // let's get ready to reload
+                    state = State.LAUNCH; // let's launch
                 }
                 break;
             case LAUNCH:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
-                if(!follower.isBusy() && robot.isLaunchWithinMargin(scoreVelocity)) { // check if we're busy and if our launch velocity is within our margin
+                if(!follower.isBusy() && robot.isLaunchWithinMargin(scoreRPM)) { // check if we're busy and if our launch velocity is within our margin
+                    follower.pausePathFollowing(); // pause path following while launching (idk why its following?!?)
                     robot.launchBall(); // launch our first ball
                     sleep(interLaunchWait); // could rework this to also watch for velocity
                     robot.launchBall(); // launch our second ball
@@ -179,6 +180,7 @@ public abstract class BozoAuto extends OpMode {
                     sleep(interLaunchWait); // make sure ball has fully exited robot
                     ballTripletsRemaining -= 1; // we have launched a triplet of balls
                     setPathState(State.TRAVEL_TO_BALLS); // let's get some more balls!
+                    follower.resumePathFollowing();
                 }
                 break;
             case TRAVEL_TO_BALLS: // travel to the start position of the balls, but don't grab them yet
@@ -229,6 +231,7 @@ public abstract class BozoAuto extends OpMode {
                 }
             case END:
                 robot.intake.setPower(0); // turn off intake
+                robot.launch.setPower(1); // warm up launch
                 follower.deactivateAllPIDFs(); // stop the follower
                 break;
         }
@@ -253,8 +256,9 @@ public abstract class BozoAuto extends OpMode {
 
         // Feedback to Driver Hub for debugging
         telemetryM.debug("path state", state);
+        telemetryM.debug("is follower busy", follower.isBusy());
         telemetryM.debug("ball triplets remaining", ballTripletsRemaining);
-        telemetryM.debug("desired launch RPM", robot.TPSToRPM(scoreVelocity));
+        telemetryM.debug("desired launch RPM", scoreRPM);
         telemetryM.debug("launch RPM", robot.getLaunchRPM());
         telemetryM.debug("x", follower.getPose().getX());
         telemetryM.debug("y", follower.getPose().getY());
@@ -269,8 +273,10 @@ public abstract class BozoAuto extends OpMode {
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
+        robot = Robot.getInstance(hardwareMap); // create our robot class
 
         follower = Constants.createFollower(hardwareMap);
+        startPose = getStartPose(); // the getStartPose method will be included in different classes for start points
         buildPaths(); // this will create our paths from our predefined variables
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
@@ -286,7 +292,8 @@ public abstract class BozoAuto extends OpMode {
     public void start() {
         opmodeTimer.resetTimer();
         robot.initServos(); // get servos ready
-        robot.launch.setVelocity(scoreVelocity); // we're just gonna keep our score velocity constant for now
+        robot.intake.setPower(1); // start intake
+        robot.launch.setVelocity(robot.RPMToTPS(scoreRPM)); // we're just gonna keep our score RPM constant for now
         setPathState(State.START);
     }
 

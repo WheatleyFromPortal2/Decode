@@ -8,6 +8,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 public class RedTriAuto extends RedAuto{
     @Override
     public Pose getStartPose() {
-        return new Pose(86.53763440860214, 9.462365591397848, Math.toRadians(90)); // Start Pose of our robot.
+        return new Pose(87.96652719665272, 8.28451882845189, Math.toRadians(90)); // Start Pose of our robot.
     }
 }
