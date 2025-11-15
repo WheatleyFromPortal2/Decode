@@ -13,8 +13,8 @@ if `adb devices` doesn't show any devices:
   - TPS for commanding motors directly
   - radians/s for math (bcuz it's easy for physics)
 ### odo distances
-- robot length (back to front) is **420mm**
-- robot width (left to right) is **400mm**
+- robot length (back to front) is **420mm**, **16.53543"**
+- robot width (left to right) is **400mm**, **15.74803"**
 # Hardware Map
 
 driver station config name: `parallel plate v0`
@@ -79,11 +79,11 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 - Y: not used
 
 ## bumpers
-- left bumper: slow mode
+- left bumper: not used
 - right bumper: launch ball
 
 ## triggers
-- left trigger: not used
+- left trigger: slow mode
 - right trigger: launch power (when manually controlled)
 
 ## buttons
@@ -93,6 +93,7 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 - X: turn to goal or cancel turning to goal
 
 - start: toggle field/robot centric
+- back: reset field centric heading
 
 # multipliers
 when moving around the field and back to the same place, our position was within ~0.25" so we prob won't need to recalibrate the pinpoint

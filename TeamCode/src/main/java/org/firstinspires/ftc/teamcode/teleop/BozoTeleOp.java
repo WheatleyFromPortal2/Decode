@@ -29,7 +29,6 @@ public class BozoTeleOp extends OpMode {
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
     private boolean automatedLaunch = false; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
-    private final double slowModeMultiplier = 0.5; // slow mode is 50% power
     private final double turnRateMultiplier = 0.75; // always have our turns 75% speed
     private boolean isIntakePowered = false;
     private boolean isLaunchPowered = false;
@@ -54,6 +53,8 @@ public class BozoTeleOp extends OpMode {
     public void loop() {
         follower.update();
         telemetryM.update(); // update telemetry manager (Panels)
+
+        double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
 
         if (gamepad1.aWasReleased()) {
             isIntakePowered = !isIntakePowered;
@@ -81,23 +82,22 @@ public class BozoTeleOp extends OpMode {
         if (gamepad1.startWasReleased()) { // if we press the start button, swap between robot and field centric
             isRobotCentric = !isRobotCentric;
         }
-
+        if (gamepad1.backWasReleased()) { // reset field-centric heading
+            Pose headingPose = follower.getPose();
+            headingPose.setHeading(0);
+            follower.setPose(headingPose); // see if this works
+        }
         if (!automatedDrive) {
-            if (!gamepad1.left_bumper) follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y,
-                    -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x * turnRateMultiplier, // reduce speed by our turn rate
-                    isRobotCentric // true = robot centric; false = field centric
-            );
-            else follower.setTeleOpDrive( // slow mode
-                    -gamepad1.left_stick_y * slowModeMultiplier, // reduce speed by our slow mode multiplier
-                    -gamepad1.left_stick_x * slowModeMultiplier, // reduce speed by our slow mode multiplier
-                    -gamepad1.right_stick_x * slowModeMultiplier * turnRateMultiplier, // reduce speed by our slow mode multiplier and our turn rate
-                    isRobotCentric // true = robot centric; false = field centric
+            // slow mode is built in using slowModeMultiplier controlled by left trigger
+            follower.setTeleOpDrive(
+                -gamepad1.left_stick_y * slowModeMultiplier,
+                -gamepad1.left_stick_x * slowModeMultiplier,
+                -gamepad1.right_stick_x * turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                isRobotCentric // true = robot centric; false = field centric
             );
         }
 
-        double launchRPM = ((-gamepad1.right_trigger + 1) * (6000 * Robot.launchRatio) / 2); // calculates max motor speed and multiplies it by the float of the right trigger
+        double launchRPM = ((gamepad1.right_trigger) * (6000 * Robot.launchRatio)); // calculates max motor speed and multiplies it by the float of the right trigger
 
         if (isIntakePowered) robot.intake.setPower(1); // our intake is 0% or 100%
         else robot.intake.setPower(0);
