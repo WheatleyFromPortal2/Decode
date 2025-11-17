@@ -43,8 +43,8 @@ public abstract class BozoAuto extends OpMode {
 
     // variables to be tuned
     // TODO: tune these
-    private final double scoreRPM = 2700; // 2850 pretty good
-    private final int interLaunchWait = 1000; // wait 0.5s between ball launches
+    private final double scoreRPM = 2758; // ty Leo
+    private final int interLaunchWait = 630; // 1000 confirmed stable
     private final double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
 
