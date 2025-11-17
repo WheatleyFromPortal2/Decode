@@ -54,6 +54,10 @@ public class BozoTeleOp extends OpMode {
         follower.update();
         telemetryM.update(); // update telemetry manager (Panels)
 
+        if (gamepad1.dpad_up) {
+            robot.autoShootSequence(follower);
+        }
+
         double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
 
         if (gamepad1.aWasReleased()) {
