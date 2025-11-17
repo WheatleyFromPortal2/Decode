@@ -139,4 +139,26 @@ public class Robot { // create our global class for our robot
         upperTransfer.setPosition(upperTransferClosed); // close upper transfer
         lowerTransfer.setPosition(lowerTransferLowerLimit); // set lower transfer to its lowest
     }
+
+    public void autoShootSequence(Follower follower) { //Auto launch
+    double targetHeading = getGoalHeading(follower.getPose());
+    PathChain turnPath = follower.pathBuilder()
+            .addPath(new BezierLine(follower.getPose(), follower.getPose()))
+            .setLinearHeadingInterpolation(follower.getHeading(), targetHeading)
+            .build();
+    follower.followPath(turnPath);
+
+    long turnEnd = System.currentTimeMillis() + 2000;
+    while (System.currentTimeMillis() < turnEnd) follower.update();
+
+    double neededTangentialSpeed = getTangentialSpeed(follower.getPose());
+    double neededVelocity = getNeededVelocity(neededTangentialSpeed);
+
+    long spinUpEnd = System.currentTimeMillis() + 5000;
+    while (System.currentTimeMillis() < spinUpEnd) launch.setVelocity(neededVelocity);
+
+    try { launchBall(); } catch (InterruptedException e) { throw new RuntimeException(e); }
+    try { launchBall(); } catch (InterruptedException e) { throw new RuntimeException(e); }
+    try { launchBall(); } catch (InterruptedException e) { throw new RuntimeException(e); }
+    }
 }
