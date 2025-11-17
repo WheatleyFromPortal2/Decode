@@ -1,6 +1,3 @@
-/*
-this is basically our mega-class that holds all robot data that is shared between auto and teleop
- */
 package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Thread.sleep;
@@ -14,58 +11,56 @@ import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import com.pedropathing.geometry.Pose;
-public class Robot { // create our global class for our robot
+
+public class Robot {
     private static Robot instance;
-    public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
+    public DcMotorEx intake, launch;
     public Servo lowerTransfer, upperTransfer;
 
+    public static final int TICKS_PER_REV = 28;
+    public static final double launchRatio = (double) 16 / 20;
 
-
-    public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
-    public static final double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
-
-    // PIDF coefficients
-    public static final double launchP = 300; // orig 2.5
-    public static final double launchI = 0.1; // orig 0.1
-    public static final double launchD = 0.2; // orig 0.2
-    public static final double launchF = (double) 1 / 2800; // 6000 rpm motor; 2333.333333333333 ideal
+    public static final double launchP = 300;
+    public static final double launchI = 0.1;
+    public static final double launchD = 0.2;
+    public static final double launchF = (double) 1 / 2800;
     public static final double lowerTransferLowerLimit = 0.28;
     public static final double lowerTransferUpperLimit = 0.49;
 
-    public static final double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
-    public static final double upperTransferOpen = 0.66; // servo position where upper transfer allows balls to pass into launch
+    public static final double upperTransferClosed = 0.36;
+    public static final double upperTransferOpen = 0.66;
 
-    public static final int launchDelay = 250; // time to wait for servos to move during launch (in ms)
-    public final double scoreRPMMargin = 100; // margin of 100RPM
-    public static Pose goalPose; // this must be initialized by the auto
+    public static final int launchDelay = 250;
+    public final double scoreRPMMargin = 100;
+    public static Pose goalPose;
 
-    public Robot(HardwareMap hw) { // create all of our hardware
-        // DC motors (all are DcMotorEx for current monitoring)
+    private static final double[] calibRPM = {
+            1782.8571, 1714.2857, 2331.4285, 3668.5714, 2091.42, 3668.5714
+    };
+
+    private static final double[] calibVel = {
+            2.636, 3.136, 0.5356, 1.7417, 1.0557, 1.1592
+    };
+
+    public Robot(HardwareMap hw) {
         intake = hw.get(DcMotorEx.class, "intake");
         launch = hw.get(DcMotorEx.class, "launch");
-
-        // servos
         lowerTransfer = hw.get(Servo.class, "lowerTransfer");
         upperTransfer = hw.get(Servo.class, "upperTransfer");
-
-        // sensors
 
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
         launch.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
-        launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
+        intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
+        launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT);
 
-        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
-        // Get the PIDF coefficients for the RUN_USING_ENCODER RunMode.
-        //PIDFCoefficients pidfOrig = launch.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
+        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
-        // Change coefficients using methods included with DcMotorEx class.
         PIDFCoefficients pidfNew = new PIDFCoefficients(launchP, launchI, launchD, launchF);
         launch.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
     }
 
-    public static Robot getInstance(HardwareMap hw) { // this allows us to preserve the Robot instance from auto->teleop
+    public static Robot getInstance(HardwareMap hw) {
         if (instance == null) {
             instance = new Robot(hw);
         }
@@ -75,68 +70,90 @@ public class Robot { // create our global class for our robot
     public double getDstFromGoal(Pose currentPosition) {
         double xDst = Math.abs(currentPosition.getX() - goalPose.getX());
         double yDst = Math.abs(currentPosition.getY() - goalPose.getY());
-        return Math.pow(Math.pow(xDst, 2) + Math.pow(yDst, 2), 0.5); // use pythag to find dst from goal
+        return Math.pow(Math.pow(xDst, 2) + Math.pow(yDst, 2), 0.5);
     }
 
-    public double getGoalHeading(Pose currentPosition) { // return bot heading to point towards goal in radians
+    public double getGoalHeading(Pose currentPosition) {
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
         return Math.atan2(yDst, xDst);
     }
 
-    public double getTangentialSpeed(Pose currentPosition) { // returns needed tangential speed to launch ball to the goal
+    public double getTangentialSpeed(Pose currentPosition) {
         double d = getDstFromGoal(currentPosition);
         double numerator = 19.62 * Math.pow(d, 2);
         double denominator = (Math.pow(3, 0.5) * d) - 0.8;
-        return Math.pow(numerator / denominator, 0.5); // thank u rahul
+        return Math.pow(numerator / denominator, 0.5);
     }
 
-    public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
-        double TPS = 0;
-        // this will be the hardest function to code
-        // it basically needs to be a relation between the rotational speed of launch and the actual output speed of the ball
-        // at the end, we will output the desired TPS of our motor to monitor once it reaches it
-        return TPS;
+    private double[] linReg(double[] x, double[] y) {
+        int n = x.length;
+        double sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+        for (int i = 0; i < n; i++) {
+            sumX += x[i];
+            sumY += y[i];
+            sumXY += x[i] * y[i];
+            sumX2 += x[i] * x[i];
+        }
+        double slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+        double intercept = (sumY - slope * sumX) / n;
+        return new double[]{slope, intercept};
+    }
+
+    public double getNeededVelocity(double tangentialSpeed) {
+        double[] params = linReg(calibRPM, calibVel);
+        double slope = params[0];
+        double intercept = params[1];
+        double neededRPM = (tangentialSpeed - intercept) / slope;
+        return RPMToTPS(neededRPM);
     }
 
     public double setAutomatedLaunch(Pose currentPosition) {
         double neededTangentialSpeed = getTangentialSpeed(currentPosition);
         double neededVelocity = getNeededVelocity(neededTangentialSpeed);
         launch.setVelocity(neededVelocity);
-        return neededVelocity; // allow TeleOp to see our desired velocity
+        return neededVelocity;
     }
 
     public double TPSToRPM(double TPS) {
         return (TPS / TICKS_PER_REV) * 60 * launchRatio;
     }
-    public double RPMToTPS(double RPM) { return (RPM * TICKS_PER_REV / 60) / launchRatio;}
-    public double getLaunchRPM() { // return launch velocity in RPM
+
+    public double RPMToTPS(double RPM) {
+        return (RPM * TICKS_PER_REV / 60) / launchRatio;
+    }
+
+    public double getLaunchRPM() {
         return TPSToRPM(launch.getVelocity());
     }
-    public double getLaunchRadians() { // return launch velocity in radians/second
+
+    public double getLaunchRadians() {
         return ((launch.getVelocity() / TICKS_PER_REV) * 2 * Math.PI);
     }
-    public double getLaunchCurrent() { // return launch current in amps
+
+    public double getLaunchCurrent() {
         return launch.getCurrent(CurrentUnit.AMPS);
     }
+
     public boolean isLaunchWithinMargin(double desiredScoreRPM) {
-        return Math.abs(desiredScoreRPM - TPSToRPM(launch.getVelocity())) < scoreRPMMargin; // measure if our RPM is within our margin of error
+        return Math.abs(desiredScoreRPM - TPSToRPM(launch.getVelocity())) < scoreRPMMargin;
     }
+
     public double getIntakeCurrent() {
         return intake.getCurrent(CurrentUnit.AMPS);
     }
-    public void initServos() { // set servos to starting state
-        upperTransfer.setPosition(Robot.upperTransferClosed); // make sure balls cannot launch
-        lowerTransfer.setPosition(Robot.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
+
+    public void initServos() {
+        upperTransfer.setPosition(Robot.upperTransferClosed);
+        lowerTransfer.setPosition(Robot.lowerTransferLowerLimit);
     }
-    public void launchBall() throws InterruptedException { // launch a ball
-        // TODO: make this asynchronous (eliminate all the waits)
+
+    public void launchBall() throws InterruptedException {
         upperTransfer.setPosition(upperTransferOpen);
-        sleep(launchDelay); // allow time for upper transfer to move
+        sleep(launchDelay);
         lowerTransfer.setPosition(lowerTransferUpperLimit);
-        sleep(launchDelay); // allow time for lower transfer to move
-        // hopefully the ball has launched by now
-        upperTransfer.setPosition(upperTransferClosed); // close upper transfer
-        lowerTransfer.setPosition(lowerTransferLowerLimit); // set lower transfer to its lowest
+        sleep(launchDelay);
+        upperTransfer.setPosition(upperTransferClosed);
+        lowerTransfer.setPosition(lowerTransferLowerLimit);
     }
 }
