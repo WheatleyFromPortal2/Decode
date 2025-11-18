@@ -153,23 +153,6 @@ public class Robot { // create our global class for our robot
         lowerTransfer.setPosition(lowerTransferLowerLimit); // set lower transfer to its lowest
     }
 
-    public void teleOpLaunchPrep(Follower follower) { // start spinning up and following the turn path
-        // we shouldn't need to set our needed velocity because this should automatically be done by the teleop every loop
-        // yet we will still check one more time
-        double neededTangentialSpeed = getTangentialSpeed(follower.getPose());
-        double neededVelocity = getNeededVelocity(neededTangentialSpeed); // honestly can combine these into the same function and return our needed TPS to check if we're spun up
-        launch.setVelocity(neededVelocity); // set our velocity to what we want
-
-
-        double targetHeading = getGoalHeading(follower.getPose());
-        PathChain turnPath = follower.pathBuilder()
-                .addPath(new BezierLine(follower.getPose(), follower.getPose())) // our x-y pos will stay the same so just give our current position twice
-                .setLinearHeadingInterpolation(follower.getHeading(), targetHeading) // we want to turn from our current heading to our target heading
-                .build();
-
-        follower.followPath(turnPath); // follow this path
-    }
-
     public void setLaunchVelocity(double velocity) { // velocity is in TPS
         neededLaunchVelocity = velocity; // update our desired launch velocity
         launch.setVelocity(velocity); // set our launch velocity

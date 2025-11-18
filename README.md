@@ -44,6 +44,7 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 | 1          | `frontRight`  | ❌        |
 | 2          | `backLeft`    | ❌        |
 | 3          | `backRight`   | ❌        |
+
 make sure to connect every motor with the correct polarity, the reversing should be done in software
 
 ### servos
