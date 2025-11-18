@@ -27,7 +27,7 @@ public abstract class BozoAuto extends OpMode {
     private TelemetryManager telemetryM; // create our telemetry object
     private Pose startPose;
 
-    public enum State { // define our possible states for our FSM
+    private enum State { // define our possible states for our FSM
         START, // starting state, waiting for OpMode to begin
         TRAVEL_TO_LAUNCH, // travel to our defined position to launch balls from. an internal switch statement control which path it will take
         LAUNCH, // launch our balls
@@ -170,7 +170,7 @@ public abstract class BozoAuto extends OpMode {
                 break;
             case LAUNCH:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
-                if(!follower.isBusy() && robot.isLaunchWithinMargin(scoreRPM)) { // check if we're busy and if our launch velocity is within our margin
+                if(!follower.isBusy() && robot.isLaunchWithinMargin()) { // check if we're busy and if our launch velocity is within our margin
                     follower.pausePathFollowing(); // pause path following while launching (idk why its following?!?)
                     robot.launchBall(); // launch our first ball
                     sleep(interLaunchWait); // could rework this to also watch for velocity
@@ -293,8 +293,7 @@ public abstract class BozoAuto extends OpMode {
         opmodeTimer.resetTimer();
         robot.initServos(); // get servos ready
         robot.intake.setPower(1); // start intake
-        robot.launch.setVelocity(robot.RPMToTPS(scoreRPM)); // we're just gonna keep our score RPM constant for now
-        //robot.launch.setVelocity(2800); // full speed BRRRR
+        robot.setLaunchVelocity(robot.RPMToTPS(scoreRPM)); // we're just gonna keep our score RPM constant for now
         setPathState(State.START);
     }
 

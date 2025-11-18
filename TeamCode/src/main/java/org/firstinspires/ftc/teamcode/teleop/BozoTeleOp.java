@@ -23,6 +23,17 @@ import com.pedropathing.paths.PathChain;
 @Configurable
 @TeleOp(name="BozoTeleOp", group="TeleOp")
 public class BozoTeleOp extends OpMode {
+    // TODO: convert this OpMode to use a finite state machine
+    // until that is done, the launch command will have to be manually issued
+    private enum State { // define our possible states for our FSM
+        START, // starting state, waiting for OpMode to begin
+        MANUAL_DRIVE, // we are in driver-controlled drive
+        WAITING_TO_TURN, // we are waiting for Pedro Pathing to turn to the goal
+        WAITING_TO_SPINUP, // we are waiting for Pedro Pathing to spinup
+        LAUNCH, // we are waiting for the manual/automatic launch to finish
+        END // end state: do nothing (might not be necessary)
+    }
+
     private Robot robot;
     private Follower follower;
     public static Pose startingPose;
@@ -31,7 +42,6 @@ public class BozoTeleOp extends OpMode {
     private TelemetryManager telemetryM;
     private final double turnRateMultiplier = 0.75; // always have our turns 75% speed
     private boolean isIntakePowered = false;
-    private boolean isLaunchPowered = false;
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
 
     @Override
@@ -55,23 +65,13 @@ public class BozoTeleOp extends OpMode {
         telemetryM.update(); // update telemetry manager (Panels)
 
         if (gamepad1.dpad_up) {
-            robot.autoShootSequence(follower);
+            robot.teleOpLaunchPrep(follower);
         }
 
         double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
 
         if (gamepad1.aWasReleased()) {
             isIntakePowered = !isIntakePowered;
-        }
-        if (gamepad1.bWasReleased()) {
-            isLaunchPowered = !isLaunchPowered;
-        }
-        if (!automatedDrive && gamepad1.xWasPressed()) { // if we're not in automated drive and we press X, turn to the goal
-            turnToGoal();
-        }
-        if (automatedDrive && (gamepad1.xWasPressed() || !follower.isBusy())) { // if we're in automated drive and the user presses x or its done, then go to teleop
-            follower.startTeleOpDrive();
-            automatedDrive = false;
         }
         if (gamepad1.yWasReleased()) {
             automatedLaunch = !automatedLaunch; // invert automated launch
@@ -88,7 +88,7 @@ public class BozoTeleOp extends OpMode {
         }
         if (gamepad1.backWasReleased()) { // reset field-centric heading
             Pose headingPose = follower.getPose();
-            headingPose.setHeading(Math.toRadians(90));
+            headingPose = headingPose.setHeading(Math.toRadians(90)); // i think this is right
             follower.setPose(headingPose); // see if this works
         }
         if (!automatedDrive) {
@@ -99,28 +99,32 @@ public class BozoTeleOp extends OpMode {
                 -gamepad1.right_stick_x * turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
                 isRobotCentric // true = robot centric; false = field centric
             );
+            if (gamepad1.xWasReleased()) turnToGoal(); // turn to goal if we're not in automated drive
+        } else { // we're in automated drive
+            automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
+            if (gamepad1.xWasPressed() || !follower.isBusy()) { // if the user presses X, OR its done, then go to TeleOp
+                follower.startTeleOpDrive();
+                automatedDrive = false;
+            }
         }
-
-        double launchTPS = ((gamepad1.right_trigger) * (2800)); // calculates max motor speed and multiplies it by the float of the right trigger
 
         if (isIntakePowered) robot.intake.setPower(1); // our intake is 0% or 100%
         else robot.intake.setPower(0);
 
-        if (isLaunchPowered) {
-            if (automatedLaunch) { // overwrite launchTPS with automatically calculated one
-                double launchRPM = robot.setAutomatedLaunch(follower.getPose()); // set our launch to its needed speed and get our needed TPS
-                launchTPS = robot.RPMToTPS(launchRPM); // tell the driver our correct desired RPM
-                if (robot.isLaunchWithinMargin(launchTPS)) { // check if our current launch speed is within our margin
-                    telemetryM.addLine("launch within margin!"); // tell the driver we're good to go
-                } else telemetryM.addLine("launch out of margin!"); // tell the driver they need to wait
-            }
-            robot.launch.setVelocity(launchTPS);
-        } else { // launch not powered
-            robot.launch.setPower(0); // setting velocity to 0 causes oscillations
-            launchTPS = 0; // indicate that launch isn't powered
+        if (automatedLaunch) {
+            robot.setAutomatedLaunchVelocity(follower.getPose()); // set our launch to its needed speed and get our needed TPS
+        } else { // set our launch velocity manually based off the right trigger
+            double launchTPS = ((gamepad1.right_trigger) * (2800)); // calculates max motor speed and multiplies it by the float of the right trigger
+            if (launchTPS == 0) robot.launchOff(); // if right trigger isn't pressed, don't even use PIDF
+            else robot.setLaunchVelocity(launchTPS); // set our launch power manually
         }
 
-        telemetryM.debug("desired launch RPM", (launchTPS / Robot.TICKS_PER_REV) * 60 * Robot.launchRatio);
+        // all telemetry with a question mark (?) indicate a boolean
+        telemetryM.debug("launch within margin?", robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
+        telemetryM.debug("automated drive?", automatedDrive);
+        telemetryM.debug("automated launch?", automatedLaunch);
+
+        telemetryM.debug("desired launch RPM", robot.TPSToRPM(robot.neededLaunchVelocity)); // make sure to convert from TPS->RPM
         telemetryM.debug("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
         telemetryM.debug("launch current", robot.getLaunchCurrent()); // display launch current
         telemetryM.debug("intake current", robot.getIntakeCurrent()); // display intake current
@@ -128,7 +132,7 @@ public class BozoTeleOp extends OpMode {
         telemetryM.debug("x:" + follower.getPose().getX());
         telemetryM.debug("y:" + follower.getPose().getY());
         telemetryM.debug("heading:" + follower.getPose().getHeading());
-        telemetryM.update(telemetry); // update telemetry
+        telemetryM.update(telemetry); // update telemetry (don't know why we need to pass in 'telemetry' object)
     }
 
     public void turnToGoal() {
