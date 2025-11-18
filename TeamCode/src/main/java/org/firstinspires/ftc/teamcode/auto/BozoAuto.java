@@ -232,6 +232,7 @@ public abstract class BozoAuto extends OpMode {
             case END:
                 robot.intake.setPower(0); // turn off intake
                 robot.launch.setPower(1); // warm up launch
+                Robot.switchoverPose = follower.getPose(); // try to prevent drift
                 follower.deactivateAllPIDFs(); // stop the follower
                 break;
         }
@@ -248,6 +249,9 @@ public abstract class BozoAuto extends OpMode {
     public void loop() {
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
+
+        Robot.switchoverPose = follower.getPose(); // get our switchover pose ready for TeleOp (this may drift if we stop the OpMode mid-motion)
+
         try {
             autonomousPathUpdate();
         } catch (InterruptedException e) {

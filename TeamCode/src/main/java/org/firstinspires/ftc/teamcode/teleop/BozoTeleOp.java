@@ -36,7 +36,6 @@ public class BozoTeleOp extends OpMode {
 
     private Robot robot;
     private Follower follower;
-    public static Pose startingPose;
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
     private boolean automatedLaunch = false; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
@@ -47,9 +46,9 @@ public class BozoTeleOp extends OpMode {
     @Override
     public void init() {
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
-
         follower = Constants.createFollower(hardwareMap);
-        follower.setStartingPose(startingPose == null ? new Pose() : startingPose); // if we don't already have a starting pose, set it
+
+        follower.setStartingPose(Robot.switchoverPose == null ? new Pose() : Robot.switchoverPose); // if we don't already have a starting pose, set it
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
     }

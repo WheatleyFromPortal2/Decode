@@ -23,6 +23,7 @@ import com.pedropathing.paths.PathChain;
 
 public class Robot { // create our global class for our robot
     public static Pose goalPose; // this must be initialized by the auto
+    public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
     private static Robot instance;
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer;
