@@ -1,4 +1,4 @@
-# St. Mark's FTC-A Decode Repo
+# St. Mark's FTC-A Decode Repo For Team 23381 "The Marksmen"
 ## ADB connect instructions
 if `adb devices` doesn't show any devices:
 1. connect to driver hub using wifi
@@ -13,8 +13,8 @@ if `adb devices` doesn't show any devices:
   - TPS for commanding motors directly
   - radians/s for math (bcuz it's easy for physics)
 ### odo distances
-- robot length (back to front) is **420mm**, **16.53543"**
-- robot width (left to right) is **400mm**, **15.74803"**
+- robot length (back to front) is **420mm** / **16.53543"**
+- robot width (left to right) is **400mm** / **15.74803"**
 # Hardware Map
 
 driver station config name: `parallel plate v0`
@@ -44,6 +44,7 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 | 1          | `frontRight`  | ❌        |
 | 2          | `backLeft`    | ❌        |
 | 3          | `backRight`   | ❌        |
+make sure to connect every motor with the correct polarity, the reversing should be done in software
 
 ### servos
 
@@ -87,14 +88,49 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 - right trigger: launch power (when manually controlled)
 
 ## buttons
+### face buttons
 - A: toggle intake
-- B: toggle launch (speed controlled with RY)
+- B: unused
 - Y: switch between manual and automatic control of launch velocity
 - X: turn to goal or cancel turning to goal
+ 
+### d-pad
+- up: auto orient for launch
 
+### other buttons
 - start: toggle field/robot centric
 - back: reset field centric heading
 
+
+# OpModes
+## TeleOp
+- `BozoTeleOp`: TeleOp for everything, current pose and goal pose should be automatically transferred
+
+## Auto
+### Blue Team
+- `BlueTriAuto`: starting by bottom triangle
+- `BlueGoalAuto`: starting by blue team goal
+### Red Team
+- `RedTriAuto`: starting by bottom triangle
+- `RedGoalAuto`: starting by red team goal
+
+## util
+- `FlywheelTest`: test flywheel max speed
+- `ServoTest`: test servo endpoints
+
+# State Machine
+## main states
+1. START
+2. TRAVEL_TO_LAUNCH
+3. LAUNCH
+4. TRAVEL_TO_BALLS
+5. RELOAD
+6. GO_TO_END
+7. END
+
+## ball triplets remaining
+- starts at 4 (1 in robot, 3 on field)
+- decrements every launch
 # multipliers
 when moving around the field and back to the same place, our position was within ~0.25" so we prob won't need to recalibrate the pinpoint
 ## forward (48") tests
@@ -132,33 +168,3 @@ when moving around the field and back to the same place, our position was within
 ## lateral zero power acceleration (deceleration)
 1. -38.25290065185062
 2. -33.778581054706926
-
-# OpModes
-## TeleOp
-- `BlueTeleOp`: blue team goal position for launch calculations
-- `RedTeleOp`: red team goal position for launch calculations
-
-## Auto
-### Blue Team
-- `BlueTriAuto`: starting by bottom triangle
-- `BlueGoalAuto`: starting by blue team goal
-### Red Team
-- `RedTriAuto`: starting by bottom triangle
-- `RedGoalAuto`: starting by red team goal
-
-## other/util
-- `FlywheelServoTest`: test servo endpoints and max flywheel speed
-
-# State Machine
-## main states
-1. START
-2. TRAVEL_TO_LAUNCH
-3. LAUNCH
-4. TRAVEL_TO_BALLS
-5. RELOAD
-6. GO_TO_END
-7. END
-
-## ball triplets remaining
-- starts at 4 (1 in robot, 3 on field)
-- decrements every launch

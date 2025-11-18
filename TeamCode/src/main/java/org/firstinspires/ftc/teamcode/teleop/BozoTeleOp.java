@@ -66,9 +66,6 @@ public class BozoTeleOp extends OpMode {
         if (gamepad1.dpad_up) {
             robot.teleOpLaunchPrep(follower);
         }
-
-        double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
-
         if (gamepad1.aWasReleased()) {
             isIntakePowered = !isIntakePowered;
         }
@@ -91,6 +88,7 @@ public class BozoTeleOp extends OpMode {
             follower.setPose(headingPose); // see if this works
         }
         if (!automatedDrive) {
+            double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
             // slow mode is built in using slowModeMultiplier controlled by left trigger
             follower.setTeleOpDrive(
                 -gamepad1.left_stick_y * slowModeMultiplier,
