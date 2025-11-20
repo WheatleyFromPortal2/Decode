@@ -13,7 +13,10 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.PathChain;
 public class Robot { // create our global class for our robot
     private static Robot instance;
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
@@ -141,24 +144,24 @@ public class Robot { // create our global class for our robot
     }
 
     public void autoShootSequence(Follower follower) { //Auto launch
-    double targetHeading = getGoalHeading(follower.getPose());
-    PathChain turnPath = follower.pathBuilder()
-            .addPath(new BezierLine(follower.getPose(), follower.getPose()))
-            .setLinearHeadingInterpolation(follower.getHeading(), targetHeading)
-            .build();
-    follower.followPath(turnPath);
+        double targetHeading = getGoalHeading(follower.getPose());
+        PathChain turnPath = follower.pathBuilder()
+                .addPath(new BezierLine(follower.getPose(), follower.getPose()))
+                .setLinearHeadingInterpolation(follower.getHeading(), targetHeading)
+                .build();
+        follower.followPath(turnPath);
 
-    long turnEnd = System.currentTimeMillis() + 2000;
-    while (System.currentTimeMillis() < turnEnd) follower.update();
+        long turnEnd = System.currentTimeMillis() + 2000;
+        while (System.currentTimeMillis() < turnEnd) follower.update();
 
-    double neededTangentialSpeed = getTangentialSpeed(follower.getPose());
-    double neededVelocity = getNeededVelocity(neededTangentialSpeed);
+        double neededTangentialSpeed = getTangentialSpeed(follower.getPose());
+        double neededVelocity = getNeededVelocity(neededTangentialSpeed);
 
-    long spinUpEnd = System.currentTimeMillis() + 5000;
-    while (System.currentTimeMillis() < spinUpEnd) launch.setVelocity(neededVelocity);
+        long spinUpEnd = System.currentTimeMillis() + 5000;
+        while (System.currentTimeMillis() < spinUpEnd) launch.setVelocity(neededVelocity);
 
-    try { launchBall(); } catch (InterruptedException e) { throw new RuntimeException(e); }
-    try { launchBall(); } catch (InterruptedException e) { throw new RuntimeException(e); }
-    try { launchBall(); } catch (InterruptedException e) { throw new RuntimeException(e); }
+        try { launchBall(); } catch (InterruptedException e) { throw new RuntimeException(e); }
+        try { launchBall(); } catch (InterruptedException e) { throw new RuntimeException(e); }
+        try { launchBall(); } catch (InterruptedException e) { throw new RuntimeException(e); }
     }
 }
