@@ -31,8 +31,10 @@ public class Robot { // create our global class for our robot
 
 
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
-    public static final double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
     public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
+
+    // this needs to be calculated+changed every time you modify the launch ratio
+    public static final double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
 
     /** stuff to tune **/
 
@@ -49,7 +51,9 @@ public class Robot { // create our global class for our robot
     public static final double upperTransferOpen = 0.66; // servo position where upper transfer allows balls to pass into launch
 
     // delays
-    public static final int launchDelay = 250; // time to wait for servos to move during launch (in ms)
+    public static final int openDelay = 200; // time to wait for upperTransfer to open (in millis)
+    public static final int pushDelay = 250; // time to wait for lowerTransfer to move (in millis)
+    public static final int interLaunchWait = 630; // time to wait between launches (in millis)
     public final double scoreMargin = 100; // margin of 100TPS; TODO: tune this
 
     public Robot(HardwareMap hw) { // create all of our hardware
@@ -145,9 +149,9 @@ public class Robot { // create our global class for our robot
     public void launchBall() throws InterruptedException { // launch a ball
         // TODO: make this asynchronous (eliminate all the waits)
         upperTransfer.setPosition(upperTransferOpen);
-        sleep(launchDelay); // allow time for upper transfer to move
+        sleep(openDelay); // allow time for upper transfer to move
         lowerTransfer.setPosition(lowerTransferUpperLimit);
-        sleep(launchDelay); // allow time for lower transfer to move
+        sleep(pushDelay); // allow time for lower transfer to move
         // hopefully the ball has launched by now
         upperTransfer.setPosition(upperTransferClosed); // close upper transfer
         lowerTransfer.setPosition(lowerTransferLowerLimit); // set lower transfer to its lowest

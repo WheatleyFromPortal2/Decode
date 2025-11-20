@@ -32,7 +32,7 @@ public class FlywheelTest extends LinearOpMode {
 
             if (isGradualControl) {
                 robot.launch.setVelocity(robot.RPMToTPS(launchRPM)); // set our desired velocity to our desired RPM
-                telemetry.addData("desired RPM", launchRPM);
+                telemetry.addData("desired RPM: ", launchRPM);
                 telemetry.addLine("in GRADUAL CONTROL");
             } else {
                 robot.launch.setPower(1); // BRRRRRR
@@ -40,7 +40,8 @@ public class FlywheelTest extends LinearOpMode {
                 telemetry.addLine("in FULL POWER");
             }
             telemetry.addData("actual RPM", robot.getLaunchRPM());
-            telemetry.addData("launch TPS", robot.launch.getVelocity());
+            telemetry.addData("raw launch TPS", robot.launch.getVelocity());
+            telemetry.addData("raw launch RPM", robot.launch.getVelocity() * 60 / 28); // this should work
             telemetry.addData("launch current", robot.getLaunchCurrent());
             telemetry.addData("launch ratio", Robot.launchRatio);
             telemetry.update();
