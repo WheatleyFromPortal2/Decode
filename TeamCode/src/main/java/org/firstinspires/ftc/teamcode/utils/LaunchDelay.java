@@ -1,18 +1,14 @@
-// used to calibrate launch times
+/** this OpMode is used to tune launch times **/
 package org.firstinspires.ftc.teamcode.utils;
-
-
-import static java.lang.Thread.sleep;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
 
 @TeleOp(name="LaunchDelay", group="Util")
 public class LaunchDelay extends LinearOpMode {
-    Robot robot;
+    private Robot robot;
 
     // let's start with our delays from Robot.java
     private int openDelay = Robot.openDelay; // time to wait for upperTransfer to open (in millis)
@@ -23,15 +19,18 @@ public class LaunchDelay extends LinearOpMode {
 
     @Override
     public void runOpMode() throws InterruptedException {
-        Robot robot = Robot.getInstance(hardwareMap);
+        robot = Robot.getInstance(hardwareMap);
 
         telemetry.addLine("use d-pad up/down to modify openDelay (upper transfer opening)");
         telemetry.addLine("use d-pad left/right to modify pushDelay (lower transfer pushing");
-        telemetry.addLine("use Y/A to modify interLaunchWait (time between ball launches for macro)");
+        telemetry.addLine("use X/B to modify interLaunchWait (time between ball launches for macro)");
 
         waitForStart();
         while (opModeIsActive()) {
+            robot.setLaunchVelocity(robot.RPMToTPS(2400)); // RPM doesn't really matter
+
             if (gamepad1.rightBumperWasReleased()) launchBall(); // launch the ball
+            if (gamepad1.yWasReleased()) launch3Balls(); // launch 3 balls
 
             if (gamepad1.dpadUpWasReleased()) openDelay += manualChangeAmount; // increment openDelay
             if (gamepad1.dpadDownWasReleased()) openDelay -= manualChangeAmount; // decrement openDelay
@@ -39,8 +38,8 @@ public class LaunchDelay extends LinearOpMode {
             if (gamepad1.dpadRightWasReleased()) pushDelay += manualChangeAmount; // increment pushDelay
             if (gamepad1.dpadLeftWasReleased()) pushDelay -= manualChangeAmount; // decrement pushDelay
 
-            if (gamepad1.yWasReleased()) interLaunchWait += manualChangeAmount; // increment interLaunchWait
-            if (gamepad1.aWasReleased()) interLaunchWait -= manualChangeAmount; // decrement interLaunchWait
+            if (gamepad1.xWasReleased()) interLaunchWait += manualChangeAmount; // increment interLaunchWait
+            if (gamepad1.bWasReleased()) interLaunchWait -= manualChangeAmount; // decrement interLaunchWait
 
             telemetry.addData("openDelay (millis)", openDelay);
             telemetry.addData("pushDelay (millis)", pushDelay);
