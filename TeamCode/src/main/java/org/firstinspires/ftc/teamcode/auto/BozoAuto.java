@@ -43,8 +43,7 @@ public abstract class BozoAuto extends OpMode {
 
     // variables to be tuned
     // TODO: tune these
-    private final double scoreRPM = 2600; // SIX SEVEN!!!!!!!!
-    private final int interLaunchWait = 630; // 1000 confirmed stable
+    private final double scoreRPM = 2600; // RPM to set for launching
     private final double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
 
@@ -66,7 +65,7 @@ public abstract class BozoAuto extends OpMode {
     public void buildPaths() {
         config = buildConfig(); // get our config
 
-        Robot.goalPose = config.goalPose; // add our goalPose to the Robot class so it can be used in teleop
+        Robot.goalPose = config.goalPose; // add our goalPose to the Robot class so it can be used in teleop TODO: fix this - issue with teleop
 
         // this path goes from the starting point to our scoring point
         scorePreload = follower.pathBuilder()
@@ -172,12 +171,14 @@ public abstract class BozoAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if(!follower.isBusy() && robot.isLaunchWithinMargin()) { // check if we're busy and if our launch velocity is within our margin
                     follower.pausePathFollowing(); // pause path following while launching (idk why its following?!?)
+
                     robot.launchBall(); // launch our first ball
-                    sleep(interLaunchWait); // could rework this to also watch for velocity
+                    sleep(Robot.interLaunchWait); // could rework this to also watch for velocity
                     robot.launchBall(); // launch our second ball
-                    sleep(interLaunchWait);
+                    sleep(Robot.interLaunchWait);
                     robot.launchBall(); // launch our third ball
-                    sleep(interLaunchWait); // make sure ball has fully exited robot
+                    sleep(Robot.interLaunchWait); // make sure ball has fully exited robot
+
                     ballTripletsRemaining -= 1; // we have launched a triplet of balls
                     setPathState(State.TRAVEL_TO_BALLS); // let's get some more balls!
                     follower.resumePathFollowing();
