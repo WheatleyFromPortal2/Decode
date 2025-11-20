@@ -39,10 +39,15 @@ public class BozoTeleOp extends OpMode {
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
     private boolean automatedLaunch = false; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
-    private final double turnRateMultiplier = 0.75; // always have our turns 75% speed
     private boolean isIntakePowered = false;
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
     double targetHeading;
+    double launchVelocity; // target launch velocity in TPS
+
+    // variables to be tuned
+    private final double turnRateMultiplier = 0.75; // always have our turns 75% speed
+    private final int adjustRPM = 50; // driver increments/decrements by adjustRPM
+    private double initialLaunchRPM = 2400; // maybe 2500; from crease
 
     @Override
     public void init() {
@@ -52,6 +57,7 @@ public class BozoTeleOp extends OpMode {
         follower.setStartingPose(Robot.switchoverPose == null ? new Pose() : Robot.switchoverPose); // if we don't already have a starting pose, set it
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+        launchVelocity = robot.RPMToTPS(initialLaunchRPM); // convert from RPM->TPS, starting point
     }
 
     public void start() {
@@ -85,6 +91,10 @@ public class BozoTeleOp extends OpMode {
             headingPose = headingPose.setHeading(Math.toRadians(0)); // i think this is right
             follower.setPose(headingPose); // see if this works
         }
+
+        if (gamepad1.dpadUpWasPressed()) launchVelocity += robot.RPMToTPS(adjustRPM); // increment by adjustRPM (in TPS)
+        if (gamepad1.dpadDownWasPressed()) launchVelocity -= robot.RPMToTPS(adjustRPM); // decrement by adjustRPM (in TPS)
+
         if (!automatedDrive) {
             double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
             // slow mode is built in using slowModeMultiplier controlled by left trigger
@@ -106,13 +116,14 @@ public class BozoTeleOp extends OpMode {
         else robot.intake.setPower(0);
 
         if (automatedLaunch) {
-            robot.setAutomatedLaunchVelocity(follower.getPose()); // set our launch to its needed speed and get our needed TPS
+            //robot.setAutomatedLaunchVelocity(follower.getPose()); // set our launch to its needed speed and get our needed TPS
+            robot.setLaunchVelocity(launchVelocity); // set our launch velocity to our desired launch velocity
         } else { // set our launch velocity manually based off the right trigger
             double launchTPS = ((gamepad1.right_trigger) * (2800)); // calculates max motor speed and multiplies it by the float of the right trigger
-            if (launchTPS == 0) robot.launchOff(); // if right trigger isn't pressed, don't even use PIDF
+            if (launchTPS == 0)
+                robot.launchOff(); // if right trigger isn't pressed, don't even use PIDF
             else robot.setLaunchVelocity(launchTPS); // set our launch power manually
         }
-
         // all telemetry with a question mark (?) indicates a boolean
         telemetryM.debug("target heading: " + targetHeading);
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
@@ -126,9 +137,9 @@ public class BozoTeleOp extends OpMode {
         telemetryM.debug("lowerTransfer: " + robot.lowerTransfer.getPosition());
         telemetryM.debug("x: " + follower.getPose().getX());
         telemetryM.debug("y: " + follower.getPose().getY());
-        telemetryM.debug("heading: " + follower.getPose().getHeading());
-        telemetryM.debug("goalPose x: " + Robot.goalPose.getX());
-        telemetryM.debug("goalPose y: " + Robot.goalPose.getY());
+        //telemetryM.debug("heading: " + follower.getPose().getHeading()); bruh - robot.goalPose doesn't work
+        //telemetryM.debug("goalPose x: " + Robot.goalPose.getX());
+        //telemetryM.debug("goalPose y: " + Robot.goalPose.getY());
         telemetryM.update(telemetry); // update telemetry (don't know why we need to pass in 'telemetry' object)
     }
 
