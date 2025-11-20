@@ -43,7 +43,7 @@ public abstract class BozoAuto extends OpMode {
 
     // variables to be tuned
     // TODO: tune these
-    private final double scoreRPM = 2600; // RPM to set for launching
+    private final double scoreRPM = 2400; // RPM to set for launching (stolen from teleop)
     private final double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
 
@@ -104,9 +104,11 @@ public abstract class BozoAuto extends OpMode {
                 .build();
 
         // this path goes from the endpoint of the ball pickup to our score position
-        scorePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(config.pickup2EndPose, config.scorePose))
-                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.scorePose.getHeading(), scoreEndTime)
+        scorePickup2 = follower.pathBuilder() // extra 2 lines to prevent hitting anything
+                .addPath(new BezierLine(config.pickup2EndPose, config.pickup2StartPose)) // backtrack so we don't hit anything
+                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.pickup2StartPose.getHeading(), grabEndTime) // the heading should not change
+                .addPath(new BezierLine(config.pickup2StartPose, config.scorePose)) // now we to the score position
+                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.scorePose.getHeading(), scoreEndTime) // this heading should work
                 .build();
 
         // this path goes from the score point to the beginning of the third set of balls
