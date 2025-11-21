@@ -9,6 +9,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 @TeleOp(name="LaunchDelay", group="Util")
 public class LaunchDelay extends LinearOpMode {
     private Robot robot;
+    private boolean intakeOn = true;
 
     // let's start with our delays from Robot.java
     private int openDelay = Robot.openDelay; // time to wait for upperTransfer to open (in millis)
@@ -21,13 +22,14 @@ public class LaunchDelay extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         robot = Robot.getInstance(hardwareMap);
 
-        telemetry.addLine("use d-pad up/down to modify openDelay (upper transfer opening)");
-        telemetry.addLine("use d-pad left/right to modify pushDelay (lower transfer pushing");
-        telemetry.addLine("use X/B to modify interLaunchWait (time between ball launches for macro)");
 
         waitForStart();
         while (opModeIsActive()) {
             robot.setLaunchVelocity(robot.RPMToTPS(2400)); // RPM doesn't really matter
+
+            if (gamepad1.aWasReleased()) intakeOn = !intakeOn; // toggle intake
+            if (intakeOn) robot.intake.setPower(1);
+            else robot.intake.setPower(0);
 
             if (gamepad1.rightBumperWasReleased()) launchBall(); // launch the ball
             if (gamepad1.yWasReleased()) launch3Balls(); // launch 3 balls
@@ -41,12 +43,18 @@ public class LaunchDelay extends LinearOpMode {
             if (gamepad1.xWasReleased()) interLaunchWait += manualChangeAmount; // increment interLaunchWait
             if (gamepad1.bWasReleased()) interLaunchWait -= manualChangeAmount; // decrement interLaunchWait
 
+
+            telemetry.addLine("use d-pad up/down to modify openDelay (upper transfer opening)");
+            telemetry.addLine("use d-pad left/right to modify pushDelay (lower transfer pushing");
+            telemetry.addLine("use X/B to modify interLaunchWait (time between ball launches for macro)");
+
             telemetry.addData("openDelay (millis)", openDelay);
             telemetry.addData("pushDelay (millis)", pushDelay);
             telemetry.addData("interLaunchWait (millis)", interLaunchWait);
 
             telemetry.addData("1 ball launch time (millis)", openDelay + pushDelay); // calc time to shoot 1 ball
             telemetry.addData("3 ball launch time (millis)", (openDelay + pushDelay) * 3 + interLaunchWait * 2); // calc time to shoot 3 balls
+            telemetry.addData("launch RPM", robot.getLaunchRPM());
 
             telemetry.update();
             idle();

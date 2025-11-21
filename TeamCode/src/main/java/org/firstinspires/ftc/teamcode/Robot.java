@@ -28,7 +28,13 @@ public class Robot { // create our global class for our robot
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer;
 
-
+    private enum State { // shooting ball states (we want this to be non-blocking)
+        START,
+        OPEN_UPPER_TRANSFER,
+        PUSH_LOWER_TRANSFER,
+        WAIT_FOR_PUSH,
+        END
+    }
 
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
     public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
