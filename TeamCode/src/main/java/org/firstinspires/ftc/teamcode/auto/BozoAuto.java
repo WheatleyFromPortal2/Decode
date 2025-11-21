@@ -23,30 +23,40 @@ public abstract class BozoAuto extends OpMode {
     protected abstract Pose getStartPose();
     Robot robot;
     private Follower follower;
-    private Timer pathTimer, opmodeTimer;
+    private Timer pathTimer, opmodeTimer, launchStepTimer;
     private TelemetryManager telemetryM; // create our telemetry object
     private Pose startPose;
 
     private enum State { // define our possible states for our FSM
         START, // starting state, waiting for OpMode to begin
         TRAVEL_TO_LAUNCH, // travel to our defined position to launch balls from. an internal switch statement control which path it will take
-        LAUNCH, // launch our balls
+        LAUNCH, // wait for us to stop moving
         TRAVEL_TO_BALLS, // travel to the starting point of gathering balls
         RELOAD, // drive in the straight line to grab the balls
         GO_TO_END, // travel to our end position
         END // end state: do nothing
     }
 
+    private enum LaunchState {
+        START,
+        OPENING_UPPER_TRANSFER,
+        PUSHING_LOWER_TRANSFER,
+        WAITING_FOR_EXIT,
+    }
+
     // these are the **only 2 variables** that should change throughout the auto
     State state = State.START; // set PathState to start
+    LaunchState launchState = LaunchState.START; // set our launch state to start
     private int ballTripletsRemaining = 4; // start with 4 ball triplets, decrements every launch
+    private int ballsRemaining = 3; // balls remaining in he robot
+    private double launchTime;  // time (in millis) when launch started
 
     // variables to be tuned
     // TODO: tune these
     private final double scoreRPM = 2400; // RPM to set for launching (stolen from teleop)
     private final double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
-    private final int exitDelay = 200; // time to wait after last ball exits the robot (in millis)
+    private final int beginningLaunchDelay =  100; // time to wait before launching first ball
 
 
     // example paths
@@ -173,19 +183,20 @@ public abstract class BozoAuto extends OpMode {
                 break;
             case LAUNCH:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
-                if(!follower.isBusy() && robot.isLaunchWithinMargin()) { // check if we're busy and if our launch velocity is within our margin
-                    follower.pausePathFollowing(); // pause path following while launching (idk why its following?!?)
-
-                    robot.launchBall(); // launch our first ball
-                    sleep(Robot.firstInterLaunchWait); // could rework this to also watch for velocity
-                    robot.launchBall(); // launch our second ball
-                    sleep(Robot.lastInterLaunchWait);
-                    robot.launchBall(); // launch our third ball
-                    sleep(exitDelay); // make sure ball has fully exited robot
-
-                    ballTripletsRemaining -= 1; // we have launched a triplet of balls
-                    setPathState(State.TRAVEL_TO_BALLS); // let's get some more balls!
-                    follower.resumePathFollowing();
+                if (!follower.isBusy()
+                        && robot.isLaunchWithinMargin()
+                        && opmodeTimer.getElapsedTime() >= beginningLaunchDelay) { // check if we're busy and if our launch velocity is within our margin
+                    follower.pausePathFollowing();
+                    if (ballsRemaining == 0) {
+                        ballTripletsRemaining -= 1;
+                        ballsRemaining = 3;
+                        setPathState(State.TRAVEL_TO_BALLS);
+                        follower.resumePathFollowing();
+                    } else {
+                        if (updateLaunch()) {
+                            ballsRemaining -= 1;
+                        }
+                    }
                 }
                 break;
             case TRAVEL_TO_BALLS: // travel to the start position of the balls, but don't grab them yet
@@ -252,6 +263,38 @@ public abstract class BozoAuto extends OpMode {
         pathTimer.resetTimer();
     }
 
+    public boolean updateLaunch() { // outputs true/false whether we are done with launching
+        switch (launchState) {
+            case START:
+                robot.upperTransfer.setPosition(Robot.upperTransferOpen);
+                launchStepTimer.resetTimer();
+                launchState = LaunchState.OPENING_UPPER_TRANSFER;
+                return false;
+            case OPENING_UPPER_TRANSFER:
+                if (launchStepTimer.getElapsedTime() >= Robot.openDelay) { // we've given it openDelay millis to open
+                    robot.lowerTransfer.setPosition(Robot.lowerTransferUpperLimit);
+                    launchStepTimer.resetTimer();
+                    launchState = LaunchState.PUSHING_LOWER_TRANSFER;
+                }
+                return false;
+            case PUSHING_LOWER_TRANSFER:
+                if (launchStepTimer.getElapsedTime() >= Robot.pushDelay) {
+                    robot.lowerTransfer.setPosition(Robot.lowerTransferLowerLimit);
+                    robot.upperTransfer.setPosition(Robot.upperTransferClosed);
+                    launchStepTimer.resetTimer();
+                    launchState = LaunchState.WAITING_FOR_EXIT;
+                }
+                return false;
+            case WAITING_FOR_EXIT:
+                if (launchStepTimer.getElapsedTime() >= Robot.firstInterLaunchWait) { // ideally with this we won't need to separate first/last inter launch delay
+                    launchState = LaunchState.START; // get ready for next one
+                    return true;
+                }
+                return false;
+        }
+        return false; // this code should never be reached, but the IDE freaks out if i don't have it
+    }
+
     /** This is the main loop of the OpMode, it will run repeatedly after clicking "Play". **/
     @Override
     public void loop() {
@@ -267,6 +310,7 @@ public abstract class BozoAuto extends OpMode {
         }
 
         // Feedback to Driver Hub for debugging
+        telemetryM.debug("balls remaining: ", ballsRemaining);
         telemetryM.debug("path state", state);
         telemetryM.debug("is follower busy", follower.isBusy());
         telemetryM.debug("ball triplets remaining", ballTripletsRemaining);
@@ -284,6 +328,7 @@ public abstract class BozoAuto extends OpMode {
         // set up our timers
         pathTimer = new Timer();
         opmodeTimer = new Timer();
+        launchStepTimer = new Timer(); // tracks time since we started our last launch
         opmodeTimer.resetTimer();
         robot = Robot.getInstance(hardwareMap); // create our robot class
 

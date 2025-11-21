@@ -46,9 +46,9 @@ public class Robot { // create our global class for our robot
     public static final double upperTransferOpen = 0.66; // servo position where upper transfer allows balls to pass into launch
 
     // delays
-    public static final int openDelay = 100; // time to wait for upperTransfer to open (in millis)
+    public static final int openDelay = 150; // time to wait for upperTransfer to open (in millis)
     public static final int pushDelay = 150; // time to wait for lowerTransfer to move (in millis)
-    public static final int firstInterLaunchWait = 80; // time to wait between 1st and 2nd launches
+    public static final int firstInterLaunchWait = 120; // time to wait between 1st and 2nd launches
     public static final int lastInterLaunchWait = 275; // time to wait between the 2nd and last launch
     public final double scoreMargin = 100; // margin of 100TPS; TODO: tune this
 
