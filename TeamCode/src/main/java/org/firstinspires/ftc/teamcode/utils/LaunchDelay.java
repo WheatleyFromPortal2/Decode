@@ -14,7 +14,8 @@ public class LaunchDelay extends LinearOpMode {
     // let's start with our delays from Robot.java
     private int openDelay = Robot.openDelay; // time to wait for upperTransfer to open (in millis)
     private int pushDelay = Robot.pushDelay; // time to wait for lowerTransfer to move (in millis)
-    private int interLaunchWait = Robot.interLaunchWait; // time to wait between launches (in millis)
+    private int firstInterLaunchWait = Robot.firstInterLaunchWait; // check Robot.java
+    private int lastInterLaunchWait = Robot.lastInterLaunchWait; // check Robot.java
 
     private final static int  manualChangeAmount = 10; // amount to increment/decrement when d-pad is pressed
 
@@ -40,8 +41,8 @@ public class LaunchDelay extends LinearOpMode {
             if (gamepad1.dpadRightWasReleased()) pushDelay += manualChangeAmount; // increment pushDelay
             if (gamepad1.dpadLeftWasReleased()) pushDelay -= manualChangeAmount; // decrement pushDelay
 
-            if (gamepad1.xWasReleased()) interLaunchWait += manualChangeAmount; // increment interLaunchWait
-            if (gamepad1.bWasReleased()) interLaunchWait -= manualChangeAmount; // decrement interLaunchWait
+            if (gamepad1.xWasReleased()) firstInterLaunchWait += manualChangeAmount; // increment interLaunchWait
+            if (gamepad1.bWasReleased()) firstInterLaunchWait -= manualChangeAmount; // decrement interLaunchWait
 
 
             telemetry.addLine("use d-pad up/down to modify openDelay (upper transfer opening)");
@@ -50,10 +51,11 @@ public class LaunchDelay extends LinearOpMode {
 
             telemetry.addData("openDelay (millis)", openDelay);
             telemetry.addData("pushDelay (millis)", pushDelay);
-            telemetry.addData("interLaunchWait (millis)", interLaunchWait);
+            telemetry.addData("firstInterLaunchWait (millis)", firstInterLaunchWait);
+            telemetry.addData("lastInterLaunchWait (millis)", lastInterLaunchWait);
 
             telemetry.addData("1 ball launch time (millis)", openDelay + pushDelay); // calc time to shoot 1 ball
-            telemetry.addData("3 ball launch time (millis)", (openDelay + pushDelay) * 3 + interLaunchWait * 2); // calc time to shoot 3 balls
+            telemetry.addData("3 ball launch time (millis)", (openDelay + pushDelay) * 3 + firstInterLaunchWait * 2); // calc time to shoot 3 balls
             telemetry.addData("launch RPM", robot.getLaunchRPM());
 
             telemetry.update();
@@ -72,11 +74,10 @@ public class LaunchDelay extends LinearOpMode {
     }
 
     private void launch3Balls() throws InterruptedException {  // launch 3 balls in succession
-        robot.launchBall(); // launch our first ball
-        sleep(interLaunchWait); // could rework this to also watch for velocity
-        robot.launchBall(); // launch our second ball
-        sleep(interLaunchWait);
-        robot.launchBall(); // launch our third ball
-        sleep(interLaunchWait); // make sure ball has fully exited robot
+        launchBall(); // launch our first ball
+        sleep(firstInterLaunchWait); // could rework this to also watch for velocity
+        launchBall(); // launch our second ball
+        sleep(lastInterLaunchWait);
+        launchBall(); // launch our third ball
     }
 }

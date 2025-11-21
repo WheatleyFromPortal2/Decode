@@ -46,6 +46,7 @@ public abstract class BozoAuto extends OpMode {
     private final double scoreRPM = 2400; // RPM to set for launching (stolen from teleop)
     private final double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
+    private final int exitDelay = 200; // time to wait after last ball exits the robot (in millis)
 
 
     // example paths
@@ -69,8 +70,9 @@ public abstract class BozoAuto extends OpMode {
 
         // this path goes from the starting point to our scoring point
         scorePreload = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, config.scorePose))
-                .setLinearHeadingInterpolation(startPose.getHeading(), config.scorePose.getHeading(), scoreEndTime)
+                .addPath(new BezierLine(startPose, config.scoreIntermediatePose))
+                .addPath(new BezierLine(config.scoreIntermediatePose, config.scorePose))
+                .setLinearHeadingInterpolation(startPose.getHeading(), config.scorePose.getHeading(), scoreEndTime) // hopefully this works
                 .build();
 
         // this path goes from the score point to the beginning of the first set of balls
@@ -152,7 +154,7 @@ public abstract class BozoAuto extends OpMode {
             case TRAVEL_TO_LAUNCH:
                 if(!follower.isBusy()) {
                     if (ballTripletsRemaining == 0) { // if we're out of balls, just go to the end
-                        state = State.END;
+                        state = State.GO_TO_END;
                         break;
                     }
                     switch (ballTripletsRemaining) { // this should always be between 3 and 0
@@ -175,11 +177,11 @@ public abstract class BozoAuto extends OpMode {
                     follower.pausePathFollowing(); // pause path following while launching (idk why its following?!?)
 
                     robot.launchBall(); // launch our first ball
-                    sleep(Robot.interLaunchWait); // could rework this to also watch for velocity
+                    sleep(Robot.firstInterLaunchWait); // could rework this to also watch for velocity
                     robot.launchBall(); // launch our second ball
-                    sleep(Robot.interLaunchWait);
+                    sleep(Robot.lastInterLaunchWait);
                     robot.launchBall(); // launch our third ball
-                    sleep(Robot.interLaunchWait); // make sure ball has fully exited robot
+                    sleep(exitDelay); // make sure ball has fully exited robot
 
                     ballTripletsRemaining -= 1; // we have launched a triplet of balls
                     setPathState(State.TRAVEL_TO_BALLS); // let's get some more balls!
@@ -189,7 +191,7 @@ public abstract class BozoAuto extends OpMode {
             case TRAVEL_TO_BALLS: // travel to the start position of the balls, but don't grab them yet
                 if(!follower.isBusy()) {
                     if (ballTripletsRemaining == 0) { // if we're out of balls, just go to the end
-                        state = State.END;
+                        state = State.GO_TO_END;
                         break;
                     }
                     switch (ballTripletsRemaining) { // this should always be between 3 and 0
@@ -229,14 +231,17 @@ public abstract class BozoAuto extends OpMode {
                     /* Grab Sample */
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.followPath(goToEnd,true);
+                    follower.followPath(goToEnd);
                     setPathState(State.END);
                 }
             case END:
-                robot.intake.setPower(0); // turn off intake
-                robot.launch.setPower(1); // warm up launch
-                Robot.switchoverPose = follower.getPose(); // try to prevent drift
-                follower.deactivateAllPIDFs(); // stop the follower
+                if (!follower.isBusy()) {
+                    robot.intake.setPower(0); // turn off intake
+                    robot.launch.setPower(0.8); // warm up launch (only 80%)
+                    Robot.switchoverPose = follower.getPose(); // try to prevent drift
+                    follower.deactivateAllPIDFs(); // stop the follower
+                    requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
+                }
                 break;
         }
     }

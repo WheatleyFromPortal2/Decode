@@ -1,6 +1,8 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 // OpMode imports
+import static java.lang.Thread.sleep;
+
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -37,7 +39,7 @@ public class BozoTeleOp extends OpMode {
     private Robot robot;
     private Follower follower;
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
-    private boolean automatedLaunch = false; // whether our launch speed is manually controlled or based off of distance from goal
+    private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
     private boolean isIntakePowered = false;
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
@@ -73,8 +75,15 @@ public class BozoTeleOp extends OpMode {
         if (gamepad1.aWasReleased()) {
             isIntakePowered = !isIntakePowered;
         }
-        if (gamepad1.yWasReleased()) {
+        if (gamepad1.bWasReleased()) {
             automatedLaunch = !automatedLaunch; // invert automated launch
+        }
+        if (gamepad1.yWasReleased()) {
+            try {
+                launch3Balls();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         if (gamepad1.rightBumperWasReleased()) {
             try {
@@ -104,7 +113,7 @@ public class BozoTeleOp extends OpMode {
                 -gamepad1.right_stick_x * turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
                 isRobotCentric // true = robot centric; false = field centric
             );
-            if (gamepad1.xWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
+            //if (gamepad1.xWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive TODO: fix this
         } else { // we're in automated drive
             if (gamepad1.xWasPressed() || !follower.isBusy()) { // if the user presses X, OR its done, then go to TeleOp
                 follower.startTeleOpDrive();
@@ -160,5 +169,12 @@ public class BozoTeleOp extends OpMode {
         follower.followPath(turnPath); // follow this path
         automatedDrive = true; // we're driving automatically now
         automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
+    }
+    private void launch3Balls() throws InterruptedException {  // launch 3 balls in succession
+        robot.launchBall(); // launch our first ball
+        sleep(Robot.firstInterLaunchWait); // could rework this to also watch for velocity
+        robot.launchBall(); // launch our second ball
+        sleep(Robot.lastInterLaunchWait);
+        robot.launchBall(); // launch our third ball
     }
 }

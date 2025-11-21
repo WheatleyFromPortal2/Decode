@@ -16,9 +16,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import com.pedropathing.geometry.Pose;
 
 // Pedro Pathing imports
-import com.pedropathing.follower.Follower;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.paths.PathChain;
 
 
 public class Robot { // create our global class for our robot
@@ -27,14 +24,6 @@ public class Robot { // create our global class for our robot
     private static Robot instance;
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer;
-
-    private enum State { // shooting ball states (we want this to be non-blocking)
-        START,
-        OPEN_UPPER_TRANSFER,
-        PUSH_LOWER_TRANSFER,
-        WAIT_FOR_PUSH,
-        END
-    }
 
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
     public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
@@ -45,7 +34,7 @@ public class Robot { // create our global class for our robot
     /** stuff to tune **/
 
     // PIDF coefficients
-    public static final double launchP = 300; // orig 2.5
+    public static final double launchP = 300; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
     public static final double launchI = 0.1; // orig 0.1
     public static final double launchD = 0.2; // orig 0.2
     public static final double launchF = (double) 1 / 2800; // 6000 rpm motor; 2333.333333333333 ideal
@@ -57,9 +46,10 @@ public class Robot { // create our global class for our robot
     public static final double upperTransferOpen = 0.66; // servo position where upper transfer allows balls to pass into launch
 
     // delays
-    public static final int openDelay = 200; // time to wait for upperTransfer to open (in millis)
-    public static final int pushDelay = 250; // time to wait for lowerTransfer to move (in millis)
-    public static final int interLaunchWait = 630; // time to wait between launches (in millis)
+    public static final int openDelay = 100; // time to wait for upperTransfer to open (in millis)
+    public static final int pushDelay = 150; // time to wait for lowerTransfer to move (in millis)
+    public static final int firstInterLaunchWait = 80; // time to wait between 1st and 2nd launches
+    public static final int lastInterLaunchWait = 275; // time to wait between the 2nd and last launch
     public final double scoreMargin = 100; // margin of 100TPS; TODO: tune this
 
     public Robot(HardwareMap hw) { // create all of our hardware
@@ -72,7 +62,6 @@ public class Robot { // create our global class for our robot
         upperTransfer = hw.get(Servo.class, "upperTransfer");
 
         // sensors
-
         intake.setDirection(DcMotorSimple.Direction.FORWARD);
         launch.setDirection(DcMotorSimple.Direction.FORWARD);
 
