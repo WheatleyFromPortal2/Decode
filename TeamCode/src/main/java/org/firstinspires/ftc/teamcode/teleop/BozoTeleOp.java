@@ -42,6 +42,7 @@ public class BozoTeleOp extends OpMode {
     private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
     private boolean isIntakePowered = false;
+    private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
     double targetHeading;
     double launchVelocity; // target launch velocity in TPS
@@ -49,7 +50,7 @@ public class BozoTeleOp extends OpMode {
     // variables to be tuned
     private final double turnRateMultiplier = 0.75; // always have our turns 75% speed
     private final int adjustRPM = 50; // driver increments/decrements by adjustRPM
-    private double initialLaunchRPM = 2400; // maybe 2500; from crease
+    private double initialLaunchRPM = 2300; // maybe 2500; from crease
 
     @Override
     public void init() {
@@ -95,9 +96,10 @@ public class BozoTeleOp extends OpMode {
         if (gamepad1.startWasReleased()) { // if we press the start button, swap between robot and field centric
             isRobotCentric = !isRobotCentric;
         }
+        if (gamepad1.xWasReleased()) isIntakeReversed = !isIntakeReversed; // reverse intake to eject/unclog
         if (gamepad1.backWasReleased()) { // reset field-centric heading
             Pose headingPose = follower.getPose();
-            headingPose = headingPose.setHeading(Math.toRadians(0)); // i think this is right
+            headingPose = headingPose.setHeading(Math.toRadians(90)); // i think this is right
             follower.setPose(headingPose); // see if this works
         }
 
@@ -121,7 +123,10 @@ public class BozoTeleOp extends OpMode {
             }
         }
 
-        if (isIntakePowered) robot.intake.setPower(1); // our intake is 0% or 100%
+        if (isIntakePowered) {
+            if (!isIntakeReversed) robot.intake.setPower(1); // our intake is 0% or 100%
+            else robot.intake.setPower(-1); // reverse intake to eject/unclog
+        }
         else robot.intake.setPower(0);
 
         if (automatedLaunch) {
@@ -134,6 +139,7 @@ public class BozoTeleOp extends OpMode {
             else robot.setLaunchVelocity(launchTPS); // set our launch power manually
         }
         // all telemetry with a question mark (?) indicates a boolean
+        if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         telemetryM.debug("target heading: " + targetHeading);
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
         telemetryM.debug("automated drive?: " + automatedDrive);
