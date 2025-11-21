@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VisionLocalizer {
-    public static final String WEBCAM_NAME = "Webcam 1";
+    public static final String WEBCAM_NAME = "cam";
     public static final double APRILTAG_UPDATE_INTERVAL = 0.05; // 50 ms
     public static final double MAX_POSE_JUMP_DISTANCE = 12.0; // inches
     public static final double MAX_HEADING_JUMP = Math.toRadians(45.0);
