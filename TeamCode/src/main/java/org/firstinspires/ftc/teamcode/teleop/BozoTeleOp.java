@@ -36,7 +36,6 @@ public abstract class BozoTeleOp extends OpMode {
         LAUNCH, // we are waiting for the manual/automatic launch to finish
         END // end state: do nothing (might not be necessary)
     }
-    // TODO: use d-pad up/down to control offset for RPM
     private Robot robot;
     private Follower follower;
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
@@ -48,7 +47,7 @@ public abstract class BozoTeleOp extends OpMode {
     double targetHeading;
     double launchVelocity; // target launch velocity in TPS
 
-    // variables to be tuned
+    /** variables to tune **/
     private final double turnRateMultiplier = 0.75; // always have our turns 75% speed
     private final int adjustRPM = 50; // driver increments/decrements by adjustRPM
     private double initialLaunchRPM = 2300; // maybe 2500; from crease

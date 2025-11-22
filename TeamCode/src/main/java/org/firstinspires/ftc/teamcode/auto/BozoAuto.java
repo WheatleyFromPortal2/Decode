@@ -39,12 +39,10 @@ public abstract class BozoAuto extends OpMode {
 
     // these are the **only 2 variables** that should change throughout the auto
     State state = State.START; // set PathState to start
-    private int ballTripletsRemaining = 4; // start with 4 ball triplets, decrements every launch
+    private int ballTripletsRemaining = 4; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
     private int ballsRemaining = 3; // balls remaining in he robot
-    private double launchTime;  // time (in millis) when launch started
 
-    // variables to be tuned
-    // TODO: tune these
+    /** variables to tune **/
     private final double scoreRPM = 2400; // RPM to set for launching (stolen from teleop)
     private final double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations

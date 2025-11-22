@@ -41,19 +41,20 @@ public class Robot { // create our global class for our robot
     // this needs to be calculated+changed every time you modify the launch ratio
     public static final double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
 
-    // servo open/close points (don't find these with the backplate on!)
-    public static final double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
-    public static final double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
 
-    /** stuff to tune **/
+    /** variables to tune **/
 
     // PIDF coefficients
     public static final double launchP = 300; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
     public static final double launchI = 0.1; // orig 0.1
     public static final double launchD = 0.2; // orig 0.2
     public static final double launchF = (double) 1 / 2800; // 6000 rpm motor; 2333.333333333333 ideal
+
+    // servo open/close points (don't find these with the backplate on!)
     public static final double lowerTransferLowerLimit = 0.28;
     public static final double lowerTransferUpperLimit = 0.49;
+    public static final double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
+    public static final double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
 
     // delays
     public static final int openDelay = 150; // time to wait for upperTransfer to open (in millis)
