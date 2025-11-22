@@ -1,7 +1,7 @@
 // the purpose of OpMode is to test servo endpoints and max flywheel speed
 // MAKE SURE BOTH SERVOS ARE NOT GOING TO RUN INTO ANYTHING!!!
 
-package org.firstinspires.ftc.teamcode.utils;
+package org.firstinspires.ftc.teamcode.util;
 
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;

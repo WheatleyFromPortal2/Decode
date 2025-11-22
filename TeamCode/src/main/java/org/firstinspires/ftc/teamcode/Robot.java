@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
 
 import static java.lang.Thread.sleep;
 
+import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -25,11 +26,24 @@ public class Robot { // create our global class for our robot
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer;
 
+    private Timer launchStepTimer;
+    private enum LaunchState {
+        START,
+        OPENING_UPPER_TRANSFER,
+        PUSHING_LOWER_TRANSFER,
+        WAITING_FOR_EXIT,
+    }
+    LaunchState launchState = LaunchState.START; // set our launch state to start
+
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
     public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
 
     // this needs to be calculated+changed every time you modify the launch ratio
     public static final double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
+
+    // servo open/close points (don't find these with the backplate on!)
+    public static final double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
+    public static final double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
 
     /** stuff to tune **/
 
@@ -41,15 +55,11 @@ public class Robot { // create our global class for our robot
     public static final double lowerTransferLowerLimit = 0.28;
     public static final double lowerTransferUpperLimit = 0.49;
 
-    // servo open/close points (don't find these with the backplate on!)
-    public static final double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
-    public static final double upperTransferOpen = 0.66; // servo position where upper transfer allows balls to pass into launch
-
     // delays
     public static final int openDelay = 150; // time to wait for upperTransfer to open (in millis)
-    public static final int pushDelay = 150; // time to wait for lowerTransfer to move (in millis)
-    public static final int firstInterLaunchWait = 120; // time to wait between 1st and 2nd launches
-    public static final int lastInterLaunchWait = 275; // time to wait between the 2nd and last launch
+    public static final int pushDelay = 180; // time to wait for lowerTransfer to move (in millis)
+    public static final int firstInterLaunchWait = 75; // time to wait between 1st and 2nd launches
+    public static final int lastInterLaunchWait = 200; // time to wait between the 2nd and last launch
     public final double scoreMargin = 100; // margin of 100TPS; TODO: tune this
 
     public Robot(HardwareMap hw) { // create all of our hardware
@@ -75,6 +85,9 @@ public class Robot { // create our global class for our robot
         // Change coefficients using methods included with DcMotorEx class.
         PIDFCoefficients pidfNew = new PIDFCoefficients(launchP, launchI, launchD, launchF);
         launch.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
+
+        // set up our timer for the launch state machine
+        launchStepTimer = new Timer(); // tracks time since we started our last launch
     }
 
     public static Robot getInstance(HardwareMap hw) { // this allows us to preserve the Robot instance from auto->teleop
@@ -160,5 +173,36 @@ public class Robot { // create our global class for our robot
         neededLaunchVelocity = 0; // we don't need any launch velocity
         launch.setPower(0);
         launch.setVelocity(0); // prob don't need this but ok
+    }
+    public boolean updateLaunch() { // outputs true/false whether we are done with launching
+        switch (launchState) {
+            case START:
+                upperTransfer.setPosition(Robot.upperTransferOpen);
+                launchStepTimer.resetTimer();
+                launchState = LaunchState.OPENING_UPPER_TRANSFER;
+                return false;
+            case OPENING_UPPER_TRANSFER:
+                if (launchStepTimer.getElapsedTime() >= Robot.openDelay) { // we've given it openDelay millis to open
+                    lowerTransfer.setPosition(Robot.lowerTransferUpperLimit);
+                    launchStepTimer.resetTimer();
+                    launchState = LaunchState.PUSHING_LOWER_TRANSFER;
+                }
+                return false;
+            case PUSHING_LOWER_TRANSFER:
+                if (launchStepTimer.getElapsedTime() >= Robot.pushDelay) {
+                    lowerTransfer.setPosition(Robot.lowerTransferLowerLimit);
+                    upperTransfer.setPosition(Robot.upperTransferClosed);
+                    launchStepTimer.resetTimer();
+                    launchState = LaunchState.WAITING_FOR_EXIT;
+                }
+                return false;
+            case WAITING_FOR_EXIT:
+                if (launchStepTimer.getElapsedTime() >= Robot.firstInterLaunchWait) { // ideally with this we won't need to separate first/last inter launch delay
+                    launchState = LaunchState.START; // get ready for next one
+                    return true;
+                }
+                return false;
+        }
+        return false; // this code should never be reached, but the IDE freaks out if i don't have it
     }
 }

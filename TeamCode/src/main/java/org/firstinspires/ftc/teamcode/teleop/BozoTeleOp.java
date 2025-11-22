@@ -23,8 +23,9 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
 
 @Configurable
-@TeleOp(name="BozoTeleOp", group="TeleOp")
-public class BozoTeleOp extends OpMode {
+//@TeleOp(name="BozoTeleOp", group="TeleOp")
+public abstract class BozoTeleOp extends OpMode {
+
     // TODO: convert this OpMode to use a finite state machine
     // until that is done, the launch command will have to be manually issued
     private enum State { // define our possible states for our FSM
@@ -56,12 +57,19 @@ public class BozoTeleOp extends OpMode {
     public void init() {
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
         follower = Constants.createFollower(hardwareMap);
-
-        follower.setStartingPose(Robot.switchoverPose == null ? new Pose() : Robot.switchoverPose); // if we don't already have a starting pose, set it
+        // TODO: fix this
+        //follower.setStartingPose(Robot.switchoverPose == null ? new Pose() : Robot.switchoverPose); // if we don't already have a starting pose, set it
+        if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
+        else { // hopefully this works TODO: make separate BlueTeleop and RedTeleOp classes for switching this the right way
+            Pose setPose = Robot.switchoverPose.setHeading(Robot.switchoverPose.getHeading() + Math.toRadians(180));
+            follower.setPose(flipPose(Robot.switchoverPose));
+        }
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         launchVelocity = robot.RPMToTPS(initialLaunchRPM); // convert from RPM->TPS, starting point
     }
+
+    protected abstract Pose flipPose(Pose switchoverPose);
 
     public void start() {
         follower.startTeleopDrive(true); // start the teleop, and use brakes
@@ -99,7 +107,7 @@ public class BozoTeleOp extends OpMode {
         if (gamepad1.xWasReleased()) isIntakeReversed = !isIntakeReversed; // reverse intake to eject/unclog
         if (gamepad1.backWasReleased()) { // reset field-centric heading
             Pose headingPose = follower.getPose();
-            headingPose = headingPose.setHeading(Math.toRadians(90)); // i think this is right
+            headingPose = headingPose.setHeading(Math.toRadians(0)); // i think this is right
             follower.setPose(headingPose); // see if this works
         }
 
@@ -141,6 +149,7 @@ public class BozoTeleOp extends OpMode {
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         telemetryM.debug("target heading: " + targetHeading);
+        telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
         telemetryM.debug("automated drive?: " + automatedDrive);
         telemetryM.debug("automated launch?: " + automatedLaunch);
@@ -180,7 +189,7 @@ public class BozoTeleOp extends OpMode {
         robot.launchBall(); // launch our first ball
         sleep(Robot.firstInterLaunchWait); // could rework this to also watch for velocity
         robot.launchBall(); // launch our second ball
-        sleep(Robot.lastInterLaunchWait);
+        sleep(Robot.firstInterLaunchWait); // we aren't using the last wait because we don't want to waste the time and can just press again
         robot.launchBall(); // launch our third ball
     }
 }

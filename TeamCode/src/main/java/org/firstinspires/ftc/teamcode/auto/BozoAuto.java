@@ -23,7 +23,7 @@ public abstract class BozoAuto extends OpMode {
     protected abstract Pose getStartPose();
     Robot robot;
     private Follower follower;
-    private Timer pathTimer, opmodeTimer, launchStepTimer;
+    private Timer pathTimer, opmodeTimer;
     private TelemetryManager telemetryM; // create our telemetry object
     private Pose startPose;
 
@@ -37,16 +37,8 @@ public abstract class BozoAuto extends OpMode {
         END // end state: do nothing
     }
 
-    private enum LaunchState {
-        START,
-        OPENING_UPPER_TRANSFER,
-        PUSHING_LOWER_TRANSFER,
-        WAITING_FOR_EXIT,
-    }
-
     // these are the **only 2 variables** that should change throughout the auto
     State state = State.START; // set PathState to start
-    LaunchState launchState = LaunchState.START; // set our launch state to start
     private int ballTripletsRemaining = 4; // start with 4 ball triplets, decrements every launch
     private int ballsRemaining = 3; // balls remaining in he robot
     private double launchTime;  // time (in millis) when launch started
@@ -148,7 +140,6 @@ public abstract class BozoAuto extends OpMode {
                 .build();
     }
 
-    // example FSM
     // isn't as flexible as https://state-factory.gitbook.io/state-factory, but it should be good enough for now
     public void autonomousPathUpdate() throws InterruptedException {
             /* You could check for
@@ -193,7 +184,8 @@ public abstract class BozoAuto extends OpMode {
                         setPathState(State.TRAVEL_TO_BALLS);
                         follower.resumePathFollowing();
                     } else {
-                        if (updateLaunch()) {
+                        if (ballsRemaining == 1) sleep(Robot.lastInterLaunchWait - Robot.firstInterLaunchWait); // add an extra wait for the last one; TODO: rewrite state machine so wait isn't necessary
+                        if (robot.updateLaunch()) {
                             ballsRemaining -= 1;
                         }
                     }
@@ -263,38 +255,6 @@ public abstract class BozoAuto extends OpMode {
         pathTimer.resetTimer();
     }
 
-    public boolean updateLaunch() { // outputs true/false whether we are done with launching
-        switch (launchState) {
-            case START:
-                robot.upperTransfer.setPosition(Robot.upperTransferOpen);
-                launchStepTimer.resetTimer();
-                launchState = LaunchState.OPENING_UPPER_TRANSFER;
-                return false;
-            case OPENING_UPPER_TRANSFER:
-                if (launchStepTimer.getElapsedTime() >= Robot.openDelay) { // we've given it openDelay millis to open
-                    robot.lowerTransfer.setPosition(Robot.lowerTransferUpperLimit);
-                    launchStepTimer.resetTimer();
-                    launchState = LaunchState.PUSHING_LOWER_TRANSFER;
-                }
-                return false;
-            case PUSHING_LOWER_TRANSFER:
-                if (launchStepTimer.getElapsedTime() >= Robot.pushDelay) {
-                    robot.lowerTransfer.setPosition(Robot.lowerTransferLowerLimit);
-                    robot.upperTransfer.setPosition(Robot.upperTransferClosed);
-                    launchStepTimer.resetTimer();
-                    launchState = LaunchState.WAITING_FOR_EXIT;
-                }
-                return false;
-            case WAITING_FOR_EXIT:
-                if (launchStepTimer.getElapsedTime() >= Robot.firstInterLaunchWait) { // ideally with this we won't need to separate first/last inter launch delay
-                    launchState = LaunchState.START; // get ready for next one
-                    return true;
-                }
-                return false;
-        }
-        return false; // this code should never be reached, but the IDE freaks out if i don't have it
-    }
-
     /** This is the main loop of the OpMode, it will run repeatedly after clicking "Play". **/
     @Override
     public void loop() {
@@ -328,7 +288,6 @@ public abstract class BozoAuto extends OpMode {
         // set up our timers
         pathTimer = new Timer();
         opmodeTimer = new Timer();
-        launchStepTimer = new Timer(); // tracks time since we started our last launch
         opmodeTimer.resetTimer();
         robot = Robot.getInstance(hardwareMap); // create our robot class
 

@@ -91,12 +91,13 @@ make sure to connect every motor with the correct polarity, the reversing should
 ## buttons
 ### face buttons
 - A: toggle intake
-- B: unused
-- Y: switch between manual and automatic control of launch velocity
-- X: turn to goal or cancel turning to goal
- 
+- B: toggle manual/automatic intake
+- Y: launch 3 balls
+- X: reverse intake
+
 ### d-pad
-- up: auto orient for launch
+- up: increase launch RPM setpoint
+- down: decrease launch RPM setpoint
 
 ### other buttons
 - start: toggle field/robot centric
@@ -105,7 +106,8 @@ make sure to connect every motor with the correct polarity, the reversing should
 
 # OpModes
 ## TeleOp
-- `BozoTeleOp`: TeleOp for everything, current pose and goal pose should be automatically transferred
+- `BlueTeleOp`: TeleOp for blue team
+- `RedTeleOp`: TeleOp for red team
 
 ## Auto
 ### Blue Team
@@ -117,10 +119,11 @@ make sure to connect every motor with the correct polarity, the reversing should
 
 ## util
 - `FlywheelTest`: test flywheel max speed
+- `LaunchDelay`: test and tune delays for launch
 - `ServoTest`: test servo endpoints
 
-# State Machine
-## main states
+# State Machines
+## auto states
 1. START
 2. TRAVEL_TO_LAUNCH
 3. LAUNCH
@@ -128,6 +131,12 @@ make sure to connect every motor with the correct polarity, the reversing should
 5. RELOAD
 6. GO_TO_END
 7. END
+
+## launch states
+1. START
+2. OPENING_UPPER_TRANSFER
+3. PUSHING_LOWER_TRANSFER
+4. WAITING_FOR_EXIT
 
 ## ball triplets remaining
 - starts at 4 (1 in robot, 3 on field)
