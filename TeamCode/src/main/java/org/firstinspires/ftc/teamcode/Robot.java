@@ -21,7 +21,6 @@ import com.pedropathing.geometry.Pose;
 
 
 public class Robot { // create our global class for our robot
-    public static Pose goalPose; // this must be initialized by the auto
     public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
     private static Robot instance;
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
@@ -103,20 +102,20 @@ public class Robot { // create our global class for our robot
         return instance;
     }
 
-    public double getDstFromGoal(Pose currentPosition) {
+    public double getDstFromGoal(Pose currentPosition, Pose goalPose) {
         double xDst = Math.abs(currentPosition.getX() - goalPose.getX());
         double yDst = Math.abs(currentPosition.getY() - goalPose.getY());
         return Math.pow(Math.pow(xDst, 2) + Math.pow(yDst, 2), 0.5); // use pythag to find dst from goal
     }
 
-    public double getGoalHeading(Pose currentPosition) { // return bot heading to point towards goal in radians
+    public double getGoalHeading(Pose currentPosition, Pose goalPose) { // return bot heading to point towards goal in radians
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
         return Math.atan2(yDst, xDst);
     }
 
-    public double getTangentialSpeed(Pose currentPosition) { // returns needed tangential speed to launch ball to the goal
-        double d = getDstFromGoal(currentPosition);
+    public double getTangentialSpeed(Pose currentPosition, Pose goalPose) { // returns needed tangential speed to launch ball to the goal
+        double d = getDstFromGoal(currentPosition, goalPose);
         double numerator = 19.62 * Math.pow(d, 2);
         double denominator = (Math.pow(3, 0.5) * d) - 0.8;
         return Math.pow(numerator / denominator, 0.5); // thank u rahul
@@ -130,8 +129,8 @@ public class Robot { // create our global class for our robot
         return TPS;
     }
 
-    public void setAutomatedLaunchVelocity(Pose currentPosition) {
-        double neededTangentialSpeed = getTangentialSpeed(currentPosition);
+    public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) {
+        double neededTangentialSpeed = getTangentialSpeed(currentPosition, goalPose);
         double neededVelocity = getNeededVelocity(neededTangentialSpeed);
         launch.setVelocity(neededVelocity);
     }
@@ -162,16 +161,6 @@ public class Robot { // create our global class for our robot
     public void initServos() { // set servos to starting state
         upperTransfer.setPosition(Robot.upperTransferClosed); // make sure balls cannot launch
         lowerTransfer.setPosition(Robot.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
-    }
-    public void launchBall() throws InterruptedException { // launch a ball
-        // TODO: make this asynchronous (eliminate all the waits)
-        upperTransfer.setPosition(upperTransferOpen);
-        sleep(openDelay); // allow time for upper transfer to move
-        lowerTransfer.setPosition(lowerTransferUpperLimit);
-        sleep(pushDelay); // allow time for lower transfer to move
-        // hopefully the ball has launched by now
-        upperTransfer.setPosition(upperTransferClosed); // close upper transfer
-        lowerTransfer.setPosition(lowerTransferLowerLimit); // set lower transfer to its lowest
     }
 
     public void setLaunchVelocity(double velocity) { // velocity is in TPS
