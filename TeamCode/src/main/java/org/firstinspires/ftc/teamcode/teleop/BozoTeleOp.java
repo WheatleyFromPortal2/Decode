@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 // OpMode imports
 import static java.lang.Thread.sleep;
 
+import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -38,11 +39,13 @@ public abstract class BozoTeleOp extends OpMode {
     }
     private Robot robot;
     private Follower follower;
+    private Timer intakeTimer; // used for polling whether intake is stalled
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
     private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
     private boolean isIntakePowered = false;
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
+    private boolean isIntakeStalled = false;
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
     double targetHeading;
     double launchVelocity; // target launch velocity in TPS
@@ -51,6 +54,7 @@ public abstract class BozoTeleOp extends OpMode {
     private final double turnRateMultiplier = 0.75; // always have our turns 75% speed
     private final int adjustRPM = 50; // driver increments/decrements by adjustRPM
     private double initialLaunchRPM = 2300; // maybe 2500; from crease
+    private final int intakePollingRate = 50; // test if intake is stalled every 50millis
 
     @Override
     public void init() {
@@ -66,6 +70,8 @@ public abstract class BozoTeleOp extends OpMode {
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         launchVelocity = robot.RPMToTPS(initialLaunchRPM); // convert from RPM->TPS, starting point
+        intakeTimer = new Timer();
+        intakeTimer.resetTimer();
     }
 
     protected abstract Pose flipPose(Pose switchoverPose);
@@ -130,7 +136,7 @@ public abstract class BozoTeleOp extends OpMode {
             }
         }
 
-        if (isIntakePowered) {
+        if (isIntakePowered && !isIntakeStalled) {
             if (!isIntakeReversed) robot.intake.setPower(1); // our intake is 0% or 100%
             else robot.intake.setPower(-1); // reverse intake to eject/unclog
         }
@@ -145,8 +151,19 @@ public abstract class BozoTeleOp extends OpMode {
                 robot.launchOff(); // if right trigger isn't pressed, don't even use PIDF
             else robot.setLaunchVelocity(launchTPS); // set our launch power manually
         }
+
+        if (robot.isIntakeOvercurrent()) {
+            isIntakeStalled = true;
+            intakeTimer.resetTimer();
+            robot.intake.setPower(0); // let's save our voltage
+        }
+        if (isIntakeStalled && intakeTimer.getElapsedTime() >= intakePollingRate) {
+            isIntakeStalled = false; // let's try this again
+        }
+
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
+        if (isIntakeStalled) telemetryM.addLine("WARNING: INTAKE OVERCURRENT!!"); // alert driver intake is over current
         telemetryM.debug("target heading: " + targetHeading);
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized

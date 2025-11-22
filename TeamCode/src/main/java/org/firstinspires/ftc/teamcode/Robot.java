@@ -43,6 +43,7 @@ public class Robot { // create our global class for our robot
 
 
     /** variables to tune **/
+    public double intakeOvercurrent = 6; // amount of amps where we consider intake overcurrent
 
     // PIDF coefficients
     public static final double launchP = 300; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
@@ -150,6 +151,9 @@ public class Robot { // create our global class for our robot
     }
     public double getIntakeCurrent() {
         return intake.getCurrent(CurrentUnit.AMPS);
+    }
+    public boolean isIntakeOvercurrent() {
+        return intake.getCurrent(CurrentUnit.AMPS) >= intakeOvercurrent;
     }
     public void initServos() { // set servos to starting state
         upperTransfer.setPosition(Robot.upperTransferClosed); // make sure balls cannot launch
