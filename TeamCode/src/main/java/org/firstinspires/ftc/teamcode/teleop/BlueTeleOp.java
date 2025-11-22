@@ -9,4 +9,10 @@ public class BlueTeleOp extends BozoTeleOp {
     public Pose flipPose(Pose switchoverPose) {
         return switchoverPose.setHeading(switchoverPose.getHeading() + Math.toRadians(180));
     }
+
+    @Override
+    public Pose getGoalPose() {
+        return new Pose (12, 138); // taken from BlueAuto.java
+
+    }
 }

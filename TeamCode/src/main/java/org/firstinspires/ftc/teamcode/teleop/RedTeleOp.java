@@ -10,4 +10,10 @@ public class RedTeleOp extends BozoTeleOp {
     public Pose flipPose(Pose switchoverPose) {
         return switchoverPose;
     }
+
+    @Override
+    public Pose getGoalPose() {
+        return new Pose (132, 138); // taken from RedAuto.java
+
+    }
 }
