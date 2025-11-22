@@ -14,6 +14,7 @@ import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+
 import com.pedropathing.geometry.Pose;
 
 // Pedro Pathing imports
@@ -26,7 +27,8 @@ public class Robot { // create our global class for our robot
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer;
 
-    private Timer launchStepTimer;
+    private Timer launchStateTimer, // this timer measures the time between states in launch
+            launchIntervalTimer; // this timer measures the time between individual launches
     private enum LaunchState {
         START,
         OPENING_UPPER_TRANSFER,
@@ -40,6 +42,7 @@ public class Robot { // create our global class for our robot
 
     // this needs to be calculated+changed every time you modify the launch ratio
     public static final double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
+    private int ballsRemaining = 3;
 
 
     /** variables to tune **/
@@ -89,7 +92,8 @@ public class Robot { // create our global class for our robot
         launch.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
 
         // set up our timer for the launch state machine
-        launchStepTimer = new Timer(); // tracks time since we started our last launch
+        launchStateTimer = new Timer(); // tracks time since we started our last launch state
+        launchIntervalTimer = new Timer(); // tracks time since we launched our last ball
     }
 
     public static Robot getInstance(HardwareMap hw) { // this allows us to preserve the Robot instance from auto->teleop
@@ -179,34 +183,53 @@ public class Robot { // create our global class for our robot
         launch.setPower(0);
         launch.setVelocity(0); // prob don't need this but ok
     }
+
+    public void launchBalls(int balls) { // sets to launch this many balls
+        ballsRemaining = 3;
+        launchIntervalTimer.resetTimer(); // reset interval timer (it may be off if cancelled)
+        launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
+        launchState = LaunchState.START;
+    }
+
+    public void cancelLaunch() { // set servos to default position, this could break if activated at the right time
+        ballsRemaining = 0;
+        upperTransfer.setPosition(upperTransferClosed); // make sure balls can't accidentally be launched
+        lowerTransfer.setPosition(lowerTransferLowerLimit); // allow robot to store all balls
+    }
+
     public boolean updateLaunch() { // outputs true/false whether we are done with launching
-        switch (launchState) {
-            case START:
-                upperTransfer.setPosition(Robot.upperTransferOpen);
-                launchStepTimer.resetTimer();
-                launchState = LaunchState.OPENING_UPPER_TRANSFER;
-                return false;
-            case OPENING_UPPER_TRANSFER:
-                if (launchStepTimer.getElapsedTime() >= Robot.openDelay) { // we've given it openDelay millis to open
-                    lowerTransfer.setPosition(Robot.lowerTransferUpperLimit);
-                    launchStepTimer.resetTimer();
-                    launchState = LaunchState.PUSHING_LOWER_TRANSFER;
-                }
-                return false;
-            case PUSHING_LOWER_TRANSFER:
-                if (launchStepTimer.getElapsedTime() >= Robot.pushDelay) {
-                    lowerTransfer.setPosition(Robot.lowerTransferLowerLimit);
-                    upperTransfer.setPosition(Robot.upperTransferClosed);
-                    launchStepTimer.resetTimer();
-                    launchState = LaunchState.WAITING_FOR_EXIT;
-                }
-                return false;
-            case WAITING_FOR_EXIT:
-                if (launchStepTimer.getElapsedTime() >= Robot.firstInterLaunchWait) { // ideally with this we won't need to separate first/last inter launch delay
-                    launchState = LaunchState.START; // get ready for next one
-                    return true;
-                }
-                return false;
+        if (ballsRemaining == 0) {
+            return true; // we're done with launching balls
+        } else if (ballsRemaining == 1 && launchIntervalTimer.getElapsedTime() <= lastInterLaunchWait){
+            return false; // keep waiting for our last interval
+        } else if (ballsRemaining == 2 && launchIntervalTimer.getElapsedTime() <= firstInterLaunchWait) {
+            return false; // keep waiting on our first interval
+        } else { // 3 balls remaining, no interval needed
+            switch (launchState) {
+                case START:
+                    upperTransfer.setPosition(Robot.upperTransferOpen);
+                    launchStateTimer.resetTimer();
+                    launchState = LaunchState.OPENING_UPPER_TRANSFER;
+                case OPENING_UPPER_TRANSFER:
+                    if (launchStateTimer.getElapsedTime() >= Robot.openDelay) { // we've given it openDelay millis to open
+                        lowerTransfer.setPosition(Robot.lowerTransferUpperLimit);
+                        launchStateTimer.resetTimer();
+                        launchState = LaunchState.PUSHING_LOWER_TRANSFER;
+                    }
+                case PUSHING_LOWER_TRANSFER:
+                    if (launchStateTimer.getElapsedTime() >= Robot.pushDelay) {
+                        lowerTransfer.setPosition(Robot.lowerTransferLowerLimit);
+                        upperTransfer.setPosition(Robot.upperTransferClosed);
+                        launchStateTimer.resetTimer();
+                        launchState = LaunchState.WAITING_FOR_EXIT;
+                    }
+                case WAITING_FOR_EXIT:
+                    if (launchStateTimer.getElapsedTime() >= Robot.firstInterLaunchWait) { // ideally with this we won't need to separate first/last inter launch delay
+                        launchState = LaunchState.START; // get ready for next one
+                        ballsRemaining -= 1; // we've launched a ball
+                        launchIntervalTimer.resetTimer();
+                    }
+            }
         }
         return false; // this code should never be reached, but the IDE freaks out if i don't have it
     }

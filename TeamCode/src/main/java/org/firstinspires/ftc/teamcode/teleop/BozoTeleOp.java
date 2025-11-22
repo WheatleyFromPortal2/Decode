@@ -47,6 +47,7 @@ public abstract class BozoTeleOp extends OpMode {
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isIntakeStalled = false;
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
+    private boolean isLaunching = false; // whether we are launching balls, allows it to be cancelled
     double targetHeading;
     double launchVelocity; // target launch velocity in TPS
 
@@ -63,7 +64,7 @@ public abstract class BozoTeleOp extends OpMode {
         // TODO: fix this
         //follower.setStartingPose(Robot.switchoverPose == null ? new Pose() : Robot.switchoverPose); // if we don't already have a starting pose, set it
         if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
-        else { // hopefully this works TODO: make separate BlueTeleop and RedTeleOp classes for switching this the right way
+        else { // hopefully this works
             Pose setPose = Robot.switchoverPose.setHeading(Robot.switchoverPose.getHeading() + Math.toRadians(180));
             follower.setPose(flipPose(Robot.switchoverPose));
         }
@@ -93,10 +94,10 @@ public abstract class BozoTeleOp extends OpMode {
             automatedLaunch = !automatedLaunch; // invert automated launch
         }
         if (gamepad1.yWasReleased()) {
-            try {
-                launch3Balls();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+            if (isLaunching) { // if we release y while we're launching, it will cancel
+                robot.cancelLaunch();
+            } else { // if we're not already launching
+                robot.launchBalls(3); // launch 3 balls
             }
         }
         if (gamepad1.rightBumperWasReleased()) {
@@ -200,12 +201,5 @@ public abstract class BozoTeleOp extends OpMode {
         follower.followPath(turnPath); // follow this path
         automatedDrive = true; // we're driving automatically now
         automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
-    }
-    private void launch3Balls() throws InterruptedException {  // launch 3 balls in succession
-        robot.launchBall(); // launch our first ball
-        sleep(Robot.firstInterLaunchWait); // could rework this to also watch for velocity
-        robot.launchBall(); // launch our second ball
-        sleep(Robot.firstInterLaunchWait); // we aren't using the last wait because we don't want to waste the time and can just press again
-        robot.launchBall(); // launch our third ball
     }
 }

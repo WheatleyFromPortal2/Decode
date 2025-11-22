@@ -168,6 +168,7 @@ public abstract class BozoAuto extends OpMode {
                             break;
                     }
                     state = State.LAUNCH; // let's launch
+                    robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
                 }
                 break;
             case LAUNCH:
@@ -176,17 +177,13 @@ public abstract class BozoAuto extends OpMode {
                         && robot.isLaunchWithinMargin()
                         && opmodeTimer.getElapsedTime() >= beginningLaunchDelay) { // check if we're busy and if our launch velocity is within our margin
                     follower.pausePathFollowing();
-                    if (ballsRemaining == 0) {
+                    follower.deactivateAllPIDFs();
+                    if (robot.updateLaunch()) { // we're done with launching balls
                         ballTripletsRemaining -= 1;
-                        ballsRemaining = 3;
                         setPathState(State.TRAVEL_TO_BALLS);
+                        follower.activateAllPIDFs();
                         follower.resumePathFollowing();
-                    } else {
-                        if (ballsRemaining == 1) sleep(Robot.lastInterLaunchWait - Robot.firstInterLaunchWait); // add an extra wait for the last one; TODO: rewrite state machine so wait isn't necessary
-                        if (robot.updateLaunch()) {
-                            ballsRemaining -= 1;
-                        }
-                    }
+                    } // if we're not done with launching balls, just break
                 }
                 break;
             case TRAVEL_TO_BALLS: // travel to the start position of the balls, but don't grab them yet
