@@ -37,7 +37,7 @@ public abstract class BozoAuto extends OpMode {
         END // end state: do nothing
     }
 
-    // these are the **only 2 variables** that should change throughout the auto
+    // these are the **only variables** that should change throughout the auto
     State state = State.START; // set PathState to start
     private int ballTripletsRemaining = 4; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
     private int ballsRemaining = 3; // balls remaining in he robot
@@ -65,8 +65,6 @@ public abstract class BozoAuto extends OpMode {
 
     public void buildPaths() {
         config = buildConfig(); // get our config
-
-        Robot.goalPose = config.goalPose; // add our goalPose to the Robot class so it can be used in teleop TODO: fix this - issue with teleop
 
         // this path goes from the starting point to our scoring point
         scorePreload = follower.pathBuilder()
