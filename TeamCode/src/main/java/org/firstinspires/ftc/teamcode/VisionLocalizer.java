@@ -25,8 +25,13 @@ public class VisionLocalizer {
     public static final double MAX_HEADING_JUMP = Math.toRadians(45.0);
     public static final double VISION_ALPHA = 0.2; // complementary filter gain for vision
     public static final double TAG_SIZE_METERS = 0.206375;
-    public static final double FIELD_LENGTH_METERS = 6.096;
-    public static final double TAG_HEIGHT_METERS = 0.20;
+
+    // Field geometry
+    public static final double TAG_HEIGHT_METERS = 0.48;
+    public static final double TAG_DEPTH_METERS = 0.2794;
+    public static final double TAG_INTER_OFFSET_METERS = 0.4;
+    public static final double INTER_TAG_DISTANCE_METERS = 2.286;
+    public static final double FIELD_LENGTH_METERS = TAG_INTER_OFFSET_METERS + INTER_TAG_DISTANCE_METERS; // 2.686 m
 
     private static final double CAM_X_R = 0.10; // meters forward from robot center
     private static final double CAM_Y_R = 0.00; // meters left from robot center
@@ -219,15 +224,28 @@ public class VisionLocalizer {
 
     private AprilTagLibrary buildTagLibrary() {
         AprilTagLibrary.Builder builder = new AprilTagLibrary.Builder();
-        addTag(builder, 1, "CornerLeft", 0.0, 0.0);
-        addTag(builder, 2, "CornerRight", FIELD_LENGTH_METERS, 0.0);
+
+        // Tags positioned with an offset from the origin, separated along X, and lifted off the floor.
+        double tag1X = TAG_INTER_OFFSET_METERS;
+        double tag2X = TAG_INTER_OFFSET_METERS + INTER_TAG_DISTANCE_METERS;
+
+        // Both tags sit at the same depth from the wall and height above the floor.
+        addTag(builder, 1, "CornerLeft", tag1X, TAG_DEPTH_METERS, Math.toRadians(45));
+        addTag(builder, 2, "CornerRight", tag2X, TAG_DEPTH_METERS, Math.toRadians(-45));
         return builder.build();
     }
 
-    private void addTag(AprilTagLibrary.Builder builder, int id, String name, double xMeters, double yMeters) {
+    private void addTag(AprilTagLibrary.Builder builder, int id, String name, double xMeters, double yMeters, double yawRadians) {
         VectorF position = new VectorF((float) xMeters, (float) yMeters, (float) TAG_HEIGHT_METERS);
-        Quaternion orientation = new Quaternion(1, 0, 0, 0, 0);
+        Quaternion orientation = createYawOnlyQuaternion(yawRadians);
         builder.addTag(id, name, TAG_SIZE_METERS, position, DistanceUnit.METER, orientation);
+    }
+
+    private Quaternion createYawOnlyQuaternion(double yawRadians) {
+        double halfYaw = 0.5 * yawRadians;
+        float w = (float) Math.cos(halfYaw);
+        float z = (float) Math.sin(halfYaw);
+        return new Quaternion(w, 0f, 0f, z, 0);
     }
 
     private double convertPositionComponent(Position position, DistanceUnit desiredUnit, Axis axis) {
