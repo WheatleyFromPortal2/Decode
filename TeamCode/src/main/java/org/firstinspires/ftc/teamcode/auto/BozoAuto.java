@@ -176,10 +176,12 @@ public abstract class BozoAuto extends OpMode {
                         && robot.isLaunchWithinMargin()
                         && opmodeTimer.getElapsedTime() >= beginningLaunchDelay) { // check if we're busy and if our launch velocity is within our margin
                     follower.pausePathFollowing();
+                    follower.deactivateAllPIDFs(); // hopefully this completely stops the motors
                     if (ballsRemaining == 0) {
                         ballTripletsRemaining -= 1;
                         ballsRemaining = 3;
                         setPathState(State.TRAVEL_TO_BALLS);
+                        follower.activateAllPIDFs(); // this should re-enable the motors
                         follower.resumePathFollowing();
                     } else {
                         if (ballsRemaining == 1) sleep(Robot.lastInterLaunchWait - Robot.firstInterLaunchWait); // add an extra wait for the last one; TODO: rewrite state machine so wait isn't necessary

@@ -25,9 +25,6 @@ import com.pedropathing.paths.PathChain;
 @Configurable
 //@TeleOp(name="BozoTeleOp", group="TeleOp")
 public abstract class BozoTeleOp extends OpMode {
-
-    // TODO: convert this OpMode to use a finite state machine
-    // until that is done, the launch command will have to be manually issued
     private enum State { // define our possible states for our FSM
         START, // starting state, waiting for OpMode to begin
         MANUAL_DRIVE, // we are in driver-controlled drive
@@ -56,10 +53,9 @@ public abstract class BozoTeleOp extends OpMode {
     public void init() {
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
         follower = Constants.createFollower(hardwareMap);
-        // TODO: fix this
         //follower.setStartingPose(Robot.switchoverPose == null ? new Pose() : Robot.switchoverPose); // if we don't already have a starting pose, set it
         if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
-        else { // hopefully this works TODO: make separate BlueTeleop and RedTeleOp classes for switching this the right way
+        else { // hopefully this works TODO: fix switchover headings
             Pose setPose = Robot.switchoverPose.setHeading(Robot.switchoverPose.getHeading() + Math.toRadians(180));
             follower.setPose(flipPose(Robot.switchoverPose));
         }
