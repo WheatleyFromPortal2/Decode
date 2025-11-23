@@ -3,6 +3,8 @@
 
 package org.firstinspires.ftc.teamcode.util;
 
+import com.bylazar.telemetry.PanelsTelemetry;
+import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -10,16 +12,16 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
 @TeleOp(name="FlywheelTest", group="Util")
-public class FlywheelTest extends LinearOpMode {
+public class FlywheelTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap); // create our robot class
-        telemetry.update();
+        TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
         boolean isGradualControl = true; // if we're using the right trigger to control speed or just doing full power
 
-        telemetry.addLine("use the right trigger to control launch speed");
-        telemetry.addLine("use the B button to go between gradual control/full power");
+        telemetryM.debug("use the right trigger to control launch speed");
+        telemetryM.debug("use the B button to go between gradual control/full power");
 
         waitForStart();
 
@@ -32,19 +34,19 @@ public class FlywheelTest extends LinearOpMode {
 
             if (isGradualControl) {
                 robot.launch.setVelocity(robot.RPMToTPS(launchRPM)); // set our desired velocity to our desired RPM
-                telemetry.addData("desired RPM: ", launchRPM);
-                telemetry.addLine("in GRADUAL CONTROL");
+                telemetryM.addData("desired RPM: ", launchRPM);
+                telemetryM.debug("in GRADUAL CONTROL");
             } else {
                 robot.launch.setPower(1); // BRRRRRR
-                telemetry.addData("desired RPM", 6000 * Tunables.launchRatio);
-                telemetry.addLine("in FULL POWER");
+                telemetryM.addData("desired RPM", 6000 * Tunables.launchRatio);
+                telemetryM.addLine("in FULL POWER");
             }
-            telemetry.addData("actual RPM", robot.getLaunchRPM());
-            telemetry.addData("raw launch TPS", robot.launch.getVelocity());
-            telemetry.addData("raw launch RPM", robot.launch.getVelocity() * 60 / 28); // this should work
-            telemetry.addData("launch current", robot.getLaunchCurrent());
-            telemetry.addData("launch ratio", Tunables.launchRatio);
-            telemetry.update();
+            telemetryM.addData("actual RPM", robot.getLaunchRPM());
+            telemetryM.addData("raw launch TPS", robot.launch.getVelocity());
+            telemetryM.addData("raw launch RPM", robot.launch.getVelocity() * 60 / 28); // this should work
+            telemetryM.addData("launch current", robot.getLaunchCurrent());
+            telemetryM.addData("launch ratio", Tunables.launchRatio);
+            telemetryM.update(telemetry); // update our telemetry
             idle();
         }
     }
