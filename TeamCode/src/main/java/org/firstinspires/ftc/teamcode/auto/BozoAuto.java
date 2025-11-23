@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.auto;
 
-import static java.lang.Thread.sleep;
-
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
@@ -158,6 +156,7 @@ public abstract class BozoAuto extends OpMode {
                             break;
                     }
                     state = State.LAUNCH; // let's launch
+                    robot.intake.setPower(1); // re-enable intake
                     robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
                 }
                 break;
@@ -171,6 +170,7 @@ public abstract class BozoAuto extends OpMode {
                     if (robot.updateLaunch()) { // we're done with launching balls
                         ballTripletsRemaining -= 1;
                         setPathState(State.TRAVEL_TO_BALLS);
+                        robot.intake.setPower(0); // disable intake to save power
                         follower.activateAllPIDFs();
                         follower.resumePathFollowing();
                     } // if we're not done with launching balls, just break
@@ -194,10 +194,12 @@ public abstract class BozoAuto extends OpMode {
                             break;
                     }
                     state = State.RELOAD; // now lets reload
+                    robot.intake.setPower(1); // re-enable intake for reload
                 }
                 break;
             case RELOAD: // grab the balls in a straight line
                 if(!follower.isBusy()) {
+                    robot.intake.setPower(0); // disable intake to save power
                     switch (ballTripletsRemaining) { // this should always be between 3 and 0
                         case 3:
                             follower.followPath(grabPickup1);
