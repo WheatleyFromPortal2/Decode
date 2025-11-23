@@ -44,4 +44,5 @@ public class Tunables { // this should hold all of our constants
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static int beginningLaunchDelay =  100; // time to wait before launching first ball
+    public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
 }

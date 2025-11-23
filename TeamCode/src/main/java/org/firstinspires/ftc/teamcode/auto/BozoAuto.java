@@ -146,13 +146,13 @@ public abstract class BozoAuto extends OpMode {
                     }
                     switch (ballTripletsRemaining) { // this should always be between 3 and 0
                         case 3:
-                            follower.followPath(scorePickup1);
+                            follower.followPath(scorePickup1, true); // hold end to prevent other robots from moving us
                             break;
                         case 2:
-                            follower.followPath(scorePickup2);
+                            follower.followPath(scorePickup2, true);
                             break;
                         case 1:
-                            follower.followPath(scorePickup3);
+                            follower.followPath(scorePickup3, true);
                             break;
                     }
                     state = State.LAUNCH; // let's launch
@@ -162,17 +162,21 @@ public abstract class BozoAuto extends OpMode {
                 break;
             case LAUNCH:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
-                if (!follower.isBusy()
-                        && robot.isLaunchWithinMargin()
-                        && opmodeTimer.getElapsedTime() >= Tunables.beginningLaunchDelay) { // check if we're busy and if our launch velocity is within our margin
+                if (!follower.isBusy() // check if our follower is busy
+                        && robot.isLaunchWithinMargin() // check if our launch velocity is within our margin
+                        && opmodeTimer.getElapsedTime() >= Tunables.beginningLaunchDelay // check if we've waited enough time since the last launch
+                        && follower.getPose().roughlyEquals(config.scorePose, Tunables.launchDistanceMargin)) { // check if we're holding position close enough to where we want to shoot
+                    //follower.holdPoint(config.scorePose); // this should already be done by holdEnd: true
+                    /* if we're holding point, we shouldn't have to disable motors
                     follower.pausePathFollowing();
-                    follower.deactivateAllPIDFs();
+                    follower.deactivateAllPIDFs(); */
                     if (robot.updateLaunch()) { // we're done with launching balls
                         ballTripletsRemaining -= 1;
                         setPathState(State.TRAVEL_TO_BALLS);
                         robot.intake.setPower(0); // disable intake to save power
+                        /* if we're holding point, we shouldn't have to re-enable motors
                         follower.activateAllPIDFs();
-                        follower.resumePathFollowing();
+                        follower.resumePathFollowing(); */
                     } // if we're not done with launching balls, just break
                 }
                 break;
