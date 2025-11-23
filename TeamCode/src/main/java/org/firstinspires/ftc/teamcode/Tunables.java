@@ -37,6 +37,7 @@ public class Tunables { // this should hold all of our constants
     public static int adjustRPM = 50; // driver increments/decrements by adjustRPM
     public static double initialLaunchRPM = 2300; // maybe 2500; from crease
     public static int intakePollingRate = 50; // test if intake is stalled every 50millis
+    public static boolean useBrakes = true; // whether to use brakes in TeleOp
 
     /** Auto tunables (used in BozoAuto.java) **/
 
