@@ -34,12 +34,12 @@ public class FlywheelTuner extends LinearOpMode {
 
             if (isGradualControl) {
                 robot.launch.setVelocity(robot.RPMToTPS(launchRPM)); // set our desired velocity to our desired RPM
-                telemetryM.addData("desired RPM: ", launchRPM);
+                telemetryM.addData("desired RPM", launchRPM);
                 telemetryM.debug("in GRADUAL CONTROL");
             } else {
                 robot.launch.setPower(1); // BRRRRRR
                 telemetryM.addData("desired RPM", 6000 * Tunables.launchRatio);
-                telemetryM.addLine("in FULL POWER");
+                telemetryM.debug("in FULL POWER");
             }
             telemetryM.addData("actual RPM", robot.getLaunchRPM());
             telemetryM.addData("raw launch TPS", robot.launch.getVelocity());
