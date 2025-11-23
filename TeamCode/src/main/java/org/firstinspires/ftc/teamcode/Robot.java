@@ -55,6 +55,7 @@ public class Robot { // create our global class for our robot
         launch.setDirection(DcMotorSimple.Direction.FORWARD);
 
         intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
+        intake.setCurrentAlert(Tunables.intakeOvercurrent, CurrentUnit.AMPS);
         launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
 
         intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
