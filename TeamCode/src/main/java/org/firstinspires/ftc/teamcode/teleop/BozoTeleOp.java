@@ -25,17 +25,6 @@ import com.pedropathing.paths.PathChain;
 @Configurable
 //@TeleOp(name="BozoTeleOp", group="TeleOp")
 public abstract class BozoTeleOp extends OpMode {
-
-    // TODO: convert this OpMode to use a finite state machine
-    // until that is done, the launch command will have to be manually issued
-    private enum State { // define our possible states for our FSM
-        START, // starting state, waiting for OpMode to begin
-        MANUAL_DRIVE, // we are in driver-controlled drive
-        WAITING_TO_TURN, // we are waiting for Pedro Pathing to turn to the goal
-        WAITING_TO_SPINUP, // we are waiting for Pedro Pathing to spinup
-        LAUNCH, // we are waiting for the manual/automatic launch to finish
-        END // end state: do nothing (might not be necessary)
-    }
     private Robot robot;
     private Follower follower;
     private Pose goalPose; // this will be set by the specific OpMode
