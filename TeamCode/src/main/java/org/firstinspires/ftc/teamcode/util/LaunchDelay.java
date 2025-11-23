@@ -9,21 +9,13 @@ import org.firstinspires.ftc.teamcode.Tunables;
 
 @TeleOp(name="LaunchDelay", group="Util")
 public class LaunchDelay extends LinearOpMode {
-    private Robot robot;
     private boolean intakeOn = true;
-
-    // let's start with our delays from Robot.java
-    private int openDelay = Tunables.openDelay; // time to wait for upperTransfer to open (in millis)
-    private int pushDelay = Tunables.pushDelay; // time to wait for lowerTransfer to move (in millis)
-    private int firstInterLaunchWait = Tunables.firstInterLaunchWait; // check Robot.java
-    private int lastInterLaunchWait = Tunables.lastInterLaunchWait; // check Robot.java
 
     private final static int  manualChangeAmount = 10; // amount to increment/decrement when d-pad is pressed
 
     @Override
-    public void runOpMode() throws InterruptedException {
-        robot = Robot.getInstance(hardwareMap);
-
+    public void runOpMode() {
+        Robot robot = Robot.getInstance(hardwareMap);
 
         waitForStart();
         while (opModeIsActive()) {
@@ -33,52 +25,36 @@ public class LaunchDelay extends LinearOpMode {
             if (intakeOn) robot.intake.setPower(1);
             else robot.intake.setPower(0);
 
-            if (gamepad1.rightBumperWasReleased()) launchBall(); // launch the ball
-            if (gamepad1.yWasReleased()) launch3Balls(); // launch 3 balls
+            if (gamepad1.rightBumperWasReleased()) robot.launchBalls(1); // launch 1 ball
+            if (gamepad1.yWasReleased()) robot.launchBalls(3); // launch 3 balls
 
-            if (gamepad1.dpadUpWasReleased()) openDelay += manualChangeAmount; // increment openDelay
-            if (gamepad1.dpadDownWasReleased()) openDelay -= manualChangeAmount; // decrement openDelay
+            if (gamepad1.dpadUpWasReleased()) Tunables.openDelay += manualChangeAmount; // increment openDelay
+            if (gamepad1.dpadDownWasReleased()) Tunables.openDelay -= manualChangeAmount; // decrement openDelay
 
-            if (gamepad1.dpadRightWasReleased()) pushDelay += manualChangeAmount; // increment pushDelay
-            if (gamepad1.dpadLeftWasReleased()) pushDelay -= manualChangeAmount; // decrement pushDelay
+            if (gamepad1.dpadRightWasReleased()) Tunables.pushDelay += manualChangeAmount; // increment pushDelay
+            if (gamepad1.dpadLeftWasReleased()) Tunables.pushDelay -= manualChangeAmount; // decrement pushDelay
 
-            if (gamepad1.xWasReleased()) firstInterLaunchWait += manualChangeAmount; // increment interLaunchWait
-            if (gamepad1.bWasReleased()) firstInterLaunchWait -= manualChangeAmount; // decrement interLaunchWait
+            if (gamepad1.xWasReleased()) Tunables.firstInterLaunchWait += manualChangeAmount; // increment interLaunchWait
+            if (gamepad1.bWasReleased()) Tunables.firstInterLaunchWait -= manualChangeAmount; // decrement interLaunchWait
 
 
             telemetry.addLine("use d-pad up/down to modify openDelay (upper transfer opening)");
             telemetry.addLine("use d-pad left/right to modify pushDelay (lower transfer pushing");
             telemetry.addLine("use X/B to modify interLaunchWait (time between ball launches for macro)");
 
-            telemetry.addData("openDelay (millis)", openDelay);
-            telemetry.addData("pushDelay (millis)", pushDelay);
-            telemetry.addData("firstInterLaunchWait (millis)", firstInterLaunchWait);
-            telemetry.addData("lastInterLaunchWait (millis)", lastInterLaunchWait);
+            telemetry.addData("openDelay (millis)", Tunables.openDelay);
+            telemetry.addData("pushDelay (millis)", Tunables.pushDelay);
+            telemetry.addData("firstInterLaunchWait (millis)", Tunables.firstInterLaunchWait);
+            telemetry.addData("lastInterLaunchWait (millis)", Tunables.lastInterLaunchWait);
 
-            telemetry.addData("1 ball launch time (millis)", openDelay + pushDelay); // calc time to shoot 1 ball
-            telemetry.addData("3 ball launch time (millis)", (openDelay + pushDelay) * 3 + firstInterLaunchWait * 2); // calc time to shoot 3 balls
+            telemetry.addData("1 ball launch time (millis)", Tunables.openDelay + Tunables.pushDelay); // calc time to shoot 1 ball
+            telemetry.addData("3 ball launch time (millis)",
+                    (Tunables.openDelay + Tunables.pushDelay) * 3 + Tunables.firstInterLaunchWait * 2); // calc time to shoot 3 balls
             telemetry.addData("launch RPM", robot.getLaunchRPM());
 
+            telemetry.addData("launching?: ", robot.updateLaunch()); // update what's happening in our launch and send it to driver
             telemetry.update();
             idle();
         }
-    }
-    private void launchBall() throws InterruptedException { // launch a ball
-        // TODO: make this asynchronous (eliminate all the waits)
-        robot.upperTransfer.setPosition(Tunables.upperTransferOpen);
-        sleep(openDelay); // allow time for upper transfer to move
-        robot.lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
-        sleep(pushDelay); // allow time for lower transfer to move
-        // hopefully the ball has launched by now
-        robot.upperTransfer.setPosition(Tunables.upperTransferClosed); // close upper transfer
-        robot.lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // set lower transfer to its lowest
-    }
-
-    private void launch3Balls() throws InterruptedException {  // launch 3 balls in succession
-        launchBall(); // launch our first ball
-        sleep(firstInterLaunchWait); // could rework this to also watch for velocity
-        launchBall(); // launch our second ball
-        sleep(lastInterLaunchWait);
-        launchBall(); // launch our third ball
     }
 }
