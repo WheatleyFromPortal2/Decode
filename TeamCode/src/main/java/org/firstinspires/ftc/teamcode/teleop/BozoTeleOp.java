@@ -158,7 +158,6 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.debug("launch RPM: " + robot.getLaunchRPM()); // convert from ticks/sec to rev/min
         telemetryM.debug("launch current: " + robot.getLaunchCurrent()); // display launch current
         telemetryM.debug("intake current: " + robot.getIntakeCurrent()); // display intake current
-        telemetryM.debug("lowerTransfer: " + robot.lowerTransfer.getPosition());
         telemetryM.debug("x: " + follower.getPose().getX());
         telemetryM.debug("y: " + follower.getPose().getY());
         telemetryM.debug("goalPose x: " + goalPose.getX());
