@@ -1,13 +1,12 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
 // OpMode imports
-import static java.lang.Thread.sleep;
 
 import com.pedropathing.util.Timer;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Robot; // get our Robot.java object
+import org.firstinspires.ftc.teamcode.Tunables;
 
 // Panels imports
 import com.bylazar.configurables.annotations.Configurable;
@@ -52,12 +51,6 @@ public abstract class BozoTeleOp extends OpMode {
     double targetHeading;
     double launchVelocity; // target launch velocity in TPS
 
-    /** variables to tune **/
-    private final double turnRateMultiplier = 0.75; // always have our turns 75% speed
-    private final int adjustRPM = 50; // driver increments/decrements by adjustRPM
-    private double initialLaunchRPM = 2300; // maybe 2500; from crease
-    private final int intakePollingRate = 50; // test if intake is stalled every 50millis
-
     @Override
     public void init() {
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
@@ -72,7 +65,7 @@ public abstract class BozoTeleOp extends OpMode {
         goalPose = getGoalPose();
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        launchVelocity = robot.RPMToTPS(initialLaunchRPM); // convert from RPM->TPS, starting point
+        launchVelocity = robot.RPMToTPS(Tunables.initialLaunchRPM); // convert from RPM->TPS, starting point
         intakeTimer = new Timer();
         intakeTimer.resetTimer();
     }
@@ -118,8 +111,8 @@ public abstract class BozoTeleOp extends OpMode {
             follower.setPose(headingPose); // see if this works
         }
 
-        if (gamepad1.dpadUpWasPressed()) launchVelocity += robot.RPMToTPS(adjustRPM); // increment by adjustRPM (in TPS)
-        if (gamepad1.dpadDownWasPressed()) launchVelocity -= robot.RPMToTPS(adjustRPM); // decrement by adjustRPM (in TPS)
+        if (gamepad1.dpadUpWasPressed()) launchVelocity += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
+        if (gamepad1.dpadDownWasPressed()) launchVelocity -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
 
         if (!automatedDrive) {
             double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
@@ -127,7 +120,7 @@ public abstract class BozoTeleOp extends OpMode {
             follower.setTeleOpDrive(
                 -gamepad1.left_stick_y * slowModeMultiplier,
                 -gamepad1.left_stick_x * slowModeMultiplier,
-                -gamepad1.right_stick_x * turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
                 isRobotCentric // true = robot centric; false = field centric
             );
             if (gamepad1.xWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
@@ -159,7 +152,7 @@ public abstract class BozoTeleOp extends OpMode {
             intakeTimer.resetTimer();
             robot.intake.setPower(0); // let's save our voltage
         }
-        if (isIntakeStalled && intakeTimer.getElapsedTime() >= intakePollingRate) {
+        if (isIntakeStalled && intakeTimer.getElapsedTime() >= Tunables.intakePollingRate) {
             isIntakeStalled = false; // let's try this again
         }
 

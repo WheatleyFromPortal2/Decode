@@ -9,8 +9,10 @@ import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
+
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import org.firstinspires.ftc.teamcode.Tunables;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -37,17 +39,10 @@ public abstract class BozoAuto extends OpMode {
         END // end state: do nothing
     }
 
-    // these are the **only variables** that should change throughout the auto
+    /** these are the **only variables** that should change throughout the auto **/
     State state = State.START; // set PathState to start
     private int ballTripletsRemaining = 4; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
     private int ballsRemaining = 3; // balls remaining in he robot
-
-    /** variables to tune **/
-    private final double scoreRPM = 2400; // RPM to set for launching (stolen from teleop)
-    private final double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
-    private final double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
-    private final int beginningLaunchDelay =  100; // time to wait before launching first ball
-
 
     // example paths
     private PathChain // some of these can probably just be Paths, but whatever
@@ -70,13 +65,13 @@ public abstract class BozoAuto extends OpMode {
         scorePreload = follower.pathBuilder()
                 .addPath(new BezierLine(startPose, config.scoreIntermediatePose))
                 .addPath(new BezierLine(config.scoreIntermediatePose, config.scorePose))
-                .setLinearHeadingInterpolation(startPose.getHeading(), config.scorePose.getHeading(), scoreEndTime) // hopefully this works
+                .setLinearHeadingInterpolation(startPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // hopefully this works
                 .build();
 
         // this path goes from the score point to the beginning of the first set of balls
         startPickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(config.scorePose, config.pickup1StartPose))
-                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup1StartPose.getHeading(), grabEndTime)
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup1StartPose.getHeading(), Tunables.grabEndTime)
                 .build();
 
         // this path picks up the first set of balls
@@ -88,13 +83,13 @@ public abstract class BozoAuto extends OpMode {
         // this path goes from the endpoint of the ball pickup to our score position
         scorePickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup1EndPose, config.scorePose))
-                .setLinearHeadingInterpolation(config.pickup1EndPose.getHeading(), config.scorePose.getHeading(), scoreEndTime)
+                .setLinearHeadingInterpolation(config.pickup1EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
                 .build();
 
         // this path goes from the score point to the beginning of the second set of balls
         startPickup2 = follower.pathBuilder()
                 .addPath(new BezierLine(config.scorePose, config.pickup2StartPose))
-                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup2StartPose.getHeading(), grabEndTime)
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup2StartPose.getHeading(), Tunables.grabEndTime)
                 .build();
 
         // this path picks up the second set of balls
@@ -106,15 +101,15 @@ public abstract class BozoAuto extends OpMode {
         // this path goes from the endpoint of the ball pickup to our score position
         scorePickup2 = follower.pathBuilder() // extra 2 lines to prevent hitting anything
                 .addPath(new BezierLine(config.pickup2EndPose, config.pickup2StartPose)) // backtrack so we don't hit anything
-                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.pickup2StartPose.getHeading(), grabEndTime) // the heading should not change
+                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.pickup2StartPose.getHeading(), Tunables.grabEndTime) // the heading should not change
                 .addPath(new BezierLine(config.pickup2StartPose, config.scorePose)) // now we to the score position
-                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.scorePose.getHeading(), scoreEndTime) // this heading should work
+                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
                 .build();
 
         // this path goes from the score point to the beginning of the third set of balls
         startPickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(config.scorePose, config.pickup3StartPose))
-                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup3StartPose.getHeading(), grabEndTime)
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup3StartPose.getHeading(), Tunables.grabEndTime)
                 .build();
 
         // this path picks up the third set of balls
@@ -126,7 +121,7 @@ public abstract class BozoAuto extends OpMode {
         // this path goes from the endpoint of the ball pickup our score position
         scorePickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup3EndPose, config.scorePose))
-                .setLinearHeadingInterpolation(config.pickup3EndPose.getHeading(), config.scorePose.getHeading(), scoreEndTime)
+                .setLinearHeadingInterpolation(config.pickup3EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
                 .build();
 
         // this path goes form our score point to our ending position
@@ -173,7 +168,7 @@ public abstract class BozoAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (!follower.isBusy()
                         && robot.isLaunchWithinMargin()
-                        && opmodeTimer.getElapsedTime() >= beginningLaunchDelay) { // check if we're busy and if our launch velocity is within our margin
+                        && opmodeTimer.getElapsedTime() >= Tunables.beginningLaunchDelay) { // check if we're busy and if our launch velocity is within our margin
                     follower.pausePathFollowing();
                     follower.deactivateAllPIDFs();
                     if (robot.updateLaunch()) { // we're done with launching balls
@@ -267,7 +262,7 @@ public abstract class BozoAuto extends OpMode {
         telemetryM.debug("path state", state);
         telemetryM.debug("is follower busy", follower.isBusy());
         telemetryM.debug("ball triplets remaining", ballTripletsRemaining);
-        telemetryM.debug("desired launch RPM", scoreRPM);
+        telemetryM.debug("desired launch RPM", Tunables.scoreRPM);
         telemetryM.debug("launch RPM", robot.getLaunchRPM());
         telemetryM.debug("x", follower.getPose().getX());
         telemetryM.debug("y", follower.getPose().getY());
@@ -302,7 +297,7 @@ public abstract class BozoAuto extends OpMode {
         opmodeTimer.resetTimer();
         robot.initServos(); // get servos ready
         robot.intake.setPower(1); // start intake
-        robot.setLaunchVelocity(robot.RPMToTPS(scoreRPM)); // we're just gonna keep our score RPM constant for now
+        robot.setLaunchVelocity(robot.RPMToTPS(Tunables.scoreRPM)); // we're just gonna keep our score RPM constant for now
         setPathState(State.START);
     }
 

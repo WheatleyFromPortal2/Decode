@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.Tunables;
 
 @TeleOp(name="LaunchDelay", group="Util")
 public class LaunchDelay extends LinearOpMode {
@@ -12,10 +13,10 @@ public class LaunchDelay extends LinearOpMode {
     private boolean intakeOn = true;
 
     // let's start with our delays from Robot.java
-    private int openDelay = Robot.openDelay; // time to wait for upperTransfer to open (in millis)
-    private int pushDelay = Robot.pushDelay; // time to wait for lowerTransfer to move (in millis)
-    private int firstInterLaunchWait = Robot.firstInterLaunchWait; // check Robot.java
-    private int lastInterLaunchWait = Robot.lastInterLaunchWait; // check Robot.java
+    private int openDelay = Tunables.openDelay; // time to wait for upperTransfer to open (in millis)
+    private int pushDelay = Tunables.pushDelay; // time to wait for lowerTransfer to move (in millis)
+    private int firstInterLaunchWait = Tunables.firstInterLaunchWait; // check Robot.java
+    private int lastInterLaunchWait = Tunables.lastInterLaunchWait; // check Robot.java
 
     private final static int  manualChangeAmount = 10; // amount to increment/decrement when d-pad is pressed
 
@@ -64,13 +65,13 @@ public class LaunchDelay extends LinearOpMode {
     }
     private void launchBall() throws InterruptedException { // launch a ball
         // TODO: make this asynchronous (eliminate all the waits)
-        robot.upperTransfer.setPosition(Robot.upperTransferOpen);
+        robot.upperTransfer.setPosition(Tunables.upperTransferOpen);
         sleep(openDelay); // allow time for upper transfer to move
-        robot.lowerTransfer.setPosition(Robot.lowerTransferUpperLimit);
+        robot.lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
         sleep(pushDelay); // allow time for lower transfer to move
         // hopefully the ball has launched by now
-        robot.upperTransfer.setPosition(Robot.upperTransferClosed); // close upper transfer
-        robot.lowerTransfer.setPosition(Robot.lowerTransferLowerLimit); // set lower transfer to its lowest
+        robot.upperTransfer.setPosition(Tunables.upperTransferClosed); // close upper transfer
+        robot.lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // set lower transfer to its lowest
     }
 
     private void launch3Balls() throws InterruptedException {  // launch 3 balls in succession

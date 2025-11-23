@@ -3,8 +3,6 @@ this is basically our mega-class that holds all robot data that is shared betwee
  */
 package org.firstinspires.ftc.teamcode;
 
-import static java.lang.Thread.sleep;
-
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -21,6 +19,7 @@ import com.pedropathing.geometry.Pose;
 
 
 public class Robot { // create our global class for our robot
+    public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
     public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
     private static Robot instance;
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
@@ -34,37 +33,13 @@ public class Robot { // create our global class for our robot
         PUSHING_LOWER_TRANSFER,
         WAITING_FOR_EXIT,
     }
+
+    /** only these variables should change during runtime **/
     LaunchState launchState = LaunchState.START; // set our launch state to start
 
-    public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
     public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
 
-    // this needs to be calculated+changed every time you modify the launch ratio
-    public static final double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
     private int ballsRemaining = 3;
-
-
-    /** variables to tune **/
-    public double intakeOvercurrent = 6; // amount of amps where we consider intake overcurrent
-
-    // PIDF coefficients
-    public static final double launchP = 300; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
-    public static final double launchI = 0.1; // orig 0.1
-    public static final double launchD = 0.2; // orig 0.2
-    public static final double launchF = (double) 1 / 2800; // 6000 rpm motor; 2333.333333333333 ideal
-
-    // servo open/close points (don't find these with the backplate on!)
-    public static final double lowerTransferLowerLimit = 0.28;
-    public static final double lowerTransferUpperLimit = 0.49;
-    public static final double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
-    public static final double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
-
-    // delays
-    public static final int openDelay = 150; // time to wait for upperTransfer to open (in millis)
-    public static final int pushDelay = 180; // time to wait for lowerTransfer to move (in millis)
-    public static final int firstInterLaunchWait = 75; // time to wait between 1st and 2nd launches
-    public static final int lastInterLaunchWait = 200; // time to wait between the 2nd and last launch
-    public final double scoreMargin = 100; // margin of 100TPS; TODO: tune this
 
     public Robot(HardwareMap hw) { // create all of our hardware
         // DC motors (all are DcMotorEx for current monitoring)
@@ -87,7 +62,7 @@ public class Robot { // create our global class for our robot
         //PIDFCoefficients pidfOrig = launch.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Change coefficients using methods included with DcMotorEx class.
-        PIDFCoefficients pidfNew = new PIDFCoefficients(launchP, launchI, launchD, launchF);
+        PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
         launch.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
 
         // set up our timer for the launch state machine
@@ -136,9 +111,9 @@ public class Robot { // create our global class for our robot
     }
 
     public double TPSToRPM(double TPS) {
-        return (TPS / TICKS_PER_REV) * 60 * launchRatio;
+        return (TPS / TICKS_PER_REV) * 60 * Tunables.launchRatio;
     }
-    public double RPMToTPS(double RPM) { return (RPM * TICKS_PER_REV / 60) / launchRatio;}
+    public double RPMToTPS(double RPM) { return (RPM * TICKS_PER_REV / 60) / Tunables.launchRatio;}
     public double getLaunchRPM() { // return launch velocity in RPM
         return TPSToRPM(launch.getVelocity());
     }
@@ -150,17 +125,17 @@ public class Robot { // create our global class for our robot
     }
     public boolean isLaunchWithinMargin() {
         if (neededLaunchVelocity == 0) return true; // if our needed launch velocity is 0 (off) then we're within range
-        return Math.abs(neededLaunchVelocity - launch.getVelocity()) < scoreMargin; // measure if our launch velocity is within our margin of error
+        return Math.abs(neededLaunchVelocity - launch.getVelocity()) < Tunables.scoreMargin; // measure if our launch velocity is within our margin of error
     }
     public double getIntakeCurrent() {
         return intake.getCurrent(CurrentUnit.AMPS);
     }
     public boolean isIntakeOvercurrent() {
-        return intake.getCurrent(CurrentUnit.AMPS) >= intakeOvercurrent;
+        return intake.getCurrent(CurrentUnit.AMPS) >= Tunables.intakeOvercurrent;
     }
     public void initServos() { // set servos to starting state
-        upperTransfer.setPosition(Robot.upperTransferClosed); // make sure balls cannot launch
-        lowerTransfer.setPosition(Robot.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
+        upperTransfer.setPosition(Tunables.upperTransferClosed); // make sure balls cannot launch
+        lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
     }
 
     public void setLaunchVelocity(double velocity) { // velocity is in TPS
@@ -182,38 +157,38 @@ public class Robot { // create our global class for our robot
 
     public void cancelLaunch() { // set servos to default position, this could break if activated at the right time
         ballsRemaining = 0;
-        upperTransfer.setPosition(upperTransferClosed); // make sure balls can't accidentally be launched
-        lowerTransfer.setPosition(lowerTransferLowerLimit); // allow robot to store all balls
+        upperTransfer.setPosition(Tunables.upperTransferClosed); // make sure balls can't accidentally be launched
+        lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // allow robot to store all balls
     }
 
     public boolean updateLaunch() { // outputs true/false whether we are done with launching
         if (ballsRemaining == 0) {
             return true; // we're done with launching balls
-        } else if (ballsRemaining == 1 && launchIntervalTimer.getElapsedTime() <= lastInterLaunchWait){
+        } else if (ballsRemaining == 1 && launchIntervalTimer.getElapsedTime() <= Tunables.lastInterLaunchWait){
             return false; // keep waiting for our last interval
-        } else if (ballsRemaining == 2 && launchIntervalTimer.getElapsedTime() <= firstInterLaunchWait) {
+        } else if (ballsRemaining == 2 && launchIntervalTimer.getElapsedTime() <= Tunables.firstInterLaunchWait) {
             return false; // keep waiting on our first interval
         } else { // 3 balls remaining, no interval needed
             switch (launchState) {
                 case START:
-                    upperTransfer.setPosition(Robot.upperTransferOpen);
+                    upperTransfer.setPosition(Tunables.upperTransferOpen);
                     launchStateTimer.resetTimer();
                     launchState = LaunchState.OPENING_UPPER_TRANSFER;
                 case OPENING_UPPER_TRANSFER:
-                    if (launchStateTimer.getElapsedTime() >= Robot.openDelay) { // we've given it openDelay millis to open
-                        lowerTransfer.setPosition(Robot.lowerTransferUpperLimit);
+                    if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) { // we've given it openDelay millis to open
+                        lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
                         launchStateTimer.resetTimer();
                         launchState = LaunchState.PUSHING_LOWER_TRANSFER;
                     }
                 case PUSHING_LOWER_TRANSFER:
-                    if (launchStateTimer.getElapsedTime() >= Robot.pushDelay) {
-                        lowerTransfer.setPosition(Robot.lowerTransferLowerLimit);
-                        upperTransfer.setPosition(Robot.upperTransferClosed);
+                    if (launchStateTimer.getElapsedTime() >= Tunables.pushDelay) {
+                        lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit);
+                        upperTransfer.setPosition(Tunables.upperTransferClosed);
                         launchStateTimer.resetTimer();
                         launchState = LaunchState.WAITING_FOR_EXIT;
                     }
                 case WAITING_FOR_EXIT:
-                    if (launchStateTimer.getElapsedTime() >= Robot.firstInterLaunchWait) { // ideally with this we won't need to separate first/last inter launch delay
+                    if (launchStateTimer.getElapsedTime() >= Tunables.firstInterLaunchWait) { // ideally with this we won't need to separate first/last inter launch delay
                         launchState = LaunchState.START; // get ready for next one
                         ballsRemaining -= 1; // we've launched a ball
                         launchIntervalTimer.resetTimer();

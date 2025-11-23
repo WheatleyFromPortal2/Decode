@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.Tunables;
 
 @TeleOp(name="FlywheelTest", group="Util")
 public class FlywheelTest extends LinearOpMode {
@@ -24,7 +25,7 @@ public class FlywheelTest extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
-            double launchRPM = ((gamepad1.right_trigger) * (6000 * Robot.launchRatio)); // calculates max motor speed and multiplies it by the float of the right trigger
+            double launchRPM = ((gamepad1.right_trigger) * (6000 * Tunables.launchRatio)); // calculates max motor speed and multiplies it by the float of the right trigger
 
             if (gamepad1.bWasReleased()) { // switch modes we press the B button
                 isGradualControl = !isGradualControl;
@@ -36,14 +37,14 @@ public class FlywheelTest extends LinearOpMode {
                 telemetry.addLine("in GRADUAL CONTROL");
             } else {
                 robot.launch.setPower(1); // BRRRRRR
-                telemetry.addData("desired RPM", 6000 * Robot.launchRatio);
+                telemetry.addData("desired RPM", 6000 * Tunables.launchRatio);
                 telemetry.addLine("in FULL POWER");
             }
             telemetry.addData("actual RPM", robot.getLaunchRPM());
             telemetry.addData("raw launch TPS", robot.launch.getVelocity());
             telemetry.addData("raw launch RPM", robot.launch.getVelocity() * 60 / 28); // this should work
             telemetry.addData("launch current", robot.getLaunchCurrent());
-            telemetry.addData("launch ratio", Robot.launchRatio);
+            telemetry.addData("launch ratio", Tunables.launchRatio);
             telemetry.update();
             idle();
         }
