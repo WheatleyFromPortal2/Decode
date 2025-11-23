@@ -28,6 +28,7 @@ public abstract class BozoTeleOp extends OpMode {
     private Robot robot;
     private Follower follower;
     private Pose goalPose; // this will be set by the specific OpMode
+    private Pose launchHoldPose; // this is where we want to hold for our launch
     private Timer intakeTimer; // used for polling whether intake is stalled
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
     private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
@@ -63,7 +64,7 @@ public abstract class BozoTeleOp extends OpMode {
     protected abstract Pose getGoalPose();
 
     public void start() {
-        follower.startTeleopDrive(true); // start the teleop, and use brakes
+        follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
         robot.initServos(); // set servos to starting state
     }
 
@@ -71,7 +72,10 @@ public abstract class BozoTeleOp extends OpMode {
     public void loop() {
         follower.update();
         telemetryM.update(); // update telemetry manager (Panels)
-        if (robot.updateLaunch()) isLaunching = false; // update our launch state machine, if it's done, turn off isLaunching
+        if (robot.updateLaunch()) { // update our launch state machine and check if it's done
+            isLaunching = false; // if it's done, turn off isLaunching
+            follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
+        }
 
         if (gamepad1.aWasReleased()) {
             isIntakePowered = !isIntakePowered;
@@ -82,11 +86,17 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.yWasReleased()) {
             if (isLaunching) { // if we release y while we're launching, it will cancel
                 robot.cancelLaunch();
+                follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
             } else { // if we're not already launching
+                follower.holdPoint(follower.getPose()); // hold our pose while we're launching
+                //automatedDrive = true; i don't this is necessary
                 robot.launchBalls(3); // launch 3 balls
+                isLaunching = true;
             }
         }
         if (gamepad1.rightBumperWasReleased()) {
+            follower.holdPoint(follower.getPose()); // hold our pose while we're launching
+            //automatedDrive = true; i don't this is necessary
             robot.launchBalls(1);
             isLaunching = true;
         }
