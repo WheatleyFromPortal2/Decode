@@ -3,7 +3,7 @@ package org.firstinspires.ftc.teamcode.auto;
 import static java.lang.Thread.sleep;
 
 import com.pedropathing.follower.Follower;
-//import com.pedropathing.geometry.BezierCurve; // hopefully use these in the future
+import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.paths.PathChain;
@@ -63,8 +63,7 @@ public abstract class BozoAuto extends OpMode {
 
         // this path goes from the starting point to our scoring point
         scorePreload = follower.pathBuilder()
-                .addPath(new BezierLine(startPose, config.scoreIntermediatePose))
-                .addPath(new BezierLine(config.scoreIntermediatePose, config.scorePose))
+                .addPath(new BezierCurve(startPose, config.scoreIntermediatePose, config.scorePose)) // test if this works
                 .setLinearHeadingInterpolation(startPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // hopefully this works
                 .build();
 
@@ -100,9 +99,7 @@ public abstract class BozoAuto extends OpMode {
 
         // this path goes from the endpoint of the ball pickup to our score position
         scorePickup2 = follower.pathBuilder() // extra 2 lines to prevent hitting anything
-                .addPath(new BezierLine(config.pickup2EndPose, config.pickup2StartPose)) // backtrack so we don't hit anything
-                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.pickup2StartPose.getHeading(), Tunables.grabEndTime) // the heading should not change
-                .addPath(new BezierLine(config.pickup2StartPose, config.scorePose)) // now we to the score position
+                .addPath(new BezierCurve(config.pickup2EndPose, config.pickup2StartPose, config.scorePose)) // test if this works
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
                 .build();
 
