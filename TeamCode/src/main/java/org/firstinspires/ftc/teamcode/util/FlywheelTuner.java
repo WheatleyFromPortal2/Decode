@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
-@TeleOp(name="FlywheelTest", group="Util")
+@TeleOp(name="FlywheelTuner", group="Util")
 public class FlywheelTuner extends LinearOpMode {
 
     @Override
