@@ -11,11 +11,10 @@ import org.firstinspires.ftc.teamcode.Tunables;
 
 @TeleOp(name="FlywheelTest", group="Util")
 public class FlywheelTest extends LinearOpMode {
-    private Robot robot;
 
     @Override
     public void runOpMode() {
-        robot = new Robot(hardwareMap); // create our robot class
+        Robot robot = new Robot(hardwareMap); // create our robot class
         telemetry.update();
         boolean isGradualControl = true; // if we're using the right trigger to control speed or just doing full power
 
