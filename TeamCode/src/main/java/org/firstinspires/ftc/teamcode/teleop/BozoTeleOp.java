@@ -138,8 +138,7 @@ public abstract class BozoTeleOp extends OpMode {
         if (isIntakePowered && !isIntakeStalled) {
             if (!isIntakeReversed) robot.intake.setPower(1); // our intake is 0% or 100%
             else robot.intake.setPower(-1); // reverse intake to eject/unclog
-        }
-        else robot.intake.setPower(0);
+        } else robot.intake.setPower(0);
 
         if (automatedLaunch) {
             //robot.setAutomatedLaunchVelocity(follower.getPose()); // set our launch to its needed speed and get our needed TPS
@@ -190,14 +189,13 @@ public abstract class BozoTeleOp extends OpMode {
             double neededVelocity = robot.getNeededVelocity(neededTangentialSpeed); // honestly can combine these into the same function and return our needed TPS to check if we're spun up
             robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
 
-
             targetHeading = robot.getGoalHeading(follower.getPose(), goalPose);
             PathChain turnPath = follower.pathBuilder()
                     .addPath(new BezierLine(follower.getPose(), follower.getPose())) // our x-y pos will stay the same so just give our current position twice
                     .setLinearHeadingInterpolation(follower.getHeading(), targetHeading) // we want to turn from our current heading to our target heading
                     .build();
 
-            follower.followPath(turnPath); // follow this path
+            follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end
             automatedDrive = true; // we're driving automatically now
             automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
         }
