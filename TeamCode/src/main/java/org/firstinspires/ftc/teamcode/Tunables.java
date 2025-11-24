@@ -38,6 +38,7 @@ public class Tunables { // this should hold all of our constants
     public static double initialLaunchRPM = 2300; // maybe 2500; from crease
     public static int intakePollingRate = 50; // test if intake is stalled every 50millis
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
+    public static boolean holdEnd = true; // whether to hold end while shooting
 
     /** Auto tunables (used in BozoAuto.java) **/
 
