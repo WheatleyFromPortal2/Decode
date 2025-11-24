@@ -11,8 +11,6 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 import com.pedropathing.geometry.Pose;
 
-// Pedro Pathing imports
-
 
 public class Robot { // create our global class for our robot
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
