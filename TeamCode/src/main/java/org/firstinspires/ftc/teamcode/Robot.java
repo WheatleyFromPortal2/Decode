@@ -1,12 +1,8 @@
-/*
-this is basically our mega-class that holds all robot data that is shared between auto and teleop
- */
+/** this is our mega-class that holds all robot functions that are shared between auto and teleop **/
 package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.util.Timer;
-import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -51,20 +47,20 @@ public class Robot { // create our global class for our robot
         upperTransfer = hw.get(Servo.class, "upperTransfer");
 
         // sensors
-        intake.setDirection(DcMotorSimple.Direction.FORWARD);
-        launch.setDirection(DcMotorSimple.Direction.FORWARD);
+        intake.setDirection(DcMotorEx.Direction.FORWARD);
+        launch.setDirection(DcMotorEx.Direction.FORWARD);
 
         intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
         intake.setCurrentAlert(Tunables.intakeOvercurrent, CurrentUnit.AMPS);
         launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
 
-        intake.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
+        intake.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
         // Get the PIDF coefficients for the RUN_USING_ENCODER RunMode.
         //PIDFCoefficients pidfOrig = launch.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // Change coefficients using methods included with DcMotorEx class.
         PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
-        launch.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfNew);
+        launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew);
 
         // set up our timer for the launch state machine
         launchStateTimer = new Timer(); // tracks time since we started our last launch state
@@ -196,6 +192,6 @@ public class Robot { // create our global class for our robot
                     }
             }
         }
-        return false; // this code should never be reached, but the IDE freaks out if i don't have it
+        return false; // we're still working on launching balls
     }
 }
