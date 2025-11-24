@@ -23,7 +23,7 @@ public abstract class BozoAuto extends OpMode {
     protected abstract Pose getStartPose();
     Robot robot;
     private Follower follower;
-    private Timer pathTimer, opmodeTimer;
+    private Timer pathTimer, opmodeTimer, loopTimer;
     private TelemetryManager telemetryM; // create our telemetry object
     private Pose startPose;
 
@@ -249,6 +249,7 @@ public abstract class BozoAuto extends OpMode {
     /** This is the main loop of the OpMode, it will run repeatedly after clicking "Play". **/
     @Override
     public void loop() {
+        loopTimer.resetTimer();
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
 
@@ -261,15 +262,16 @@ public abstract class BozoAuto extends OpMode {
         }
 
         // Feedback to Driver Hub for debugging
-        telemetryM.debug("balls remaining: ", ballsRemaining);
-        telemetryM.debug("path state", state);
-        telemetryM.debug("is follower busy", follower.isBusy());
-        telemetryM.debug("ball triplets remaining", ballTripletsRemaining);
-        telemetryM.debug("desired launch RPM", Tunables.scoreRPM);
-        telemetryM.debug("launch RPM", robot.getLaunchRPM());
+        telemetryM.addData("balls remaining", ballsRemaining);
+        telemetryM.debug("path state: " + state);
+        telemetryM.addData("is follower busy", follower.isBusy());
+        telemetryM.addData("ball triplets remaining", ballTripletsRemaining);
+        telemetryM.addData("desired launch RPM", Tunables.scoreRPM);
+        telemetryM.addData("launch RPM", robot.getLaunchRPM());
         telemetryM.debug("x", follower.getPose().getX());
         telemetryM.debug("y", follower.getPose().getY());
         telemetryM.debug("heading", follower.getPose().getHeading());
+        telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
         telemetryM.update(telemetry); // update telemetry
     }
 
@@ -280,6 +282,7 @@ public abstract class BozoAuto extends OpMode {
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
+        loopTimer = new Timer();
         robot = Robot.getInstance(hardwareMap); // create our robot class
 
         follower = Constants.createFollower(hardwareMap);

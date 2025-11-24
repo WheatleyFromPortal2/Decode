@@ -30,6 +30,7 @@ public abstract class BozoTeleOp extends OpMode {
     private Pose goalPose; // this will be set by the specific OpMode
     private Pose launchHoldPose; // this is where we want to hold for our launch
     private Timer intakeTimer; // used for polling whether intake is stalled
+    private Timer loopTimer; // measures the speed of our loop
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
     private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
@@ -43,6 +44,10 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void init() {
+        loopTimer = new Timer();
+        loopTimer.resetTimer();
+        intakeTimer = new Timer();
+        intakeTimer.resetTimer();
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
         follower = Constants.createFollower(hardwareMap);
         // TODO: fix this
@@ -56,8 +61,7 @@ public abstract class BozoTeleOp extends OpMode {
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         launchVelocity = robot.RPMToTPS(Tunables.initialLaunchRPM); // convert from RPM->TPS, starting point
-        intakeTimer = new Timer();
-        intakeTimer.resetTimer();
+        telemetryM.debug("init time: " + loopTimer.getElapsedTime());
     }
 
     protected abstract Pose flipPose(Pose switchoverPose);
@@ -70,6 +74,7 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        loopTimer.resetTimer();
         follower.update();
         telemetryM.update(); // update telemetry manager (Panels)
         if (robot.updateLaunch()) { // update our launch state machine and check if it's done
@@ -165,13 +170,15 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.debug("automated launch?: " + automatedLaunch);
         telemetryM.debug("follower busy?: " + follower.isBusy());
         telemetryM.debug("desired launch RPM: " + robot.TPSToRPM(robot.neededLaunchVelocity)); // make sure to convert from TPS->RPM
-        telemetryM.debug("launch RPM: " + robot.getLaunchRPM()); // convert from ticks/sec to rev/min
-        telemetryM.debug("launch current: " + robot.getLaunchCurrent()); // display launch current
-        telemetryM.debug("intake current: " + robot.getIntakeCurrent()); // display intake current
+        // we're using addData for these because we want to be able to graph them
+        telemetryM.addData("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
+        telemetryM.addData("launch current", robot.getLaunchCurrent()); // display launch current
+        telemetryM.addData("intake current", robot.getIntakeCurrent()); // display intake current
         telemetryM.debug("x: " + follower.getPose().getX());
         telemetryM.debug("y: " + follower.getPose().getY());
         telemetryM.debug("goalPose x: " + goalPose.getX());
         telemetryM.debug("goalPose y: " + goalPose.getY());
+        telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
         telemetryM.update(telemetry); // update telemetry (don't know why we need to pass in 'telemetry' object)
     }
 
