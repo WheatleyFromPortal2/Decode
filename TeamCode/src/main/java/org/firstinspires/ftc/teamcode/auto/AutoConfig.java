@@ -6,6 +6,7 @@ import com.pedropathing.geometry.Pose;
 public class AutoConfig {
     public Pose goalPose;
     public Pose scorePose;
+    public Pose scoreIntermediatePose;
     public Pose pickup1StartPose;
     public Pose pickup1EndPose;
     public Pose pickup2StartPose;
@@ -16,6 +17,7 @@ public class AutoConfig {
 
     public AutoConfig(Pose goalPose,
                       Pose scorePose,
+                      Pose scoreIntermediatePose,
                       Pose pickup1StartPose,
                       Pose pickup1EndPose,
                       Pose pickup2StartPose,
@@ -25,6 +27,7 @@ public class AutoConfig {
                       Pose endPose) {
         this.goalPose = goalPose;
         this.scorePose = scorePose;
+        this.scoreIntermediatePose = scoreIntermediatePose;
         this.pickup1StartPose = pickup1StartPose;
         this.pickup1EndPose = pickup1EndPose;
         this.pickup2StartPose = pickup2StartPose;

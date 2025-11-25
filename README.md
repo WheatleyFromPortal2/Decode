@@ -1,4 +1,4 @@
-# St. Mark's FTC-A Decode Repo
+# St. Mark's FTC-A Decode Repo For Team 23381 "The Marksmen"
 ## ADB connect instructions
 if `adb devices` doesn't show any devices:
 1. connect to driver hub using wifi
@@ -13,8 +13,8 @@ if `adb devices` doesn't show any devices:
   - TPS for commanding motors directly
   - radians/s for math (bcuz it's easy for physics)
 ### odo distances
-- robot length (back to front) is **420mm**, **16.53543"**
-- robot width (left to right) is **400mm**, **15.74803"**
+- robot length (back to front) is **420mm** / **16.53543"**
+- robot width (left to right) is **400mm** / **15.74803"**
 # Hardware Map
 
 driver station config name: `parallel plate v0`
@@ -45,6 +45,8 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 | 2          | `backLeft`    | ❌        |
 | 3          | `backRight`   | ❌        |
 
+make sure to connect every motor with the correct polarity, the reversing should be done in software
+
 ### servos
 
 | servo port  | verbatim name   |
@@ -55,7 +57,6 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 | 3           | none            |
 | 4           | none            |
 | 5           | none            |
-
 
 ## expansion hub
 
@@ -87,56 +88,25 @@ make sure you set the device specifically to `REV internal IMU (BN0055)`, contro
 - right trigger: launch power (when manually controlled)
 
 ## buttons
+### face buttons
 - A: toggle intake
-- B: toggle launch (speed controlled with RY)
-- Y: switch between manual and automatic control of launch velocity
-- X: turn to goal or cancel turning to goal
+- B: toggle manual/automatic intake
+- Y: launch 3 balls
+- X: reverse intake
 
+### d-pad
+- up: increase launch RPM setpoint
+- down: decrease launch RPM setpoint
+
+### other buttons
 - start: toggle field/robot centric
 - back: reset field centric heading
 
-# multipliers
-when moving around the field and back to the same place, our position was within ~0.25" so we prob won't need to recalibrate the pinpoint
-## forward (48") tests
-1. 19839.220040170083
-2. 24006.84554319875
-3. 24431.005099513706
-4. 24949.657374839462
-5. 25468.686568540168
-- avg: _____
-
-## lateral (48") tests
-### going left
-1. -24898.2422102001
-2. -25300.129015353705
-### going right
-1. 26475.23513389474
-2. 25923.59967956919
-
-## turning
-1. -1.0046447450070208
-2. 1.0092479734478739
-
-## forward velocity
-1. 57.62592321681226
-2. 57.19646592027559
-
-## strafe velocity
-1. 47.61915456216167
-2. 46.422831377645174
-
-## forward zero power acceleration (deceleration)
-1. -46.364970304550404
-2. -43.0153804561628
-
-## lateral zero power acceleration (deceleration)
-1. -38.25290065185062
-2. -33.778581054706926
 
 # OpModes
 ## TeleOp
-- `BlueTeleOp`: blue team goal position for launch calculations
-- `RedTeleOp`: red team goal position for launch calculations
+- `BlueTeleOp`: TeleOp for blue team
+- `RedTeleOp`: TeleOp for red team
 
 ## Auto
 ### Blue Team
@@ -146,11 +116,13 @@ when moving around the field and back to the same place, our position was within
 - `RedTriAuto`: starting by bottom triangle
 - `RedGoalAuto`: starting by red team goal
 
-## other/util
-- `FlywheelServoTest`: test servo endpoints and max flywheel speed
+## util
+- `FlywheelTest`: test flywheel max speed
+- `LaunchDelay`: test and tune delays for launch
+- `ServoTest`: test servo endpoints
 
-# State Machine
-## main states
+# State Machines
+## auto states
 1. START
 2. TRAVEL_TO_LAUNCH
 3. LAUNCH
@@ -159,6 +131,17 @@ when moving around the field and back to the same place, our position was within
 6. GO_TO_END
 7. END
 
-## ball triplets remaining
+### ball triplets remaining
 - starts at 4 (1 in robot, 3 on field)
 - decrements every launch
+
+## launch states
+1. START
+2. OPENING_UPPER_TRANSFER
+3. PUSHING_LOWER_TRANSFER
+4. WAITING_FOR_EXIT
+
+### balls remaining
+- starts at 3 (all in robot)
+- decrements by 1 every ball that is launched
+- reset to 3 and return true when it hits 0
