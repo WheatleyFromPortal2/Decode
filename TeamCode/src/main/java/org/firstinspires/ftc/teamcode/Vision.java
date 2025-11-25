@@ -3,44 +3,19 @@ package org.firstinspires.ftc.teamcode;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
-import org.firstinspires.ftc.robotcore.external.matrices.VectorF;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.Quaternion;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import org.firstinspires.ftc.vision.VisionPortal;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
-import org.firstinspires.ftc.vision.apriltag.AprilTagLibrary;
+import org.firstinspires.ftc.vision.apriltag.AprilTagGameDatabase;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class VisionLocalizer {
-    public static final String WEBCAM_NAME = "cam";
-    public static final double APRILTAG_UPDATE_INTERVAL = 0.05; // 50 ms
-    public static final double MAX_POSE_JUMP_DISTANCE = 12.0; // inches
-    public static final double MAX_HEADING_JUMP = Math.toRadians(45.0);
-    public static final double VISION_ALPHA = 0.2; // complementary filter gain for vision
-    public static final double TAG_SIZE_METERS = 0.206375;
-
-    // Field geometry
-    public static final double TAG_HEIGHT_METERS = 0.48;
-    public static final double TAG_DEPTH_METERS = 0.2794;
-    public static final double TAG_INTER_OFFSET_METERS = 0.4;
-    public static final double INTER_TAG_DISTANCE_METERS = 2.286;
-    public static final double FIELD_LENGTH_METERS = TAG_INTER_OFFSET_METERS + INTER_TAG_DISTANCE_METERS; // 2.686 m
-
-    private static final double CAM_X_R = 0.10; // meters forward from robot center
-    private static final double CAM_Y_R = 0.00; // meters left from robot center
-    private static final double CAM_Z_R = 0.25; // meters above floor
-    private static final double CAM_YAW_DEG = 0.0;
-    private static final double CAM_PITCH_DEG = -90.0;
-    private static final double CAM_ROLL_DEG = 0.0;
-
-    private static final double MAX_TAG_DISAGREEMENT = 6.0; // inches
+public class Vision {
+    private static String status = "initializing...";
 
     private final AprilTagProcessor aprilTagProcessor;
     private final VisionPortal visionPortal;
@@ -48,53 +23,42 @@ public class VisionLocalizer {
     private double lastQueryTime = 0.0;
     private double lastSuccessfulUpdateTime = 0.0;
     private Pose lastVisionPose = null;
-    private String status = "Initializing";
 
-    public VisionLocalizer(HardwareMap hardwareMap) {
-        Position cameraPosition = new Position(
-                DistanceUnit.METER,
-                CAM_X_R,
-                CAM_Y_R,
-                CAM_Z_R,
-                0
-        );
-        YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(
-                AngleUnit.DEGREES,
-                CAM_YAW_DEG,
-                CAM_PITCH_DEG,
-                CAM_ROLL_DEG,
-                0
-        );
+    public Vision(HardwareMap hardwareMap) {
 
         aprilTagProcessor = new AprilTagProcessor.Builder()
-                .setTagLibrary(buildTagLibrary())
-                .setCameraPose(cameraPosition, cameraOrientation)
-                .setDrawAxes(true)
-                .setDrawTagID(true)
+                .setTagLibrary(AprilTagGameDatabase.getDecodeTagLibrary()) // we're going to try using the default tag library first
+                .setOutputUnits(DistanceUnit.INCH, AngleUnit.RADIANS) // use our units
+                .setCameraPose(Tunables.cameraPosition, Tunables.cameraOrientation)
+                // debug settings
+                .setDrawAxes(Tunables.drawAxis)
+                .setDrawCubeProjection(Tunables.drawCubeProjections)
+                .setDrawTagOutline(Tunables.drawTagOutline)
+                .setDrawTagID(Tunables.drawTagID)
                 .build();
-        aprilTagProcessor.setDecimation(2);
+        aprilTagProcessor.setDecimation(Tunables.decimation);
 
         VisionPortal.Builder builder = new VisionPortal.Builder();
-        builder.setCamera(hardwareMap.get(WebcamName.class, WEBCAM_NAME));
+        builder.setCamera(Robot.camera);
         builder.addProcessor(aprilTagProcessor);
         visionPortal = builder.build();
     }
 
     public Pose tryGetVisionPose(Pose referencePose) {
-        double now = System.currentTimeMillis() / 1000.0;
-        if (now - lastQueryTime < APRILTAG_UPDATE_INTERVAL) {
+        long now = System.currentTimeMillis();
+        if (now - lastQueryTime < Tunables.aprilTagUpdateInterval) {
             return null;
         }
         lastQueryTime = now;
 
         if (aprilTagProcessor == null) {
-            status = "Processor offline";
+            status = "processor offline";
             return null;
         }
 
         List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
         if (detections == null) {
-            status = "No detections";
+            status = "no detections";
             lastDetectionCount = 0;
             return null;
         }
@@ -121,20 +85,20 @@ public class VisionLocalizer {
 
         Pose comparisonPose = referencePose != null ? referencePose : bestObservation.pose;
         double distanceChange = getDistance(comparisonPose, bestObservation.pose);
-        if (distanceChange > MAX_POSE_JUMP_DISTANCE) {
-            status = String.format("Rejected jump %.1f in", distanceChange);
+        if (distanceChange > Tunables.maxPoseJumpDistance) {
+            status = String.format("rejected jump %.1f in", distanceChange);
             return null;
         }
 
         double headingChange = Math.abs(AngleUnit.normalizeRadians(
                 bestObservation.pose.getHeading() - comparisonPose.getHeading()
         ));
-        if (headingChange > MAX_HEADING_JUMP) {
-            status = String.format("Rejected heading %.1f deg", Math.toDegrees(headingChange));
+        if (headingChange > Tunables.maxHeadingJump) {
+            status = String.format("rejected heading %.1f deg", Math.toDegrees(headingChange));
             return null;
         }
 
-        status = "ACTIVE - Localizing";
+        status = "ACTIVE - localizing";
         lastSuccessfulUpdateTime = now;
         lastVisionPose = bestObservation.pose;
         return bestObservation.pose;
@@ -161,9 +125,9 @@ public class VisionLocalizer {
     private void updateIdleStatus(double now) {
         double timeSinceUpdate = now - lastSuccessfulUpdateTime;
         if (timeSinceUpdate > 1.0) {
-            status = String.format("No tags - %.1fs", timeSinceUpdate);
+            status = String.format("no tags - %.1fs", timeSinceUpdate);
         } else {
-            status = "Searching for tags...";
+            status = "searching for tags...";
         }
     }
 
@@ -179,7 +143,7 @@ public class VisionLocalizer {
         VisionObservation second = observations.get(1);
 
         double disagreement = getDistance(first.pose, second.pose);
-        if (disagreement <= MAX_TAG_DISAGREEMENT) {
+        if (disagreement <= Tunables.maxTagDisagreement) {
             Pose averaged = averagePose(first.pose, second.pose);
             double bestRange = Math.min(first.range, second.range);
             return new VisionObservation(averaged, bestRange);
@@ -220,32 +184,6 @@ public class VisionLocalizer {
         Pose pose = new Pose(x, y, heading);
         double range = detection.ftcPose != null ? detection.ftcPose.range : Double.MAX_VALUE;
         return new VisionObservation(pose, range);
-    }
-
-    private AprilTagLibrary buildTagLibrary() {
-        AprilTagLibrary.Builder builder = new AprilTagLibrary.Builder();
-
-        // Tags positioned with an offset from the origin, separated along X, and lifted off the floor.
-        double tag1X = TAG_INTER_OFFSET_METERS;
-        double tag2X = TAG_INTER_OFFSET_METERS + INTER_TAG_DISTANCE_METERS;
-
-        // Both tags sit at the same depth from the wall and height above the floor.
-        addTag(builder, 1, "CornerLeft", tag1X, TAG_DEPTH_METERS, Math.toRadians(45));
-        addTag(builder, 2, "CornerRight", tag2X, TAG_DEPTH_METERS, Math.toRadians(-45));
-        return builder.build();
-    }
-
-    private void addTag(AprilTagLibrary.Builder builder, int id, String name, double xMeters, double yMeters, double yawRadians) {
-        VectorF position = new VectorF((float) xMeters, (float) yMeters, (float) TAG_HEIGHT_METERS);
-        Quaternion orientation = createYawOnlyQuaternion(yawRadians);
-        builder.addTag(id, name, TAG_SIZE_METERS, position, DistanceUnit.METER, orientation);
-    }
-
-    private Quaternion createYawOnlyQuaternion(double yawRadians) {
-        double halfYaw = 0.5 * yawRadians;
-        float w = (float) Math.cos(halfYaw);
-        float z = (float) Math.sin(halfYaw);
-        return new Quaternion(w, 0f, 0f, z, 0);
     }
 
     private double convertPositionComponent(Position position, DistanceUnit desiredUnit, Axis axis) {
