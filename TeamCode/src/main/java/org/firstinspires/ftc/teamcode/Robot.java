@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 
 import com.pedropathing.geometry.Pose;
@@ -18,6 +19,7 @@ public class Robot { // create our global class for our robot
     private static Robot instance;
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer;
+    public static WebcamName camera;
 
     private Timer launchStateTimer, // this timer measures the time between states in launch
             launchIntervalTimer; // this timer measures the time between individual launches
@@ -39,6 +41,7 @@ public class Robot { // create our global class for our robot
         // DC motors (all are DcMotorEx for current monitoring)
         intake = hw.get(DcMotorEx.class, "intake");
         launch = hw.get(DcMotorEx.class, "launch");
+        camera = hw.get(WebcamName.class, "cam");
 
         // servos
         lowerTransfer = hw.get(Servo.class, "lowerTransfer");
