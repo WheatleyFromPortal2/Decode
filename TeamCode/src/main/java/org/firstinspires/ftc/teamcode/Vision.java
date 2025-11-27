@@ -108,20 +108,13 @@ public class Vision {
     }
 
     // methods for reading status
-    public int getLastDetectionCount() {
-        return lastDetectionCount;
-    }
+    public String getStatus() { return status; }
+    public int getLastDetectionCount() { return lastDetectionCount; }
 
-    public String getStatus() {
-        return status;
-    }
-
-    public Pose getLastVisionPose() {
-        return lastVisionPose;
-    }
-    public double getLastPositionJump() {return lastPositionJump;}
-    public double getLastHeadingJump() {return lastHeadingJump;} // this should return radians
-    public Robot.Pattern getPattern() {return pattern;}
+    public Pose getLastVisionPose() { return lastVisionPose; }
+    public double getLastPositionJump() { return lastPositionJump; }
+    public double getLastHeadingJump() { return lastHeadingJump; } // this should return radians
+    public Robot.Pattern getPattern() { return pattern; }
 
     public void close() {
         if (visionPortal != null) {
