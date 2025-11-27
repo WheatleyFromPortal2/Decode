@@ -1,12 +1,15 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import android.util.Size;
+
 import com.bylazar.configurables.annotations.Configurable;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Position;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.vision.VisionPortal;
 
 @Configurable
 public class Tunables { // this should hold all of our constants
@@ -73,7 +76,7 @@ public class Tunables { // this should hold all of our constants
 
     // logic variables
     public static int visionUpdateInterval = 50; // update vision every x millis
-    public static int aprilTagUpdateInterval = 20; // idk wtf this does
+    public static int aprilTagUpdateInterval = 20; // update apriltags from vision every x millis
     public static double maxPoseJumpDistance = 3.0; // only ever change our position this many inches based off of vision data
     public static double maxTagDisagreement = 2.0; // tags should only disagree by 2 inches
     public static double maxHeadingJump = Math.toRadians(15); // only ever change our heading by this many radians based off of vision data
@@ -84,4 +87,8 @@ public class Tunables { // this should hold all of our constants
     public static boolean drawCubeProjections = true;
     public static boolean drawTagOutline = true;
     public static boolean drawTagID = true;
+    public static boolean enableLiveView = true;
+    public static Size cameraResolution = new Size(640, 480);
+    public static VisionPortal.StreamFormat streamFormat = VisionPortal.StreamFormat.YUY2; // MPJEG is faster if we don't have enough bandwidth
+
 }
