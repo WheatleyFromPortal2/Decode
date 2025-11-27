@@ -6,6 +6,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Robot; // get our Robot.java object
+import org.firstinspires.ftc.teamcode.Vision; // get our Vision tools
 import org.firstinspires.ftc.teamcode.Tunables;
 
 // Panels imports
@@ -23,6 +24,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 //@TeleOp(name="BozoTeleOp", group="TeleOp")
 public abstract class BozoTeleOp extends OpMode {
     private Robot robot;
+    private Vision vision;
     private Follower follower;
     private Pose goalPose; // this will be set by the specific OpMode
     private Pose launchHoldPose; // this is where we want to hold for our launch
@@ -46,6 +48,7 @@ public abstract class BozoTeleOp extends OpMode {
         intakeTimer = new Timer();
         intakeTimer.resetTimer();
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
+        vision = new Vision(); // create our vision class
         follower = Constants.createFollower(hardwareMap);
         // TODO: fix this
         //follower.setStartingPose(Robot.switchoverPose == null ? new Pose() : Robot.switchoverPose); // if we don't already have a starting pose, set it
@@ -70,7 +73,17 @@ public abstract class BozoTeleOp extends OpMode {
     }
 
     @Override
+    public void stop() {
+        vision.close(); // close our vision portal
+    }
+
+    @Override
     public void loop() {
+        Pose visionPose = vision.tryGetVisionPose(follower.getPose()); // try to get our vision pose
+        if (visionPose != null) { // if we have a good vision position
+            follower.setPose(visionPose); // if our vision returns us a pose, tell Pedro Pathing to use it
+            telemetryM.debug("UPDATED POSITION BASED OFF OF VISION"); // tell the driver we used vision to update position
+        }
         loopTimer.resetTimer();
         follower.update();
         telemetryM.update(); // update telemetry manager (Panels)
@@ -159,6 +172,12 @@ public abstract class BozoTeleOp extends OpMode {
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         if (isIntakeStalled) telemetryM.addLine("WARNING: INTAKE STALLED!!!"); // alert driver intake is over current
+        // vision telemetry
+        telemetryM.addData("last detection count", vision.getLastDetectionCount());
+        telemetryM.addData("vision status", vision.getStatus());
+        telemetryM.addData("last vision pose", vision.getLastVisionPose());
+        telemetryM.addData("pattern", vision.getPattern());
+
         telemetryM.debug("target heading: " + targetHeading);
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
