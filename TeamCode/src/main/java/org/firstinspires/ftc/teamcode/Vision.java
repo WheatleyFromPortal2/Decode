@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.pedropathing.geometry.Pose;
-import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -23,8 +22,9 @@ public class Vision {
     private double lastQueryTime = 0.0;
     private double lastSuccessfulUpdateTime = 0.0;
     private Pose lastVisionPose = null;
+    private Robot.Pattern pattern = Robot.Pattern.UNKNOWN; // stores the pattern that we think we have (GPP, PGP, PPG), start off as unknown
 
-    public Vision(HardwareMap hardwareMap) {
+    public Vision() { // create and initialize our vision object
 
         aprilTagProcessor = new AprilTagProcessor.Builder()
                 .setTagLibrary(AprilTagGameDatabase.getDecodeTagLibrary()) // we're going to try using the default tag library first
@@ -40,34 +40,33 @@ public class Vision {
 
         VisionPortal.Builder builder = new VisionPortal.Builder();
         builder.setCamera(Robot.camera);
+        builder.setCameraResolution(Tunables.cameraResolution);
+        builder.enableLiveView(Tunables.enableLiveView);
+        builder.setStreamFormat(Tunables.streamFormat);
         builder.addProcessor(aprilTagProcessor);
         visionPortal = builder.build();
     }
 
     public Pose tryGetVisionPose(Pose referencePose) {
-        long now = System.currentTimeMillis();
-        if (now - lastQueryTime < Tunables.aprilTagUpdateInterval) {
+        long now = System.currentTimeMillis(); // get what time it is
+        if (now - lastQueryTime < Tunables.aprilTagUpdateInterval) { // don't update if we are outside of the interval
             return null;
         }
-        lastQueryTime = now;
+        lastQueryTime = now; // update our last query time
 
-        if (aprilTagProcessor == null) {
-            status = "processor offline";
-            return null;
-        }
+        List<AprilTagDetection> detections = aprilTagProcessor.getDetections(); // get our detections from the processor
 
-        List<AprilTagDetection> detections = aprilTagProcessor.getDetections();
-        if (detections == null) {
+        if (detections == null) { // we didn't get any detections
             status = "no detections";
             lastDetectionCount = 0;
             return null;
         }
 
-        lastDetectionCount = detections.size();
-        List<VisionObservation> observations = new ArrayList<>();
+        lastDetectionCount = detections.size(); // get the amount of detections that we received
+        List<VisionObservation> observations = new ArrayList<>(); // create our observations list
         for (AprilTagDetection detection : detections) {
             VisionObservation observation = createObservation(detection);
-            if (observation != null) {
+            if (observation != null) { // add all of our observations that are not null
                 observations.add(observation);
             }
         }
@@ -84,7 +83,7 @@ public class Vision {
         }
 
         Pose comparisonPose = referencePose != null ? referencePose : bestObservation.pose;
-        double distanceChange = getDistance(comparisonPose, bestObservation.pose);
+        double distanceChange = comparisonPose.distanceFrom(bestObservation.pose);
         if (distanceChange > Tunables.maxPoseJumpDistance) {
             status = String.format("rejected jump %.1f in", distanceChange);
             return null;
@@ -115,6 +114,7 @@ public class Vision {
     public Pose getLastVisionPose() {
         return lastVisionPose;
     }
+    public Robot.Pattern getPattern() {return pattern;}
 
     public void close() {
         if (visionPortal != null) {
@@ -122,6 +122,7 @@ public class Vision {
         }
     }
 
+    /** private methods not to be called by OpModes **/
     private void updateIdleStatus(double now) {
         double timeSinceUpdate = now - lastSuccessfulUpdateTime;
         if (timeSinceUpdate > 1.0) {
@@ -142,7 +143,7 @@ public class Vision {
         VisionObservation first = observations.get(0);
         VisionObservation second = observations.get(1);
 
-        double disagreement = getDistance(first.pose, second.pose);
+        double disagreement = first.pose.distanceFrom(second.pose); // find our distance between the 2 poses
         if (disagreement <= Tunables.maxTagDisagreement) {
             Pose averaged = averagePose(first.pose, second.pose);
             double bestRange = Math.min(first.range, second.range);
@@ -150,9 +151,9 @@ public class Vision {
         }
 
         if (referencePose != null) {
-            double firstDelta = getDistance(referencePose, first.pose);
-            double secondDelta = getDistance(referencePose, second.pose);
-            return firstDelta <= secondDelta ? first : second;
+            double firstDelta = referencePose.distanceFrom(first.pose); // find the distance between our reference Pose and our
+            double secondDelta = referencePose.distanceFrom(second.pose);
+            return firstDelta <= secondDelta ? first : second; // return the pose that is closest to our reference pose
         }
         return first.range <= second.range ? first : second;
     }
@@ -165,28 +166,37 @@ public class Vision {
         return new Pose(avgX, avgY, avgHeading);
     }
 
-    private double getDistance(Pose a, Pose b) {
-        double dx = a.getX() - b.getX();
-        double dy = a.getY() - b.getY();
-        return Math.hypot(dx, dy);
-    }
-
     private VisionObservation createObservation(AprilTagDetection detection) {
-        if (detection.metadata == null || detection.robotPose == null) {
+        if (detection.metadata == null || detection.robotPose == null) { // if this detection is missing data, don't use it
             return null;
         }
-        if (detection.id != 1 && detection.id != 2) {
+        // pattern tags
+        if (detection.id == 21) {
+            pattern = Robot.Pattern.GPP; // update our pattern
+            return null; // don't use the obelisk for localization
+        } else if (detection.id == 22) {
+            pattern = Robot.Pattern.PGP; // update our pattern
+            return null; // don't use the obelisk for localization
+        } else if (detection.id == 23) {
+            pattern = Robot.Pattern.PPG; // update our pattern
+            return null; // don't use the obelisk for localization
+        }
+        // obelisk tags
+        else if (detection.id == 20 || detection.id == 24) { // the only localizing april tags are id 20 and 24
+            double x = convertPositionComponent(detection.robotPose.getPosition(), DistanceUnit.INCH, Axis.X);
+            double y = convertPositionComponent(detection.robotPose.getPosition(), DistanceUnit.INCH, Axis.Y);
+            double heading = Math.toRadians(detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES));
+            Pose pose = new Pose(x, y, heading);
+            double range = detection.ftcPose != null ? detection.ftcPose.range : Double.MAX_VALUE;
+            return new VisionObservation(pose, range);
+        }
+        // if the ID is anything else, don't use it
+        else {
             return null;
         }
-        double x = convertPositionComponent(detection.robotPose.getPosition(), DistanceUnit.INCH, Axis.X);
-        double y = convertPositionComponent(detection.robotPose.getPosition(), DistanceUnit.INCH, Axis.Y);
-        double heading = Math.toRadians(detection.robotPose.getOrientation().getYaw(AngleUnit.DEGREES));
-        Pose pose = new Pose(x, y, heading);
-        double range = detection.ftcPose != null ? detection.ftcPose.range : Double.MAX_VALUE;
-        return new VisionObservation(pose, range);
     }
 
-    private double convertPositionComponent(Position position, DistanceUnit desiredUnit, Axis axis) {
+    private double convertPositionComponent(Position position, DistanceUnit desiredUnit, Axis axis) { // convert position components from and to different units
         double raw;
         switch (axis) {
             case X:
@@ -204,7 +214,7 @@ public class Vision {
         return desiredUnit.fromUnit(position.unit, raw);
     }
 
-    private enum Axis {
+    private enum Axis { // used for convertPositionComponent
         X, Y, Z
     }
 
