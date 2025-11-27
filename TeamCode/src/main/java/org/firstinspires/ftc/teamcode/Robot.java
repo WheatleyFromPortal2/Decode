@@ -105,25 +105,14 @@ public class Robot { // create our global class for our robot
         launch.setVelocity(neededVelocity);
     }
 
-    public double TPSToRPM(double TPS) {
-        return (TPS / TICKS_PER_REV) * 60 * Tunables.launchRatio;
-    }
+    public double TPSToRPM(double TPS) { return (TPS / TICKS_PER_REV) * 60 * Tunables.launchRatio; }
     public double RPMToTPS(double RPM) { return (RPM * TICKS_PER_REV / 60) / Tunables.launchRatio;}
-    public double getLaunchRPM() { // return launch velocity in RPM
-        return TPSToRPM(launch.getVelocity());
-    }
-    public double getLaunchRadians() { // return launch velocity in radians/second
-        return ((launch.getVelocity() / TICKS_PER_REV) * 2 * Math.PI);
-    }
-    public double getLaunchCurrent() { // return launch current in amps
-        return launch.getCurrent(CurrentUnit.AMPS);
-    }
+    public double getLaunchRPM() { return TPSToRPM(launch.getVelocity()); } // return launch velocity in RPM
+    public double getLaunchCurrent() { return launch.getCurrent(CurrentUnit.AMPS); } // return launch current in amps
+    public double getIntakeCurrent() { return intake.getCurrent(CurrentUnit.AMPS); } // return intake current in amps
     public boolean isLaunchWithinMargin() {
         if (neededLaunchVelocity == 0) return true; // if our needed launch velocity is 0 (off) then we're within range
         return Math.abs(neededLaunchVelocity - launch.getVelocity()) < Tunables.scoreMargin; // measure if our launch velocity is within our margin of error
-    }
-    public double getIntakeCurrent() {
-        return intake.getCurrent(CurrentUnit.AMPS);
     }
     public boolean isIntakeOvercurrent() {
         return intake.getCurrent(CurrentUnit.AMPS) >= Tunables.intakeOvercurrent;
