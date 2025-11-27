@@ -177,6 +177,8 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.addData("vision status", vision.getStatus());
         telemetryM.addData("last vision pose", vision.getLastVisionPose());
         telemetryM.addData("pattern", vision.getPattern());
+        telemetryM.addData("last position jump", vision.getLastPositionJump());
+        telemetryM.addData("last heading jump (degrees)", Math.toDegrees(vision.getLastHeadingJump())); // convert to degrees
 
         telemetryM.debug("target heading: " + targetHeading);
         telemetryM.debug("current heading: " + follower.getHeading());

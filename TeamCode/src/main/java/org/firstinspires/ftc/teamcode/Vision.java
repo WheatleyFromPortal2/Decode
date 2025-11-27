@@ -20,6 +20,8 @@ public class Vision {
     private final VisionPortal visionPortal;
     private int lastDetectionCount = 0;
     private double lastQueryTime = 0.0;
+    private double lastPositionJump; // store our last change in position from reference pose (provided by odo) and our vision
+    private double lastHeadingJump; // store our last change in heading from reference pose (provided by odo) and our vision
     private double lastSuccessfulUpdateTime = 0.0;
     private Pose lastVisionPose = null;
     private Robot.Pattern pattern = Robot.Pattern.UNKNOWN; // stores the pattern that we think we have (GPP, PGP, PPG), start off as unknown
@@ -100,9 +102,12 @@ public class Vision {
         status = "ACTIVE - localizing";
         lastSuccessfulUpdateTime = now;
         lastVisionPose = bestObservation.pose;
+        lastPositionJump = distanceChange; // update our last position jump from the pose we're going to return
+        lastHeadingJump = headingChange; // update our last heading jump from the pose we're going to return
         return bestObservation.pose;
     }
 
+    // methods for reading status
     public int getLastDetectionCount() {
         return lastDetectionCount;
     }
@@ -114,6 +119,8 @@ public class Vision {
     public Pose getLastVisionPose() {
         return lastVisionPose;
     }
+    public double getLastPositionJump() {return lastPositionJump;}
+    public double getLastHeadingJump() {return lastHeadingJump;} // this should return radians
     public Robot.Pattern getPattern() {return pattern;}
 
     public void close() {
