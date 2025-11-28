@@ -21,20 +21,20 @@ driver station config name: `parallel plate v0`
 
 ## control hub
 
-### I2C Bus 0
-| port | device                | verbatim name |
-|:-----|:----------------------|:--------------|
-| 0    | BN0055                | `imu`         |
-| 1    | Pinpoint Odo Computer | `odo`         |
-
-(the `BN0055` is internal so you don't need to *physically* connect it)
-make sure you set the device specifically to `REV internal IMU (BN0055)`, control hubs <2022 have older, less accurate and different ones that we don't want to use
+### I2C ports/buses
+| port/bus | device                 | location                     | verbatim name          |
+|:---------|:-----------------------|------------------------------|:-----------------------|
+| 0        | Pinpoint Odo Computer  | left side under control hub  | `odo`                  |
+| 1        | REV 2M Distance Sensor | intake                       | `intakeSensor`         |
+| 2        | REV 2M Distance Sensor | left side of lower transfer  | `lowerTransferSensor1` |
+| 3        | REV 2M Distance Sensor | right side of lower transfer | `lowerTransferSensor2` |
+having sensors 1/2 on the left/right doesn't matter because we are just comparing values
 
 ### USB port
 
 | port | device        | verbatim name |
 |:-----|:--------------|:--------------|
-| USB  | Logitech C290 | `camera`      |
+| USB  | Logitech C290 | `cam`         |
 
 ### DC motors
 
@@ -59,6 +59,15 @@ make sure to connect every motor with the correct polarity, the reversing should
 | 5           | none            |
 
 ## expansion hub
+
+### I2C ports/buses
+| port/bus | device                 | location                | verbatim name           |
+|:---------|:-----------------------|-------------------------|:------------------------|
+| 0        | REV 2M Distance Sensor | left side of ball exit  | `uppperTransferSensor1` |
+| 1        | REV 2M Distance Sensor | right side of ball exit | `upperTransferSensor2`  |
+| 2        | *unused*               |                         |                         |
+| 3        | *unused*               |                         |                         |
+having sensors 1/2 on the left/right doesn't matter because we are just comparing values
 
 ### DC motors
 
