@@ -13,6 +13,8 @@ public class AutoConfig {
     public Pose pickup2EndPose;
     public Pose pickup3StartPose;
     public Pose pickup3EndPose;
+    public Pose pickup4StartPose;
+    public Pose pickup4EndPose;
     public Pose endPose;
 
     public AutoConfig(Pose goalPose,
@@ -24,6 +26,8 @@ public class AutoConfig {
                       Pose pickup2EndPose,
                       Pose pickup3StartPose,
                       Pose pickup3EndPose,
+                      Pose pickup4StartPose,
+                      Pose pickup4EndPose,
                       Pose endPose) {
         this.goalPose = goalPose;
         this.scorePose = scorePose;
@@ -34,6 +38,8 @@ public class AutoConfig {
         this.pickup2EndPose = pickup2EndPose;
         this.pickup3StartPose = pickup3StartPose;
         this.pickup3EndPose = pickup3EndPose;
+        this.pickup4StartPose = pickup4StartPose;
+        this.pickup4EndPose = pickup4EndPose;
         this.endPose = endPose;
     }
 }
