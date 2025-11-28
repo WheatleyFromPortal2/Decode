@@ -25,8 +25,7 @@ public class LaunchDelay extends LinearOpMode {
             if (intakeOn) robot.intake.setPower(1);
             else robot.intake.setPower(0);
 
-            if (gamepad1.rightBumperWasReleased()) robot.launchBalls(1); // launch 1 ball
-            if (gamepad1.yWasReleased()) robot.launchBalls(3); // launch 3 balls
+            if (gamepad1.rightBumperWasReleased()) robot.launchBalls(); // launch 1 ball
 
             if (gamepad1.dpadUpWasReleased()) Tunables.openDelay += manualChangeAmount; // increment openDelay
             if (gamepad1.dpadDownWasReleased()) Tunables.openDelay -= manualChangeAmount; // decrement openDelay

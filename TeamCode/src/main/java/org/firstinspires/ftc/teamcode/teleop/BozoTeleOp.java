@@ -77,6 +77,7 @@ public abstract class BozoTeleOp extends OpMode {
         loopTimer.resetTimer();
         follower.update();
         telemetryM.update(); // update telemetry manager (Panels)
+        robot.updateBalls(); // update how many balls we have in our robot before launching
         if (robot.updateLaunch()) { // update our launch state machine and check if it's done
             isLaunching = false; // if it's done, turn off isLaunching
             follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
@@ -88,22 +89,16 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.bWasReleased()) {
             automatedLaunch = !automatedLaunch; // invert automated launch
         }
-        if (gamepad1.yWasReleased()) {
-            if (isLaunching) { // if we release y while we're launching, it will cancel
+        if (gamepad1.rightBumperWasReleased()) {
+            if (robot.isLaunching()) { // if we release press again while we're launching, it will cancel
                 robot.cancelLaunch();
                 follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
             } else { // if we're not already launching
                 follower.holdPoint(follower.getPose()); // hold our pose while we're launching
                 //automatedDrive = true; i don't this is necessary
-                robot.launchBalls(3); // launch 3 balls
+                robot.launchBalls(); // launch all of our balls
                 isLaunching = true;
             }
-        }
-        if (gamepad1.rightBumperWasReleased()) {
-            follower.holdPoint(follower.getPose()); // hold our pose while we're launching
-            //automatedDrive = true; i don't this is necessary
-            robot.launchBalls(1);
-            isLaunching = true;
         }
         if (gamepad1.startWasReleased()) { // if we press the start button, swap between robot and field centric
             isRobotCentric = !isRobotCentric;
@@ -162,6 +157,7 @@ public abstract class BozoTeleOp extends OpMode {
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         if (isIntakeStalled) telemetryM.addLine("WARNING: INTAKE STALLED!!!"); // alert driver intake is over current
+        telemetryM.addData("balls remaining", robot.getBallsRemaining()); // tell our driver how many balls we currently have
         telemetryM.debug("target heading: " + targetHeading);
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
