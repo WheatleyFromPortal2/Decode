@@ -24,6 +24,11 @@ public class Tunables { // this should hold all of our constants
     public static double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
     public static double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
 
+    // distance sensor limits (better to undershoot rather than to overshoot)
+    // TODO: tune these
+    public static double intakeOpen = 180; // amount of mm's the intake sensor should report if there is no ball
+    public static double transferOpen = 120; // amount of mm's that either of the transfer sensors (lower/upper, left/right) should report if there is no ball
+
     // delays
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
     public static int pushDelay = 180; // time to wait for lowerTransfer to move (in millis)
