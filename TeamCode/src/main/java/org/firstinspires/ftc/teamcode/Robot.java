@@ -186,7 +186,7 @@ public class Robot { // create our global class for our robot
                         launchStateTimer.resetTimer();
                         launchState = LaunchState.PUSHING_LOWER_TRANSFER;
                     }
-                case PUSHING_LOWER_TRANSFER:
+                case PUSHING_LOWER_TRANSFER: // TODO: merge PUSHING_LOWER_TRANSFER and WAITING_FOR_EXIT to waste as little time as possible
                     if (launchStateTimer.getElapsedTime() >= Tunables.pushDelay) {
                         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit);
                         upperTransfer.setPosition(Tunables.upperTransferClosed);
