@@ -27,7 +27,6 @@ public class Robot { // create our global class for our robot
     private enum LaunchState {
         START,
         OPENING_UPPER_TRANSFER,
-        PUSHING_LOWER_TRANSFER,
         WAITING_FOR_EXIT,
     }
 
@@ -184,17 +183,12 @@ public class Robot { // create our global class for our robot
                     if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) { // we've given it openDelay millis to open
                         lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
                         launchStateTimer.resetTimer();
-                        launchState = LaunchState.PUSHING_LOWER_TRANSFER;
-                    }
-                case PUSHING_LOWER_TRANSFER: // TODO: merge PUSHING_LOWER_TRANSFER and WAITING_FOR_EXIT to waste as little time as possible
-                    if (launchStateTimer.getElapsedTime() >= Tunables.pushDelay) {
-                        lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit);
-                        upperTransfer.setPosition(Tunables.upperTransferClosed);
-                        launchStateTimer.resetTimer();
                         launchState = LaunchState.WAITING_FOR_EXIT;
                     }
                 case WAITING_FOR_EXIT:
-                    if (isBallInUpperTransfer()) { // wait until we detect a ball in upper transfer (ball has been launched)
+                    if (isBallInUpperTransfer() // wait until we detect a ball in upper transfer (ball has been launched)
+                            || launchStateTimer.getElapsedTime() >= Tunables.maxPushDelay) { // or if that hasn't happened in a while, just go to the next launch
+                        initServos(); // reset our servos
                         launchState = LaunchState.START; // get ready for next one
                         ballsRemaining -= 1; // we've launched a ball
                         isLaunching = false; // we are no longer launching

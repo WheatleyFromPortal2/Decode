@@ -31,7 +31,7 @@ public class Tunables { // this should hold all of our constants
 
     // delays
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
-    public static int pushDelay = 180; // time to wait for lowerTransfer to move (in millis)
+    public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
     public static int firstInterLaunchWait = 75; // time to wait between 1st and 2nd launches
     public static int lastInterLaunchWait = 200; // time to wait between the 2nd and last launch
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
