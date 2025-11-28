@@ -283,6 +283,7 @@ public abstract class BozoAuto extends OpMode {
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
         loopTimer = new Timer();
+
         robot = Robot.getInstance(hardwareMap); // create our robot class
 
         follower = Constants.createFollower(hardwareMap);

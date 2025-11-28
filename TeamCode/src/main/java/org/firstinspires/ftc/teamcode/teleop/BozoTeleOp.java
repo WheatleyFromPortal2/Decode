@@ -44,28 +44,28 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void init() {
+        // create timers and reset them
         loopTimer = new Timer();
         loopTimer.resetTimer();
         intakeTimer = new Timer();
         intakeTimer.resetTimer();
+
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
         follower = Constants.createFollower(hardwareMap);
-        // TODO: fix this
-        //follower.setStartingPose(Robot.switchoverPose == null ? new Pose() : Robot.switchoverPose); // if we don't already have a starting pose, set it
         if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
         else { // hopefully this works
-            Pose setPose = Robot.switchoverPose.setHeading(Robot.switchoverPose.getHeading() + Math.toRadians(180));
             follower.setPose(flipPose(Robot.switchoverPose));
         }
         goalPose = getGoalPose();
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         launchVelocity = robot.RPMToTPS(Tunables.initialLaunchRPM); // convert from RPM->TPS, starting point
-        telemetryM.debug("init time: " + loopTimer.getElapsedTime());
+        telemetryM.debug("init time: " + loopTimer.getElapsedTime()); // tell how long our init tool
+        telemetryM.update(telemetry);
     }
 
-    protected abstract Pose flipPose(Pose switchoverPose);
-    protected abstract Pose getGoalPose();
+    protected abstract Pose flipPose(Pose switchoverPose); // this will be filled in by Blue/Red TeleOp
+    protected abstract Pose getGoalPose(); // this will be filled in by Blue/Red TeleOp
 
     public void start() {
         follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
@@ -75,18 +75,17 @@ public abstract class BozoTeleOp extends OpMode {
     @Override
     public void loop() {
         loopTimer.resetTimer();
-        follower.update();
-        telemetryM.update(); // update telemetry manager (Panels)
+        follower.update(); // update our Pedro Pathing follower
         if (robot.updateLaunch()) { // update our launch state machine and check if it's done
             isLaunching = false; // if it's done, turn off isLaunching
             follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
         }
 
-        if (gamepad1.aWasReleased()) {
+        if (gamepad1.aWasReleased()) { // toggle intake
             isIntakePowered = !isIntakePowered;
         }
-        if (gamepad1.bWasReleased()) {
-            automatedLaunch = !automatedLaunch; // invert automated launch
+        if (gamepad1.bWasReleased()) { // toggle automated launch
+            automatedLaunch = !automatedLaunch;
         }
         if (gamepad1.yWasReleased()) {
             if (isLaunching) { // if we release y while we're launching, it will cancel
@@ -135,11 +134,6 @@ public abstract class BozoTeleOp extends OpMode {
             }
         }
 
-        if (isIntakePowered && !isIntakeStalled) {
-            if (!isIntakeReversed) robot.intake.setPower(1); // our intake is 0% or 100%
-            else robot.intake.setPower(-1); // reverse intake to eject/unclog
-        } else robot.intake.setPower(0);
-
         if (automatedLaunch) {
             //robot.setAutomatedLaunchVelocity(follower.getPose()); // set our launch to its needed speed and get our needed TPS
             robot.setLaunchVelocity(launchVelocity); // set our launch velocity to our desired launch velocity
@@ -150,11 +144,18 @@ public abstract class BozoTeleOp extends OpMode {
             else robot.setLaunchVelocity(launchTPS); // set our launch power manually
         }
 
-        if (robot.isIntakeOvercurrent()) {
+        // intake control
+        if (isIntakePowered && !isIntakeStalled) {
+            if (!isIntakeReversed) robot.intake.setPower(1); // our intake is 0% or 100%
+            else robot.intake.setPower(-1); // reverse intake to eject/unclog
+        } else robot.intake.setPower(0);
+
+        if (robot.isIntakeStalled()) {
             isIntakeStalled = true;
             intakeTimer.resetTimer();
             robot.intake.setPower(0); // let's save our voltage
         }
+
         if (isIntakeStalled && intakeTimer.getElapsedTime() >= Tunables.intakePollingRate) {
             isIntakeStalled = false; // let's try this again
         }

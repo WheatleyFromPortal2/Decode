@@ -1,31 +1,33 @@
 /** this is our mega-class that holds all robot functions that are shared between auto and teleop **/
 package org.firstinspires.ftc.teamcode;
 
-import com.pedropathing.util.Timer;
+// hardware imports
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.Servo;
 
-import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
-
+// Pedro Pathing imports
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.util.Timer;
 
 
 public class Robot { // create our global class for our robot
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
+    // TODO: replace switchover pose with inverting controller inputs to avoid modifying robot heading - driver will need to point a different way for adjusting heading
     public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
-    private static Robot instance;
+    private static Robot instance; // this stores our current instance of Robot, so we can transfer it from auto->TeleOp
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
-    public Servo lowerTransfer, upperTransfer;
+    public Servo lowerTransfer, upperTransfer; // servos
 
     private Timer launchStateTimer, // this timer measures the time between states in launch
             launchIntervalTimer; // this timer measures the time between individual launches
-    private enum LaunchState {
+    private enum LaunchState { // these are the possible states our launch state machine can be in
         START,
-        OPENING_UPPER_TRANSFER,
-        PUSHING_LOWER_TRANSFER,
-        WAITING_FOR_EXIT,
+        OPENING_UPPER_TRANSFER, // waiting for upper transfer to be open so we can push a ball through
+        PUSHING_LOWER_TRANSFER, // waiting for lower transfer to push up fully
+        WAITING_FOR_EXIT, // waiting for the ball to exit
     }
 
     /** only these variables should change during runtime **/
@@ -37,8 +39,8 @@ public class Robot { // create our global class for our robot
 
     public Robot(HardwareMap hw) { // create all of our hardware
         // DC motors (all are DcMotorEx for current monitoring)
-        intake = hw.get(DcMotorEx.class, "intake");
-        launch = hw.get(DcMotorEx.class, "launch");
+        intake = hw.get(DcMotorEx.class, "intake"); // intake motor
+        launch = hw.get(DcMotorEx.class, "launch"); // launch motor, connected with launchRatio
 
         // servos
         lowerTransfer = hw.get(Servo.class, "lowerTransfer");
@@ -52,7 +54,7 @@ public class Robot { // create our global class for our robot
         intake.setCurrentAlert(Tunables.intakeOvercurrent, CurrentUnit.AMPS);
         launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
 
-        intake.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
+        intake.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER); // we are using the encoder for stall detection
         // Get the PIDF coefficients for the RUN_USING_ENCODER RunMode.
         //PIDFCoefficients pidfOrig = launch.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
@@ -66,22 +68,20 @@ public class Robot { // create our global class for our robot
     }
 
     public static Robot getInstance(HardwareMap hw) { // this allows us to preserve the Robot instance from auto->teleop
-        if (instance == null) {
-            instance = new Robot(hw);
+        if (instance == null) { // we don't already have an instance
+            instance = new Robot(hw); // create a new instance
         }
         return instance;
     }
 
-    public double getDstFromGoal(Pose currentPosition, Pose goalPose) {
-        double xDst = Math.abs(currentPosition.getX() - goalPose.getX());
-        double yDst = Math.abs(currentPosition.getY() - goalPose.getY());
-        return Math.pow(Math.pow(xDst, 2) + Math.pow(yDst, 2), 0.5); // use pythag to find dst from goal
+    public double getDstFromGoal(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
+        return currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
     }
 
     public double getGoalHeading(Pose currentPosition, Pose goalPose) { // return bot heading to point towards goal in radians
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
-        return Math.atan2(yDst, xDst);
+        return Math.atan2(yDst, xDst); // need atan2 to account for negatives
     }
 
     public double getTangentialSpeed(Pose currentPosition, Pose goalPose) { // returns needed tangential speed to launch ball to the goal
@@ -102,7 +102,7 @@ public class Robot { // create our global class for our robot
     public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) {
         double neededTangentialSpeed = getTangentialSpeed(currentPosition, goalPose);
         double neededVelocity = getNeededVelocity(neededTangentialSpeed);
-        launch.setVelocity(neededVelocity);
+        setLaunchVelocity(neededVelocity);
     }
 
     public double TPSToRPM(double TPS) { return (TPS / TICKS_PER_REV) * 60 * Tunables.launchRatio; }
@@ -114,8 +114,9 @@ public class Robot { // create our global class for our robot
         if (neededLaunchVelocity == 0) return true; // if our needed launch velocity is 0 (off) then we're within range
         return Math.abs(neededLaunchVelocity - launch.getVelocity()) < Tunables.scoreMargin; // measure if our launch velocity is within our margin of error
     }
-    public boolean isIntakeOvercurrent() {
-        return intake.getCurrent(CurrentUnit.AMPS) >= Tunables.intakeOvercurrent;
+    public boolean isIntakeStalled() {
+        return intake.getCurrent(CurrentUnit.AMPS) >= Tunables.intakeOvercurrent
+                || intake.getVelocity() < Tunables.intakeStallVelocity;
     }
     public void initServos() { // set servos to starting state
         upperTransfer.setPosition(Tunables.upperTransferClosed); // make sure balls cannot launch
