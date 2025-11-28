@@ -117,7 +117,7 @@ public class Robot { // create our global class for our robot
     public double RPMToTPS(double RPM) { return (RPM * TICKS_PER_REV / 60) / Tunables.launchRatio;}
 
     /** hardware methods **/
-    public void initServos() { // set servos to starting state
+    public void resetServos() { // set servos to starting state
         upperTransfer.setPosition(Tunables.upperTransferClosed); // make sure balls cannot launch
         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
     }
@@ -188,7 +188,7 @@ public class Robot { // create our global class for our robot
                 case WAITING_FOR_EXIT:
                     if (isBallInUpperTransfer() // wait until we detect a ball in upper transfer (ball has been launched)
                             || launchStateTimer.getElapsedTime() >= Tunables.maxPushDelay) { // or if that hasn't happened in a while, just go to the next launch
-                        initServos(); // reset our servos
+                        resetServos(); // reset our servos
                         launchState = LaunchState.START; // get ready for next one
                         ballsRemaining -= 1; // we've launched a ball
                         isLaunching = false; // we are no longer launching

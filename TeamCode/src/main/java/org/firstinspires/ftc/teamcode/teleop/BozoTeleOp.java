@@ -67,7 +67,7 @@ public abstract class BozoTeleOp extends OpMode {
 
     public void start() {
         follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
-        robot.initServos(); // set servos to starting state
+        robot.resetServos(); // set servos to starting state
     }
 
     @Override
