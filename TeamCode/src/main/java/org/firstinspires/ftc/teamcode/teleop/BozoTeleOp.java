@@ -1,11 +1,8 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-// OpMode imports
-
-import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.Robot; // get our Robot.java object
+import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
 // Panels imports
@@ -17,18 +14,16 @@ import com.bylazar.telemetry.TelemetryManager;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.paths.HeadingInterpolator;
-import com.pedropathing.paths.Path;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
+import com.pedropathing.util.Timer;
 
 @Configurable
-//@TeleOp(name="BozoTeleOp", group="TeleOp")
+// this class will never be run as a TeleOp, and will always be extended by either RedTeleOp or BlueTeleOp
 public abstract class BozoTeleOp extends OpMode {
     private Robot robot;
     private Follower follower;
     private Pose goalPose; // this will be set by the specific OpMode
-    private Pose launchHoldPose; // this is where we want to hold for our launch
     private Timer intakeTimer; // used for polling whether intake is stalled
     private Timer loopTimer; // measures the speed of our loop
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
