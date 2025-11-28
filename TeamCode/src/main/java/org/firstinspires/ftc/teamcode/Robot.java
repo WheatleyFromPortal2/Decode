@@ -36,7 +36,9 @@ public class Robot { // create our global class for our robot
 
     public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
 
-    private int ballsRemaining = 3;
+    private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
+    private int ballsRemaining = 0; // tracks how many balls are in the robot
+    private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
         // DC motors (all are DcMotorEx for current monitoring)
@@ -153,13 +155,14 @@ public class Robot { // create our global class for our robot
     }
 
     /** ball launching methods **/
-    public void launchBalls(int balls) { // sets to launch this many balls
-        ballsRemaining = 3;
+    public void launchBalls() { // sets to launch this many balls
+        isLaunching = true;
         launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
         launchState = LaunchState.START;
     }
 
     public void cancelLaunch() { // set servos to default position, this could break if activated at the right time
+        isLaunching = false; // stop launching
         ballsRemaining = 0;
         upperTransfer.setPosition(Tunables.upperTransferClosed); // make sure balls can't accidentally be launched
         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // allow robot to store all balls
@@ -169,8 +172,9 @@ public class Robot { // create our global class for our robot
         if (!isBallInLowerTransfer()) { ballsRemaining = 0; } // if we don't have a ball in lower transfer, we don't have any balls, let's not waste our time
 
         if (ballsRemaining == 0) {
+            isLaunching = false;
             return true; // we're done with launching balls
-        } else { // balls remaining
+        } else if (isLaunching) { // balls remaining > 0 && we are launching
             switch (launchState) {
                 case START:
                     upperTransfer.setPosition(Tunables.upperTransferOpen);
@@ -193,9 +197,19 @@ public class Robot { // create our global class for our robot
                     if (isBallInUpperTransfer()) { // wait until we detect a ball in upper transfer (ball has been launched)
                         launchState = LaunchState.START; // get ready for next one
                         ballsRemaining -= 1; // we've launched a ball
+                        isLaunching = false; // we are no longer launching
                     }
             }
         }
         return false; // we're still working on launching balls
     }
+
+    public void updateBalls() { // checks our intake sensor and updates our balls
+        boolean ballInIntake = isBallInIntake();
+        if (!wasBallInIntake && ballInIntake) ballsRemaining++; // if we previously didn't have a ball in intake, and we do now, then increment our remaining balls
+        wasBallInIntake = ballInIntake; // update our reading
+    }
+
+    public int getBallsRemaining() { return ballsRemaining; }
+    public boolean isLaunching() { return isLaunching; }
 }
