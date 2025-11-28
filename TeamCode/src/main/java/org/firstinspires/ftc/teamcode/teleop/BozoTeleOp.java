@@ -54,7 +54,7 @@ public abstract class BozoTeleOp extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
         else { // hopefully this works
-            follower.setPose(flipPose(Robot.switchoverPose));
+            follower.setPose(Robot.switchoverPose);
         }
         goalPose = getGoalPose();
         follower.update();
@@ -64,7 +64,7 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.update(telemetry);
     }
 
-    protected abstract Pose flipPose(Pose switchoverPose); // this will be filled in by Blue/Red TeleOp
+    protected abstract double flipControl(); // this will be filled in by Blue/Red TeleOp
     protected abstract Pose getGoalPose(); // this will be filled in by Blue/Red TeleOp
 
     public void start() {
@@ -110,7 +110,7 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.xWasReleased()) isIntakeReversed = !isIntakeReversed; // reverse intake to eject/unclog
         if (gamepad1.backWasReleased()) { // reset field-centric heading
             Pose headingPose = follower.getPose();
-            headingPose = headingPose.setHeading(Math.toRadians(0)); // i think this is right
+            headingPose = headingPose.setHeading(Math.toRadians(90)); // the driver must point toward the top of the field (goals) to recalibrate the heading
             follower.setPose(headingPose); // see if this works
         }
 
@@ -120,12 +120,22 @@ public abstract class BozoTeleOp extends OpMode {
         if (!automatedDrive) {
             double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
             // slow mode is built in using slowModeMultiplier controlled by left trigger
-            follower.setTeleOpDrive(
-                -gamepad1.left_stick_y * slowModeMultiplier,
-                -gamepad1.left_stick_x * slowModeMultiplier,
-                -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
-                isRobotCentric // true = robot centric; false = field centric
-            );
+            if (isRobotCentric) { // we are controlling relative to the robot
+                follower.setTeleOpDrive(
+                        -gamepad1.left_stick_y * slowModeMultiplier,
+                        -gamepad1.left_stick_x * slowModeMultiplier,
+                        -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                        true // true = robot centric; false = field centric
+                );
+            } else { // we are controlling relative to the field
+                // we need to modify our x input to be in accordance with the driver's control position
+                follower.setTeleOpDrive(
+                        -gamepad1.left_stick_y * slowModeMultiplier,
+                        -gamepad1.left_stick_x * slowModeMultiplier * flipControl(),
+                        -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                        false // true = robot centric; false = field centric
+                );
+            }
             if (gamepad1.xWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
         } else { // we're in automated drive
             if (gamepad1.xWasPressed() || !follower.isBusy()) { // if the user presses X, OR its done, then go to TeleOp
