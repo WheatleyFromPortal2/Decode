@@ -157,7 +157,7 @@ public abstract class BozoAuto extends OpMode {
                     }
                     state = State.LAUNCH; // let's launch
                     robot.intake.setPower(1); // re-enable intake
-                    robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
+                    robot.launchBalls(); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
                 }
                 break;
             case LAUNCH:
