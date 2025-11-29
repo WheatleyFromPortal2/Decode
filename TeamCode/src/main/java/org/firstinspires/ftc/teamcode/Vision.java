@@ -19,10 +19,10 @@ public class Vision {
     private final AprilTagProcessor aprilTagProcessor;
     private final VisionPortal visionPortal;
     private int lastDetectionCount = 0;
-    private double lastQueryTime = 0.0;
+    private double lastQueryTime = 0;
     private double lastPositionJump; // store our last change in position from reference pose (provided by odo) and our vision
     private double lastHeadingJump; // store our last change in heading from reference pose (provided by odo) and our vision
-    private double lastSuccessfulUpdateTime = 0.0;
+    private double lastSuccessfulUpdateTime = 0;
     private Pose lastVisionPose = null;
     private Robot.Pattern pattern = Robot.Pattern.UNKNOWN; // stores the pattern that we think we have (GPP, PGP, PPG), start off as unknown
 
