@@ -136,6 +136,7 @@ public abstract class BozoAuto extends OpMode {
         switch (state) {
             case START:
                 follower.followPath(scorePreload);
+                robot.launchBalls(3);
                 setPathState(State.LAUNCH);
                 break;
             case TRAVEL_TO_LAUNCH:
@@ -156,12 +157,10 @@ public abstract class BozoAuto extends OpMode {
                             break;
                     }
                     state = State.LAUNCH; // let's launch
-                    robot.intake.setPower(1); // re-enable intake
                     robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
                 }
                 break;
             case LAUNCH:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (!follower.isBusy() // check if our follower is busy
                         && robot.isLaunchWithinMargin() // check if our launch velocity is within our margin
                         && opmodeTimer.getElapsedTime() >= Tunables.beginningLaunchDelay // check if we've waited enough time since the last launch
@@ -170,10 +169,11 @@ public abstract class BozoAuto extends OpMode {
                     /* if we're holding point, we shouldn't have to disable motors
                     follower.pausePathFollowing();
                     follower.deactivateAllPIDFs(); */
+                    robot.intake.setPower(1); // turn on intake
                     if (robot.updateLaunch()) { // we're done with launching balls
                         ballTripletsRemaining -= 1;
+                        robot.intake.setPower(0); // save power
                         setPathState(State.TRAVEL_TO_BALLS);
-                        robot.intake.setPower(0); // disable intake to save power
                         /* if we're holding point, we shouldn't have to re-enable motors
                         follower.activateAllPIDFs();
                         follower.resumePathFollowing(); */
@@ -198,12 +198,11 @@ public abstract class BozoAuto extends OpMode {
                             break;
                     }
                     state = State.RELOAD; // now lets reload
-                    robot.intake.setPower(1); // re-enable intake for reload
                 }
                 break;
             case RELOAD: // grab the balls in a straight line
                 if(!follower.isBusy()) {
-                    robot.intake.setPower(0); // disable intake to save power
+                    robot.intake.setPower(1); // re-enable intake to pickup balls
                     switch (ballTripletsRemaining) { // this should always be between 3 and 0
                         case 3:
                             follower.followPath(grabPickup1);
@@ -228,10 +227,10 @@ public abstract class BozoAuto extends OpMode {
                     follower.followPath(goToEnd);
                     setPathState(State.END);
                 }
+                break;
             case END:
                 if (!follower.isBusy()) {
                     robot.intake.setPower(0); // turn off intake
-                    robot.launch.setPower(0.8); // warm up launch (only 80%)
                     Robot.switchoverPose = follower.getPose(); // try to prevent drift
                     follower.deactivateAllPIDFs(); // stop the follower
                     requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
