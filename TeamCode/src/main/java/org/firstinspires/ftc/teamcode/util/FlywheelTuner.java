@@ -26,6 +26,7 @@ public class FlywheelTuner extends LinearOpMode {
         waitForStart();
 
         while (opModeIsActive()) {
+            robot.updatePIDF();
             double launchRPM = ((gamepad1.right_trigger) * (6000 * Tunables.launchRatio)); // calculates max motor speed and multiplies it by the float of the right trigger
 
             if (gamepad1.bWasReleased()) { // switch modes we press the B button
@@ -34,18 +35,23 @@ public class FlywheelTuner extends LinearOpMode {
 
             if (isGradualControl) {
                 robot.launch.setVelocity(robot.RPMToTPS(launchRPM)); // set our desired velocity to our desired RPM
-                telemetryM.addData("desired RPM", launchRPM);
+                telemetryM.addData("desiredRPM", launchRPM);
+                telemetryM.addLine("desiredRPM:" + launchRPM);
                 telemetryM.debug("in GRADUAL CONTROL");
             } else {
                 robot.launch.setPower(1); // BRRRRRR
                 telemetryM.addData("desired RPM", 6000 * Tunables.launchRatio);
+                telemetryM.addLine("desiredRPM:" + 6000 * Tunables.launchRatio);
                 telemetryM.debug("in FULL POWER");
             }
-            telemetryM.addData("actual RPM", robot.getLaunchRPM());
-            telemetryM.addData("raw launch TPS", robot.launch.getVelocity());
-            telemetryM.addData("raw launch RPM", robot.launch.getVelocity() * 60 / 28); // this should work
-            telemetryM.addData("launch current", robot.getLaunchCurrent());
-            telemetryM.addData("launch ratio", Tunables.launchRatio);
+            telemetryM.debug("PIDF: " + Tunables.launchP + ", " + Tunables.launchI + ", " + Tunables.launchD + ", " + Tunables.launchF);
+            telemetryM.addData("actualRPM", robot.getLaunchRPM());
+            telemetryM.addData("desiredTPS", robot.RPMToTPS(launchRPM));
+            telemetryM.addData("rawLaunchTPS", robot.launch.getVelocity());
+            telemetryM.addData("rawLaunchRPM", robot.launch.getVelocity() * 60 / 28); // this should work
+            telemetryM.addData("launchCurrent", robot.getLaunchCurrent());
+            telemetryM.addData("launchRatio", Tunables.launchRatio);
+            telemetryM.addLine("actualRPM:" + robot.getLaunchRPM());
             telemetryM.update(telemetry); // update our telemetry
             idle();
         }
