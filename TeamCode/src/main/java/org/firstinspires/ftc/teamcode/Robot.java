@@ -94,14 +94,6 @@ public class Robot { // create our global class for our robot
         return Math.pow(numerator / denominator, 0.5); // thank u rahul
     }
 
-    public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
-        double TPS = 0;
-        // this will be the hardest function to code
-        // it basically needs to be a relation between the rotational speed of launch and the actual output speed of the ball
-        // at the end, we will output the desired TPS of our motor to monitor once it reaches it
-        return TPS;
-    }
-
     public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) {
         double neededTangentialSpeed = getTangentialSpeed(currentPosition, goalPose);
         double neededVelocity = getNeededVelocity(neededTangentialSpeed);
@@ -134,6 +126,9 @@ public class Robot { // create our global class for our robot
         neededLaunchVelocity = 0; // we don't need any launch velocity
         launch.setPower(0);
         launch.setVelocity(0); // prob don't need this but ok
+    }
+    public double getNeededVelocity(double a) { // this needs to be reworked by just directly mapping RPM to distance
+        return 0;
     }
 
     public void launchBalls(int balls) { // sets to launch this many balls
