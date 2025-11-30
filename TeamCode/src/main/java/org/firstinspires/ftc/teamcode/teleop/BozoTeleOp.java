@@ -71,9 +71,10 @@ public abstract class BozoTeleOp extends OpMode {
     public void loop() {
         loopTimer.resetTimer();
         follower.update(); // update our Pedro Pathing follower
-        if (robot.updateLaunch()) { // update our launch state machine and check if it's done
+        boolean updateLaunchStatus = robot.updateLaunch(); // idk if running it directly with the && might cause it to be skipped
+        if (updateLaunchStatus && isLaunching) { // update our launch state machine and check if it's done
             isLaunching = false; // if it's done, turn off isLaunching
-            follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
+            follower.startTeleOpDrive();
         }
 
         if (gamepad1.aWasReleased()) { // toggle intake
@@ -125,15 +126,17 @@ public abstract class BozoTeleOp extends OpMode {
             } else { // we are controlling relative to the field
                 // we need to modify our x input to be in accordance with the driver's control position
                 follower.setTeleOpDrive(
-                        -gamepad1.left_stick_y * slowModeMultiplier,
+                        -gamepad1.left_stick_y * slowModeMultiplier * flipControl(),
                         -gamepad1.left_stick_x * slowModeMultiplier * flipControl(),
                         -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
                         false // true = robot centric; false = field centric
                 );
             }
-            if (gamepad1.xWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
+            if (gamepad1.leftBumperWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
         } else { // we're in automated drive
-            if (gamepad1.xWasPressed() || !follower.isBusy()) { // if the user presses X, OR its done, then go to TeleOp
+            if (gamepad1.leftBumperWasReleased() // if the user presses the left bumper again, cancel
+                    || !follower.isTurning() // if the follower is done, cancel
+                    || Math.abs(follower.getHeading() - targetHeading) <= Tunables.launchTurnMargin) { // sometimes the follower gets stuck, so we will just check if it's within our margin
                 follower.startTeleOpDrive();
                 automatedDrive = false;
             }
@@ -188,22 +191,22 @@ public abstract class BozoTeleOp extends OpMode {
     }
 
     public void teleOpLaunchPrep() { // start spinning up and following the turn path
-        if (Robot.switchoverPose.initialized()) { // make sure our necessary poses are actually populated
-            // we shouldn't need to set our needed velocity because this should automatically be done by the teleop every loop
-            // yet we will still check one more time
-            double neededTangentialSpeed = robot.getTangentialSpeed(follower.getPose(), goalPose);
-            double neededVelocity = robot.getNeededVelocity(neededTangentialSpeed); // honestly can combine these into the same function and return our needed TPS to check if we're spun up
-            robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
+        // we shouldn't need to set our needed velocity because this should automatically be done by the teleop every loop
+        // yet we will still check one more time
+        double neededTangentialSpeed = robot.getTangentialSpeed(follower.getPose(), goalPose);
+        double neededVelocity = robot.getNeededVelocity(neededTangentialSpeed); // honestly can combine these into the same function and return our needed TPS to check if we're spun up
+        robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
 
-            targetHeading = robot.getGoalHeading(follower.getPose(), goalPose);
-            PathChain turnPath = follower.pathBuilder()
-                    .addPath(new BezierLine(follower.getPose(), follower.getPose())) // our x-y pos will stay the same so just give our current position twice
-                    .setLinearHeadingInterpolation(follower.getHeading(), targetHeading) // we want to turn from our current heading to our target heading
-                    .build();
-
-            follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end
-            automatedDrive = true; // we're driving automatically now
-            automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
-        }
+        targetHeading = robot.getGoalHeading(follower.getPose(), goalPose);
+        /*Pose holdPose = follower.getPose().setHeading(targetHeading);
+        PathChain turnPath = follower.pathBuilder()
+                .addPath(new BezierLine(follower.getPose(), holdPose))
+                .setLinearHeadingInterpolation(follower.getHeading(), targetHeading) // we want to turn from our current heading to our target heading
+                .build();
+        follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end */
+        follower.turnTo(targetHeading); // see if this works
+        //follower.holdPoint(holdPose); // hopefully this doesn't interfere
+        automatedDrive = true; // we're driving automatically now
+        automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
     }
 }
