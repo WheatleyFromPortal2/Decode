@@ -73,7 +73,10 @@ public class Robot { // create our global class for our robot
         }
         return instance;
     }
-
+    public void updatePIDF() {
+        PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
+        launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew);
+    }
     public double getDstFromGoal(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
         return currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
     }
@@ -115,8 +118,8 @@ public class Robot { // create our global class for our robot
         return Math.abs(neededLaunchVelocity - launch.getVelocity()) < Tunables.scoreMargin; // measure if our launch velocity is within our margin of error
     }
     public boolean isIntakeStalled() {
-        return intake.getCurrent(CurrentUnit.AMPS) >= Tunables.intakeOvercurrent
-                || intake.getVelocity() < Tunables.intakeStallVelocity;
+        return intake.getCurrent(CurrentUnit.AMPS) > Tunables.intakeOvercurrent;
+                //|| intake.getVelocity() < Tunables.intakeStallVelocity;
     }
     public void initServos() { // set servos to starting state
         upperTransfer.setPosition(Tunables.upperTransferClosed); // make sure balls cannot launch
@@ -134,7 +137,7 @@ public class Robot { // create our global class for our robot
     }
 
     public void launchBalls(int balls) { // sets to launch this many balls
-        ballsRemaining = 3;
+        ballsRemaining = balls;
         launchIntervalTimer.resetTimer(); // reset interval timer (it may be off if cancelled)
         launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
         launchState = LaunchState.START;
@@ -159,12 +162,14 @@ public class Robot { // create our global class for our robot
                     upperTransfer.setPosition(Tunables.upperTransferOpen);
                     launchStateTimer.resetTimer();
                     launchState = LaunchState.OPENING_UPPER_TRANSFER;
+                    break;
                 case OPENING_UPPER_TRANSFER:
                     if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) { // we've given it openDelay millis to open
                         lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
                         launchStateTimer.resetTimer();
                         launchState = LaunchState.PUSHING_LOWER_TRANSFER;
                     }
+                    break;
                 case PUSHING_LOWER_TRANSFER:
                     if (launchStateTimer.getElapsedTime() >= Tunables.pushDelay) {
                         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit);
@@ -172,12 +177,14 @@ public class Robot { // create our global class for our robot
                         launchStateTimer.resetTimer();
                         launchState = LaunchState.WAITING_FOR_EXIT;
                     }
+                    break;
                 case WAITING_FOR_EXIT:
                     if (launchStateTimer.getElapsedTime() >= Tunables.firstInterLaunchWait) { // ideally with this we won't need to separate first/last inter launch delay
                         launchState = LaunchState.START; // get ready for next one
                         ballsRemaining -= 1; // we've launched a ball
                         launchIntervalTimer.resetTimer();
                     }
+                    break;
             }
         }
         return false; // we're still working on launching balls
