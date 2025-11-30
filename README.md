@@ -80,7 +80,7 @@ make sure to connect every motor with the correct polarity, the reversing should
 - Y: not used
 
 ## bumpers
-- left bumper: not used
+- left bumper: TeleOp launch prep
 - right bumper: launch ball
 
 ## triggers
