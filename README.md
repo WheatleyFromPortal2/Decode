@@ -28,6 +28,7 @@ driver station config name: `parallel plate v0`
 | 1        | REV 2M Distance Sensor | intake                       | `intakeSensor`         |
 | 2        | REV 2M Distance Sensor | left side of lower transfer  | `lowerTransferSensor1` |
 | 3        | REV 2M Distance Sensor | right side of lower transfer | `lowerTransferSensor2` |
+
 having sensors 1/2 on the left/right doesn't matter because we are just comparing values
 
 ### USB port
@@ -67,6 +68,7 @@ make sure to connect every motor with the correct polarity, the reversing should
 | 1        | REV 2M Distance Sensor | right side of ball exit | `upperTransferSensor2`  |
 | 2        | *unused*               |                         |                         |
 | 3        | *unused*               |                         |                         |
+
 having sensors 1/2 on the left/right doesn't matter because we are just comparing values
 
 ### DC motors
