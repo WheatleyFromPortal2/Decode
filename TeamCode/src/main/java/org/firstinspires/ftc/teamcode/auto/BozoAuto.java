@@ -278,10 +278,11 @@ public abstract class BozoAuto extends OpMode {
     @Override
     public void init() {
         // set up our timers
+        loopTimer = new Timer();
+        loopTimer.resetTimer();
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
-        loopTimer = new Timer();
 
         robot = Robot.getInstance(hardwareMap); // create our robot class
 
@@ -290,6 +291,8 @@ public abstract class BozoAuto extends OpMode {
         buildPaths(); // this will create our paths from our predefined variables
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
+        telemetryM.addData("init time (millis)", loopTimer.getElapsedTime());
+        telemetryM.update();
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
