@@ -30,6 +30,7 @@ public abstract class BozoTeleOp extends OpMode {
     private Pose launchHoldPose; // this is where we want to hold for our launch
     private Timer intakeTimer; // used for polling whether intake is stalled
     private Timer loopTimer; // measures the speed of our loop
+    private Timer visionTimer;
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
     private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
@@ -47,6 +48,7 @@ public abstract class BozoTeleOp extends OpMode {
         loopTimer.resetTimer();
         intakeTimer = new Timer();
         intakeTimer.resetTimer();
+        visionTimer = new Timer();
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
         vision = new Vision(); // create our vision class
         follower = Constants.createFollower(hardwareMap);
@@ -79,11 +81,13 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        visionTimer.resetTimer();
         Pose visionPose = vision.tryGetVisionPose(follower.getPose()); // try to get our vision pose
         if (visionPose != null) { // if we have a good vision position
             follower.setPose(visionPose); // if our vision returns us a pose, tell Pedro Pathing to use it
             telemetryM.debug("UPDATED POSITION BASED OFF OF VISION"); // tell the driver we used vision to update position
         }
+        double visionTime = visionTimer.getElapsedTime();
         loopTimer.resetTimer();
         follower.update();
         telemetryM.update(); // update telemetry manager (Panels)
@@ -173,12 +177,13 @@ public abstract class BozoTeleOp extends OpMode {
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         if (isIntakeStalled) telemetryM.addLine("WARNING: INTAKE STALLED!!!"); // alert driver intake is over current
         // vision telemetry
+        telemetryM.addData("vision time", visionTime);
         telemetryM.addData("last detection count", vision.getLastDetectionCount());
         telemetryM.addData("vision status", vision.getStatus());
-        telemetryM.addData("last vision pose", vision.getLastVisionPose());
+        telemetryM.debug("last vision pose: " + vision.getLastVisionPose());
         telemetryM.addData("pattern", vision.getPattern());
-        telemetryM.addData("last position jump", vision.getLastPositionJump());
-        telemetryM.addData("last heading jump (degrees)", Math.toDegrees(vision.getLastHeadingJump())); // convert to degrees
+        telemetryM.debug("last position jump: " + vision.getLastPositionJump());
+        telemetryM.debug("last heading jump (degrees): " + Math.toDegrees(vision.getLastHeadingJump())); // convert to degrees
 
         telemetryM.debug("target heading: " + targetHeading);
         telemetryM.debug("current heading: " + follower.getHeading());
