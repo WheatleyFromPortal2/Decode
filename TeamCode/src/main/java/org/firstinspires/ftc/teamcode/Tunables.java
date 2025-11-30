@@ -40,6 +40,7 @@ public class Tunables { // this should hold all of our constants
     public static int intakePollingRate = 50; // test if intake is stalled every 50millis
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
     public static boolean holdEnd = true; // whether to hold end while shooting
+    public static double launchTurnMargin = Math.toRadians(5); // margin we want to get our turn to for launch
 
     /** Auto tunables (used in BozoAuto.java) **/
 
