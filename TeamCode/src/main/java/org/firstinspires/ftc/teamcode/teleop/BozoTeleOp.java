@@ -1,8 +1,11 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+// OpMode imports
+
+import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.Robot; // get our Robot.java object
 import org.firstinspires.ftc.teamcode.Tunables;
 
 // Panels imports
@@ -14,16 +17,18 @@ import com.bylazar.telemetry.TelemetryManager;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.paths.HeadingInterpolator;
+import com.pedropathing.paths.Path;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
-import com.pedropathing.util.Timer;
 
 @Configurable
-// this class will never be run as a TeleOp, and will always be extended by either RedTeleOp or BlueTeleOp
+//@TeleOp(name="BozoTeleOp", group="TeleOp")
 public abstract class BozoTeleOp extends OpMode {
     private Robot robot;
     private Follower follower;
     private Pose goalPose; // this will be set by the specific OpMode
+    private Pose launchHoldPose; // this is where we want to hold for our launch
     private Timer intakeTimer; // used for polling whether intake is stalled
     private Timer loopTimer; // measures the speed of our loop
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
@@ -39,28 +44,28 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void init() {
-        // create timers and reset them
         loopTimer = new Timer();
         loopTimer.resetTimer();
         intakeTimer = new Timer();
         intakeTimer.resetTimer();
-
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
         follower = Constants.createFollower(hardwareMap);
+        // TODO: fix this
+        //follower.setStartingPose(Robot.switchoverPose == null ? new Pose() : Robot.switchoverPose); // if we don't already have a starting pose, set it
         if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
         else { // hopefully this works
-            follower.setPose(Robot.switchoverPose);
+            Pose setPose = Robot.switchoverPose.setHeading(Robot.switchoverPose.getHeading() + Math.toRadians(180));
+            follower.setPose(flipPose(Robot.switchoverPose));
         }
         goalPose = getGoalPose();
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         launchVelocity = robot.RPMToTPS(Tunables.initialLaunchRPM); // convert from RPM->TPS, starting point
-        telemetryM.debug("init time: " + loopTimer.getElapsedTime()); // tell how long our init tool
-        telemetryM.update(telemetry);
+        telemetryM.debug("init time: " + loopTimer.getElapsedTime());
     }
 
-    protected abstract double flipControl(); // this will be filled in by Blue/Red TeleOp
-    protected abstract Pose getGoalPose(); // this will be filled in by Blue/Red TeleOp
+    protected abstract Pose flipPose(Pose switchoverPose);
+    protected abstract Pose getGoalPose();
 
     public void start() {
         follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
@@ -70,18 +75,18 @@ public abstract class BozoTeleOp extends OpMode {
     @Override
     public void loop() {
         loopTimer.resetTimer();
-        follower.update(); // update our Pedro Pathing follower
-        boolean updateLaunchStatus = robot.updateLaunch(); // idk if running it directly with the && might cause it to be skipped
-        if (updateLaunchStatus && isLaunching) { // update our launch state machine and check if it's done
+        follower.update();
+        telemetryM.update(); // update telemetry manager (Panels)
+        if (robot.updateLaunch()) { // update our launch state machine and check if it's done
             isLaunching = false; // if it's done, turn off isLaunching
-            follower.startTeleOpDrive();
+            follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
         }
 
-        if (gamepad1.aWasReleased()) { // toggle intake
+        if (gamepad1.aWasReleased()) {
             isIntakePowered = !isIntakePowered;
         }
-        if (gamepad1.bWasReleased()) { // toggle automated launch
-            automatedLaunch = !automatedLaunch;
+        if (gamepad1.bWasReleased()) {
+            automatedLaunch = !automatedLaunch; // invert automated launch
         }
         if (gamepad1.yWasReleased()) {
             if (isLaunching) { // if we release y while we're launching, it will cancel
@@ -106,7 +111,7 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.xWasReleased()) isIntakeReversed = !isIntakeReversed; // reverse intake to eject/unclog
         if (gamepad1.backWasReleased()) { // reset field-centric heading
             Pose headingPose = follower.getPose();
-            headingPose = headingPose.setHeading(Math.toRadians(90)); // the driver must point toward the top of the field (goals) to recalibrate the heading
+            headingPose = headingPose.setHeading(Math.toRadians(0)); // i think this is right
             follower.setPose(headingPose); // see if this works
         }
 
@@ -116,31 +121,24 @@ public abstract class BozoTeleOp extends OpMode {
         if (!automatedDrive) {
             double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
             // slow mode is built in using slowModeMultiplier controlled by left trigger
-            if (isRobotCentric) { // we are controlling relative to the robot
-                follower.setTeleOpDrive(
-                        -gamepad1.left_stick_y * slowModeMultiplier,
-                        -gamepad1.left_stick_x * slowModeMultiplier,
-                        -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
-                        true // true = robot centric; false = field centric
-                );
-            } else { // we are controlling relative to the field
-                // we need to modify our x input to be in accordance with the driver's control position
-                follower.setTeleOpDrive(
-                        -gamepad1.left_stick_y * slowModeMultiplier * flipControl(),
-                        -gamepad1.left_stick_x * slowModeMultiplier * flipControl(),
-                        -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
-                        false // true = robot centric; false = field centric
-                );
-            }
-            if (gamepad1.leftBumperWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
+            follower.setTeleOpDrive(
+                -gamepad1.left_stick_y * slowModeMultiplier,
+                -gamepad1.left_stick_x * slowModeMultiplier,
+                -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                isRobotCentric // true = robot centric; false = field centric
+            );
+            if (gamepad1.xWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
         } else { // we're in automated drive
-            if (gamepad1.leftBumperWasReleased() // if the user presses the left bumper again, cancel
-                    || !follower.isTurning() // if the follower is done, cancel
-                    || Math.abs(follower.getHeading() - targetHeading) <= Tunables.launchTurnMargin) { // sometimes the follower gets stuck, so we will just check if it's within our margin
+            if (gamepad1.xWasPressed() || !follower.isBusy()) { // if the user presses X, OR its done, then go to TeleOp
                 follower.startTeleOpDrive();
                 automatedDrive = false;
             }
         }
+
+        if (isIntakePowered && !isIntakeStalled) {
+            if (!isIntakeReversed) robot.intake.setPower(1); // our intake is 0% or 100%
+            else robot.intake.setPower(-1); // reverse intake to eject/unclog
+        } else robot.intake.setPower(0);
 
         if (automatedLaunch) {
             //robot.setAutomatedLaunchVelocity(follower.getPose()); // set our launch to its needed speed and get our needed TPS
@@ -152,18 +150,11 @@ public abstract class BozoTeleOp extends OpMode {
             else robot.setLaunchVelocity(launchTPS); // set our launch power manually
         }
 
-        // intake control
-        if (isIntakePowered && !isIntakeStalled) {
-            if (!isIntakeReversed) robot.intake.setPower(1); // our intake is 0% or 100%
-            else robot.intake.setPower(-1); // reverse intake to eject/unclog
-        } else robot.intake.setPower(0);
-
-        if (robot.isIntakeStalled()) {
+        if (robot.isIntakeOvercurrent()) {
             isIntakeStalled = true;
             intakeTimer.resetTimer();
             robot.intake.setPower(0); // let's save our voltage
         }
-
         if (isIntakeStalled && intakeTimer.getElapsedTime() >= Tunables.intakePollingRate) {
             isIntakeStalled = false; // let's try this again
         }
@@ -191,22 +182,22 @@ public abstract class BozoTeleOp extends OpMode {
     }
 
     public void teleOpLaunchPrep() { // start spinning up and following the turn path
-        // we shouldn't need to set our needed velocity because this should automatically be done by the teleop every loop
-        // yet we will still check one more time
-        double neededTangentialSpeed = robot.getTangentialSpeed(follower.getPose(), goalPose);
-        double neededVelocity = robot.getNeededVelocity(neededTangentialSpeed); // honestly can combine these into the same function and return our needed TPS to check if we're spun up
-        robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
+        if (Robot.switchoverPose.initialized()) { // make sure our necessary poses are actually populated
+            // we shouldn't need to set our needed velocity because this should automatically be done by the teleop every loop
+            // yet we will still check one more time
+            double neededTangentialSpeed = robot.getTangentialSpeed(follower.getPose(), goalPose);
+            double neededVelocity = robot.getNeededVelocity(neededTangentialSpeed); // honestly can combine these into the same function and return our needed TPS to check if we're spun up
+            robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
 
-        targetHeading = robot.getGoalHeading(follower.getPose(), goalPose);
-        /*Pose holdPose = follower.getPose().setHeading(targetHeading);
-        PathChain turnPath = follower.pathBuilder()
-                .addPath(new BezierLine(follower.getPose(), holdPose))
-                .setLinearHeadingInterpolation(follower.getHeading(), targetHeading) // we want to turn from our current heading to our target heading
-                .build();
-        follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end */
-        follower.turnTo(targetHeading); // see if this works
-        //follower.holdPoint(holdPose); // hopefully this doesn't interfere
-        automatedDrive = true; // we're driving automatically now
-        automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
+            targetHeading = robot.getGoalHeading(follower.getPose(), goalPose);
+            PathChain turnPath = follower.pathBuilder()
+                    .addPath(new BezierLine(follower.getPose(), follower.getPose())) // our x-y pos will stay the same so just give our current position twice
+                    .setLinearHeadingInterpolation(follower.getHeading(), targetHeading) // we want to turn from our current heading to our target heading
+                    .build();
+
+            follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end
+            automatedDrive = true; // we're driving automatically now
+            automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
+        }
     }
 }

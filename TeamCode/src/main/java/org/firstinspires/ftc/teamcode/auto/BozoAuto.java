@@ -54,6 +54,9 @@ public abstract class BozoAuto extends OpMode {
             startPickup3,
             grabPickup3,
             scorePickup3,
+            startPickup4,
+            grabPickup4,
+            scorePickup4,
             goToEnd;
 
     public void buildPaths() {
@@ -65,13 +68,13 @@ public abstract class BozoAuto extends OpMode {
                 .setLinearHeadingInterpolation(startPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // hopefully this works
                 .build();
 
-        // this path goes from the score point to the beginning of the first set of balls
+        // this path goes from the score point to the beginning of the 1st set of balls
         startPickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(config.scorePose, config.pickup1StartPose))
                 .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup1StartPose.getHeading(), Tunables.grabEndTime)
                 .build();
 
-        // this path picks up the first set of balls
+        // this path picks up the 1st set of balls
         grabPickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup1StartPose, config.pickup1EndPose))
                 .setLinearHeadingInterpolation(config.pickup1StartPose.getHeading(), config.pickup1EndPose.getHeading())
@@ -83,13 +86,13 @@ public abstract class BozoAuto extends OpMode {
                 .setLinearHeadingInterpolation(config.pickup1EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
                 .build();
 
-        // this path goes from the score point to the beginning of the second set of balls
+        // this path goes from the score point to the beginning of the 2nd set of balls
         startPickup2 = follower.pathBuilder()
                 .addPath(new BezierLine(config.scorePose, config.pickup2StartPose))
                 .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup2StartPose.getHeading(), Tunables.grabEndTime)
                 .build();
 
-        // this path picks up the second set of balls
+        // this path picks up the 2nd set of balls
         grabPickup2 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup2StartPose, config.pickup2EndPose))
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup2EndPose.getHeading())
@@ -101,13 +104,13 @@ public abstract class BozoAuto extends OpMode {
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
                 .build();
 
-        // this path goes from the score point to the beginning of the third set of balls
+        // this path goes from the score point to the beginning of the 3rd set of balls
         startPickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(config.scorePose, config.pickup3StartPose))
                 .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup3StartPose.getHeading(), Tunables.grabEndTime)
                 .build();
 
-        // this path picks up the third set of balls
+        // this path picks up the 3rd set of balls
         grabPickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup3StartPose, config.pickup3EndPose))
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup3EndPose.getHeading())
@@ -117,6 +120,24 @@ public abstract class BozoAuto extends OpMode {
         scorePickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup3EndPose, config.scorePose))
                 .setLinearHeadingInterpolation(config.pickup3EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
+                .build();
+
+        // this path goes from the score point to the beginning of the 4th set of balls
+        startPickup4 = follower.pathBuilder()
+                .addPath(new BezierLine(config.scorePose, config.pickup4StartPose))
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup4StartPose.getHeading())
+                .build();
+
+        // this path picks up the 4th set of balls
+        grabPickup4 = follower.pathBuilder()
+                .addPath(new BezierLine(config.pickup4StartPose, config.pickup4EndPose))
+                .setLinearHeadingInterpolation(config.pickup4StartPose.getHeading(), config.pickup4EndPose.getHeading())
+                .build();
+
+        // this path goes from the endpoint of the ball pickup to our score position
+        scorePickup4 = follower.pathBuilder()
+                .addPath(new BezierLine(config.pickup4EndPose, config.scorePose))
+                .setLinearHeadingInterpolation(config.pickup4EndPose.getHeading(), config.scorePose.getHeading())
                 .build();
 
         // this path goes form our score point to our ending position
@@ -136,7 +157,6 @@ public abstract class BozoAuto extends OpMode {
         switch (state) {
             case START:
                 follower.followPath(scorePreload);
-                robot.launchBalls(3);
                 setPathState(State.LAUNCH);
                 break;
             case TRAVEL_TO_LAUNCH:
@@ -145,22 +165,27 @@ public abstract class BozoAuto extends OpMode {
                         state = State.GO_TO_END;
                         break;
                     }
-                    switch (ballTripletsRemaining) { // this should always be between 3 and 0
-                        case 3:
+                    switch (ballTripletsRemaining) { // this should always be between 4 and 0
+                        case 4:
                             follower.followPath(scorePickup1, true); // hold end to prevent other robots from moving us
                             break;
-                        case 2:
+                        case 3:
                             follower.followPath(scorePickup2, true);
                             break;
-                        case 1:
+                        case 2:
                             follower.followPath(scorePickup3, true);
+                            break;
+                        case 1:
+                            follower.followPath(scorePickup4, true);
                             break;
                     }
                     state = State.LAUNCH; // let's launch
+                    robot.intake.setPower(1); // re-enable intake
                     robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
                 }
                 break;
             case LAUNCH:
+                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (!follower.isBusy() // check if our follower is busy
                         && robot.isLaunchWithinMargin() // check if our launch velocity is within our margin
                         && opmodeTimer.getElapsedTime() >= Tunables.beginningLaunchDelay // check if we've waited enough time since the last launch
@@ -169,11 +194,10 @@ public abstract class BozoAuto extends OpMode {
                     /* if we're holding point, we shouldn't have to disable motors
                     follower.pausePathFollowing();
                     follower.deactivateAllPIDFs(); */
-                    robot.intake.setPower(1); // turn on intake
                     if (robot.updateLaunch()) { // we're done with launching balls
                         ballTripletsRemaining -= 1;
-                        robot.intake.setPower(0); // save power
                         setPathState(State.TRAVEL_TO_BALLS);
+                        robot.intake.setPower(0); // disable intake to save power
                         /* if we're holding point, we shouldn't have to re-enable motors
                         follower.activateAllPIDFs();
                         follower.resumePathFollowing(); */
@@ -186,32 +210,39 @@ public abstract class BozoAuto extends OpMode {
                         state = State.GO_TO_END;
                         break;
                     }
-                    switch (ballTripletsRemaining) { // this should always be between 3 and 0
-                        case 3:
+                    switch (ballTripletsRemaining) { // this should always be between 4 and 0
+                        case 4:
                             follower.followPath(startPickup1);
                             break;
-                        case 2:
+                        case 3:
                             follower.followPath(startPickup2);
                             break;
-                        case 1:
+                        case 2:
                             follower.followPath(startPickup3);
+                            break;
+                        case 1:
+                            follower.followPath(startPickup4);
                             break;
                     }
                     state = State.RELOAD; // now lets reload
+                    robot.intake.setPower(1); // re-enable intake for reload
                 }
                 break;
             case RELOAD: // grab the balls in a straight line
                 if(!follower.isBusy()) {
-                    robot.intake.setPower(1); // re-enable intake to pickup balls
-                    switch (ballTripletsRemaining) { // this should always be between 3 and 0
-                        case 3:
+                    robot.intake.setPower(0); // disable intake to save power
+                    switch (ballTripletsRemaining) { // this should always be between 4 and 0
+                        case 4:
                             follower.followPath(grabPickup1);
                             break;
-                        case 2:
+                        case 3:
                             follower.followPath(grabPickup2);
                             break;
-                        case 1:
+                        case 2:
                             follower.followPath(grabPickup3);
+                            break;
+                        case 1:
+                            follower.followPath(grabPickup4);
                             break;
                     }
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
@@ -227,10 +258,10 @@ public abstract class BozoAuto extends OpMode {
                     follower.followPath(goToEnd);
                     setPathState(State.END);
                 }
-                break;
             case END:
                 if (!follower.isBusy()) {
                     robot.intake.setPower(0); // turn off intake
+                    robot.launch.setPower(0.8); // warm up launch (only 80%)
                     Robot.switchoverPose = follower.getPose(); // try to prevent drift
                     follower.deactivateAllPIDFs(); // stop the follower
                     requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
@@ -278,12 +309,10 @@ public abstract class BozoAuto extends OpMode {
     @Override
     public void init() {
         // set up our timers
-        loopTimer = new Timer();
-        loopTimer.resetTimer();
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
-
+        loopTimer = new Timer();
         robot = Robot.getInstance(hardwareMap); // create our robot class
 
         follower = Constants.createFollower(hardwareMap);
@@ -291,8 +320,6 @@ public abstract class BozoAuto extends OpMode {
         buildPaths(); // this will create our paths from our predefined variables
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
-        telemetryM.addData("init time (millis)", loopTimer.getElapsedTime());
-        telemetryM.update();
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
