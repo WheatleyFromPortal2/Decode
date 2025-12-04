@@ -34,7 +34,7 @@ public abstract class BozoTeleOp extends OpMode {
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
     private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
-    private boolean isIntakePowered = false;
+    private boolean isIntakePowered = true; // start with intake powered
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isIntakeStalled = false;
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
