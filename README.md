@@ -59,7 +59,8 @@ make sure to connect every motor with the correct polarity, the reversing should
 | 5           | none            |
 
 ## expansion hub
-
+### connection method (ports matter)
+![expansion hub connection](doc/media/expansionHubConnection.png)
 ### DC motors
 
 | motor port | verbatim name | encoder? |
