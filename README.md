@@ -137,10 +137,9 @@ make sure to connect every motor with the correct polarity, the reversing should
 - decrements every launch
 
 ## launch states
-1. START
-2. OPENING_UPPER_TRANSFER
-3. PUSHING_LOWER_TRANSFER
-4. WAITING_FOR_EXIT
+1. OPENING_UPPER_TRANSFER
+2. PUSHING_LOWER_TRANSFER
+3. WAITING_FOR_EXIT
 
 ### balls remaining
 - starts at 3 (all in robot)
