@@ -143,13 +143,14 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         if (automatedLaunch) {
-            //robot.setAutomatedLaunchVelocity(follower.getPose()); // set our launch to its needed speed and get our needed TPS
-            robot.setLaunchVelocity(launchVelocity); // set our launch velocity to our desired launch velocity
+            robot.setAutomatedLaunchVelocity(follower.getPose(), getGoalPose()); // set our launch to its needed speed and get our needed TPS
         } else { // set our launch velocity manually based off the right trigger
+            robot.setLaunchVelocity(launchVelocity); // set our launch velocity to our desired launch velocity
+            /*
             double launchTPS = ((gamepad1.right_trigger) * (2800)); // calculates max motor speed and multiplies it by the float of the right trigger
             if (launchTPS == 0)
                 robot.launchOff(); // if right trigger isn't pressed, don't even use PIDF
-            else robot.setLaunchVelocity(launchTPS); // set our launch power manually
+            else robot.setLaunchVelocity(launchTPS); // set our launch power manually */
         }
 
         // intake control
@@ -171,7 +172,7 @@ public abstract class BozoTeleOp extends OpMode {
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         if (isIntakeStalled) telemetryM.addLine("WARNING: INTAKE STALLED!!!"); // alert driver intake is over current
-        telemetryM.debug("target heading: " + targetHeading);
+        telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
         telemetryM.debug("automated drive?: " + automatedDrive);

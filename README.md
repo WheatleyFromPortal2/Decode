@@ -81,7 +81,7 @@ make sure to connect every motor with the correct polarity, the reversing should
 - Y: not used
 
 ## bumpers
-- left bumper: not used
+- left bumper: auto turn to goal
 - right bumper: launch ball
 
 ## triggers
@@ -91,7 +91,9 @@ make sure to connect every motor with the correct polarity, the reversing should
 ## buttons
 ### face buttons
 - A: toggle intake
-- B: toggle manual/automatic intake
+- B: toggle manual/automatic launch
+  - **auto**: uses odo to find out needed launch speed to reach goal
+  - **manual**: sets launch speed to constant defined in Tunables.java (calibrated for shooting from crease)
 - Y: launch 3 balls
 - X: reverse intake
 

@@ -82,6 +82,7 @@ public class Robot { // create our global class for our robot
     }
 
     public double getGoalHeading(Pose currentPosition, Pose goalPose) { // return bot heading to point towards goal in radians
+        // TODO: fix this only being able to turn counterclockwise
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
         return Math.atan2(yDst, xDst); // need atan2 to account for negatives
@@ -91,10 +92,11 @@ public class Robot { // create our global class for our robot
         double d = getDstFromGoal(currentPosition, goalPose);
         double numerator = 19.62 * Math.pow(d, 2);
         double denominator = (Math.pow(3, 0.5) * d) - 0.8;
-        return Math.pow(numerator / denominator, 0.5); // thank u rahul
+        double beforeMagicNumber =  Math.pow(numerator / denominator, 0.5); // thank u rahul
+        return beforeMagicNumber * Tunables.magicNumber; // fix with magic number
     }
 
-    public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) {
+    public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) { // given positions, use our functions to set our launch speed
         double neededTangentialSpeed = getTangentialSpeed(currentPosition, goalPose);
         double neededVelocity = getNeededVelocity(neededTangentialSpeed);
         setLaunchVelocity(neededVelocity);
@@ -128,11 +130,9 @@ public class Robot { // create our global class for our robot
         launch.setVelocity(0); // prob don't need this but ok
     }
     public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
-        double RPM = 0; 
         double numerator = tangentialSpeed - 0.269926;
-        TPS = (numerator/0.000636795)
-        double TPS = RPMTOTPS(RPM);
-        return TPS; 
+        double RPM = (numerator/0.000636795);
+        return RPMToTPS(RPM); // return our TPS
     }
 
     public void launchBalls(int balls) { // sets to launch this many balls
