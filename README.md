@@ -21,21 +21,20 @@ driver station config name: `parallel plate v0`
 
 ## control hub
 
-### I2C ports/buses
+### I²C ports/buses
 | port/bus | device                 | location                     | verbatim name          |
 |:---------|:-----------------------|------------------------------|:-----------------------|
-| 0        | Pinpoint Odo Computer  | left side under control hub  | `odo`                  |
-| 1        | REV 2M Distance Sensor | intake                       | `intakeSensor`         |
-| 2        | REV 2M Distance Sensor | left side of lower transfer  | `lowerTransferSensor1` |
-| 3        | REV 2M Distance Sensor | right side of lower transfer | `lowerTransferSensor2` |
+| 1        | Pinpoint Odo Computer  | left side under control hub  | `odo`                  |
 
 having sensors 1/2 on the left/right doesn't matter because we are just comparing values
 
 ### USB port
 
-| port | device        | verbatim name |
-|:-----|:--------------|:--------------|
-| USB  | Logitech C290 | `cam`         |
+| port | device       | verbatim name |
+|:-----|:-------------|:--------------|
+| USB  | Limelight 3A | `limelight`   |
+
+the Limelight will show up as `Ethernet Device` under the USB devices, make sure to rename it to the verbatim name
 
 ### DC motors
 
@@ -62,12 +61,12 @@ make sure to connect every motor with the correct polarity, the reversing should
 ## expansion hub
 
 ### I2C ports/buses
-| port/bus | device                 | location                | verbatim name           |
-|:---------|:-----------------------|-------------------------|:------------------------|
-| 0        | REV 2M Distance Sensor | left side of ball exit  | `uppperTransferSensor1` |
-| 1        | REV 2M Distance Sensor | right side of ball exit | `upperTransferSensor2`  |
-| 2        | *unused*               |                         |                         |
-| 3        | *unused*               |                         |                         |
+| port/bus | device                 | location                    | verbatim name         |
+|:---------|:-----------------------|-----------------------------|:----------------------|
+| 0        | REV 2M Distance Sensor | intake                      | `intakeSensor`        |
+| 1        | REV 2M Distance Sensor | lower transfer              | `lowerTransferSensor` |
+| 2        | REV 2M Distance Sensor | left side of lower transfer | `upperTransferSensor` |
+| 3        | *unused*               | *unused*                    | *unused*              |
 
 having sensors 1/2 on the left/right doesn't matter because we are just comparing values
 
