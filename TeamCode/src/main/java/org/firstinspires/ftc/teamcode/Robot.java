@@ -127,8 +127,12 @@ public class Robot { // create our global class for our robot
         launch.setPower(0);
         launch.setVelocity(0); // prob don't need this but ok
     }
-    public double getNeededVelocity(double a) { // this needs to be reworked by just directly mapping RPM to distance
-        return 0;
+    public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
+        double RPM = 0; 
+        double numerator = tangentialSpeed - 0.269926;
+        TPS = (numerator/0.000636795)
+        double TPS = RPMTOTPS(RPM);
+        return TPS; 
     }
 
     public void launchBalls(int balls) { // sets to launch this many balls
