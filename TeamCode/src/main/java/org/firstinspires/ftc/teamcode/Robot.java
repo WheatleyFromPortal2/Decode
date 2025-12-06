@@ -20,7 +20,7 @@ public class Robot { // create our global class for our robot
     private static Robot instance;
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing, thus we only need our intake and launch motors
     public Servo lowerTransfer, upperTransfer;
-    public Rev2mDistanceSensor intakeSensor, lowerTransferSensor1, lowerTransferSensor2, upperTransferSensor1, upperTransferSensor2; // all of our distance sensors for detecting balls
+    public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
 
     private Timer launchStateTimer; // this timer measures the time between states in launch
 
@@ -57,12 +57,10 @@ public class Robot { // create our global class for our robot
         lowerTransfer = hw.get(Servo.class, "lowerTransfer");
         upperTransfer = hw.get(Servo.class, "upperTransfer");
 
-        // sensors
+        // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
-        lowerTransferSensor1 = hw.get(Rev2mDistanceSensor.class, "lowerTransferSensor1");
-        lowerTransferSensor2 = hw.get(Rev2mDistanceSensor.class, "lowerTransferSensor2");
-        upperTransferSensor1 = hw.get(Rev2mDistanceSensor.class, "upperTransferSensor1");
-        upperTransferSensor2 = hw.get(Rev2mDistanceSensor.class, "upperTransferSensor2");
+        lowerTransferSensor = hw.get(Rev2mDistanceSensor.class, "lowerTransferSensor");
+        upperTransferSensor = hw.get(Rev2mDistanceSensor.class, "upperTransferSensor");
 
         // Change PIDF coefficients using methods included with DcMotorEx class.
         PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // use our coefficients from Tunables.java
@@ -145,12 +143,10 @@ public class Robot { // create our global class for our robot
         return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeOpen;
     }
     public boolean isBallInLowerTransfer() { // return true if there is a ball reducing our measured distance
-        return lowerTransferSensor1.getDistance(DistanceUnit.MM) < Tunables.transferOpen // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
-                || lowerTransferSensor2.getDistance(DistanceUnit.MM) < Tunables.transferOpen;
+        return lowerTransferSensor.getDistance(DistanceUnit.MM) < Tunables.transferOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
     }
     public boolean isBallInUpperTransfer() { // return true if there is a ball reducing our measured distance
-        return upperTransferSensor1.getDistance(DistanceUnit.MM) < Tunables.transferOpen // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
-                || upperTransferSensor2.getDistance(DistanceUnit.MM) < Tunables.transferOpen;
+        return upperTransferSensor.getDistance(DistanceUnit.MM) < Tunables.transferOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
     }
 
     /** ball launching methods **/
