@@ -118,10 +118,9 @@ public class Robot { // create our global class for our robot
     }
 
     public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
-        double TPS = 0;
-        // this will be the hardest function to code
-        // it basically needs to be a relation between the rotational speed of launch and the actual output speed of the ball
-        // at the end, we will output the desired TPS of our motor to monitor once it reaches it
+        double TPS = 0; 
+        double numerator = tangentialSpeed - 0.269926;
+        TPS = (numerator/0.000636795)
         return TPS;
     }
 
