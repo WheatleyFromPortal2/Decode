@@ -27,6 +27,7 @@ public class Tunables { // this should hold all of our constants
     public static double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
 
     // distance sensor limits (better to undershoot rather than to overshoot)
+    // these are all in millimeters
     // TODO: tune these
     public static double intakeOpen = 180; // amount of mm's the intake sensor should report if there is no ball
     public static double transferOpen = 120; // amount of mm's that either of the transfer sensors (lower/upper, left/right) should report if there is no ball

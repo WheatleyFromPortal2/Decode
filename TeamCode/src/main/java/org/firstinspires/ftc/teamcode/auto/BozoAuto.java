@@ -304,7 +304,7 @@ public abstract class BozoAuto extends OpMode {
     @Override
     public void start() {
         opmodeTimer.resetTimer();
-        robot.initServos(); // get servos ready
+        robot.resetServos(); // get servos ready
         robot.intake.setPower(1); // start intake
         robot.setLaunchVelocity(robot.RPMToTPS(Tunables.scoreRPM)); // we're just gonna keep our score RPM constant for now
         setPathState(State.START);

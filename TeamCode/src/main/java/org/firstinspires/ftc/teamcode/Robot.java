@@ -25,7 +25,8 @@ public class Robot { // create our global class for our robot
     public Servo lowerTransfer, upperTransfer; // servos
     public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
 
-    private Timer launchStateTimer, // this timer measures the time between states in launch
+    private Timer launchStateTimer, // tracks time since we started our last launch state
+            intakeTimer, // measures time since last intake measurement
             launchIntervalTimer; // this timer measures the time between individual launches
     private enum LaunchState { // these are the possible states our launch state machine can be in
         START,
@@ -41,6 +42,7 @@ public class Robot { // create our global class for our robot
     private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
+    private boolean intakeFull = false; // tracks whether intake has 3 balls
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
         // DC motors (all are DcMotorEx for current monitoring)
@@ -72,8 +74,9 @@ public class Robot { // create our global class for our robot
         PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // use our coefficients from Tunables.java
         launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew); // apply our coefficients to our motor
 
-        // set up our timers for the launch state machine
-        launchStateTimer = new Timer(); // tracks time since we started our last launch state
+
+        launchStateTimer = new Timer(); // set up timer for the launch state machine
+        intakeTimer = new Timer(); // set up timer to measure balls in intake
     }
 
     public static Robot getInstance(HardwareMap hw) { // this allows us to preserve the Robot instance from auto->teleop
@@ -120,8 +123,8 @@ public class Robot { // create our global class for our robot
         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
     }
     public double getIntakeCurrent() { return intake.getCurrent(CurrentUnit.AMPS); } // return intake current in amps
-    public boolean isIntakeOvercurrent() {
-        return intake.getCurrent(CurrentUnit.AMPS) >= Tunables.intakeOvercurrent;
+    public boolean isFull() {
+        return intakeFull;
     }
     public double getLaunchRPM() { return TPSToRPM(launch.getVelocity()); } // return launch velocity in RPM
     public double getLaunchCurrent() { return launch.getCurrent(CurrentUnit.AMPS); } // return launch current in amps
@@ -155,7 +158,8 @@ public class Robot { // create our global class for our robot
     }
 
     /** ball launching methods **/
-    public void launchBalls() { // sets to launch this many balls
+    public void launchBalls(int balls) { // sets to launch this many balls
+        ballsRemaining = balls;
         isLaunching = true;
         launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
         launchState = LaunchState.START;
@@ -169,7 +173,6 @@ public class Robot { // create our global class for our robot
     }
 
     public boolean updateLaunch() { // outputs true/false whether we are done with launching
-        if (!isBallInLowerTransfer()) { ballsRemaining = 0; } // if we don't have a ball in lower transfer, we don't have any balls, let's not waste our time
 
         if (ballsRemaining == 0) {
             isLaunching = false;
@@ -182,6 +185,11 @@ public class Robot { // create our global class for our robot
                     launchState = LaunchState.OPENING_UPPER_TRANSFER;
                     break;
                 case OPENING_UPPER_TRANSFER:
+                    if (!isBallInLowerTransfer()) { // if we don't have a ball in lower transfer, we don't have any balls, let's not waste our time
+                        ballsRemaining = 0;
+                        launchState = LaunchState.START;
+                        break;
+                    }
                     if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) { // we've given it openDelay millis to open
                         lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
                         launchStateTimer.resetTimer();
@@ -206,6 +214,15 @@ public class Robot { // create our global class for our robot
         boolean ballInIntake = isBallInIntake();
         if (!wasBallInIntake && ballInIntake) ballsRemaining++; // if we previously didn't have a ball in intake, and we do now, then increment our remaining balls
         wasBallInIntake = ballInIntake; // update our reading
+
+        if (intakeTimer.getElapsedTime() > Tunables.intakePollingRate) { // it's been a while since we last checked intake
+           if (wasBallInIntake && ballInIntake) {
+               intakeFull = true;
+           } else {
+               intakeFull = false;
+           }
+           intakeTimer.resetTimer(); // wait to check for a while
+        }
     }
 
     public int getBallsRemaining() { return ballsRemaining; }

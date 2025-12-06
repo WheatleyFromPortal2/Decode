@@ -14,8 +14,6 @@ import com.bylazar.telemetry.TelemetryManager;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 
 @Configurable
@@ -31,7 +29,6 @@ public abstract class BozoTeleOp extends OpMode {
     private TelemetryManager telemetryM;
     private boolean isIntakePowered = true; // start with intake powered
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
-    private boolean isIntakeStalled = false;
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
     private boolean isLaunching = false; // whether we are launching balls, allows it to be cancelled
     double targetHeading;
@@ -64,13 +61,14 @@ public abstract class BozoTeleOp extends OpMode {
 
     public void start() {
         follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
-        robot.initServos(); // set servos to starting state
+        robot.resetServos(); // set servos to starting state
     }
 
     @Override
     public void loop() {
         loopTimer.resetTimer();
         follower.update(); // update our Pedro Pathing follower
+        robot.updateBalls(); // update how many balls we have in our intake
         boolean updateLaunchStatus = robot.updateLaunch(); // idk if running it directly with the && might cause it to be skipped
         if (updateLaunchStatus && isLaunching) { // update our launch state machine and check if it's done
             isLaunching = false; // if it's done, turn off isLaunching
@@ -154,24 +152,18 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         // intake control
-        if (isIntakePowered && !isIntakeStalled) {
+        if (isIntakePowered && !robot.isFull()) { // if we want to power our intake, and it isn't full
             if (!isIntakeReversed) robot.intake.setPower(1); // our intake is 0% or 100%
             else robot.intake.setPower(-1); // reverse intake to eject/unclog
-        } else robot.intake.setPower(0);
-
-        if (robot.isIntakeStalled()) {
-            isIntakeStalled = true;
-            intakeTimer.resetTimer();
-            robot.intake.setPower(0); // let's save our voltage
-        }
-
-        if (isIntakeStalled && intakeTimer.getElapsedTime() >= Tunables.intakePollingRate) {
-            isIntakeStalled = false; // let's try this again
+        } else if (isLaunching) {
+            robot.intake.setPower(1); // always power intake while we're launching
+        } else {
+            robot.intake.setPower(0); // turn off intake if other conditions aren't fulfilled
         }
 
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
-        if (isIntakeStalled) telemetryM.addLine("WARNING: INTAKE STALLED!!!"); // alert driver intake is over current
+        if (robot.isFull()) telemetryM.addLine("WARNING: INTAKE FULL!!!"); // alert driver intake is over current
         telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
