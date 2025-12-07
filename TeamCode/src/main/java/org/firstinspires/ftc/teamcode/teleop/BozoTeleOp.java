@@ -69,7 +69,7 @@ public abstract class BozoTeleOp extends OpMode {
         follower.update(); // update our Pedro Pathing follower
         robot.updateBalls(); // update how many balls we have in our intake
         boolean updateLaunchStatus = robot.updateLaunch(); // idk if running it directly with the && might cause it to be skipped
-        if (updateLaunchStatus && robot.isLaunching()) { // update our launch state machine and check if it's done
+        if (updateLaunchStatus && !follower.isTeleopDrive()) { // check if we're done with holding position
             follower.startTeleOpDrive();
         }
 
@@ -157,6 +157,25 @@ public abstract class BozoTeleOp extends OpMode {
         } else {
             robot.intake.setPower(0); // turn off intake if other conditions aren't fulfilled
         }
+        /*
+        switch (robot.getBallsRemaining()) { // haptic feedback
+            case 0:
+
+                break;
+            case 1:
+
+                break;
+            case 2:
+
+                break;
+
+            case 3:
+
+                break;
+
+            default:
+                break;
+        } */
 
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
@@ -167,6 +186,7 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
         telemetryM.debug("automated drive?: " + automatedDrive);
+        telemetryM.debug("TeleOp drive?: " + follower.isTeleopDrive());
         telemetryM.debug("automated launch?: " + automatedLaunch);
         telemetryM.debug("follower busy?: " + follower.isBusy());
         telemetryM.debug("desired launch RPM: " + robot.TPSToRPM(robot.neededLaunchVelocity)); // make sure to convert from TPS->RPM
