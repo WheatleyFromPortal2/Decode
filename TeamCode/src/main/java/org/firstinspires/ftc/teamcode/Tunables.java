@@ -44,6 +44,7 @@ public class Tunables { // this should hold all of our constants
     public static int lastInterLaunchWait = 200; // time to wait between the 2nd and last launch
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
     public static int intakePollingRate = 250; // how many millis to check intake is full
+    public static int intakeFeedTime = 200; // how many millis to run intake for after launching a ball to advance ball to lower transfer
 
     // rumble effects
     private static int delay0 = 200; // ms delay for 0balls
@@ -55,20 +56,20 @@ public class Tunables { // this should hold all of our constants
             .addStep(0.0, 1.0, delay0) // rumble right motor 100% for delay0
             .addStep(0.0, 0.0, delay0) // pause for delay0
             .build();
-    public static Gamepad.RumbleEffect rumble1 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 0balls
-            .addStep(1.0, 0.0, delay1) // rumble left motor 100% for delay1
-            .addStep(0.0, 1.0, delay1) // rumble right motor 100% for delay1
+    public static Gamepad.RumbleEffect rumble1 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 1ball
+            .addStep(0.0, 1.0, delay1) // rumble left motor 100% for delay1
+            .addStep(1.0, 0.0, delay1) // rumble right motor 100% for delay1
             .addStep(0.0, 0.0, delay1) // pause for delay1
             .build();
-    public static Gamepad.RumbleEffect rumble2 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 0balls
-            .addStep(1.0, 0.0, delay2) // rumble left motor 100% for delay2
-            .addStep(0.0, 1.0, delay2) // rumble right motor 100% for delay2
+    public static Gamepad.RumbleEffect rumble2 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 2balls
+            .addStep(0.0, 1.0, delay2) // rumble left motor 100% for delay2
+            .addStep(1.0, 0.0, delay2) // rumble right motor 100% for delay2
             .addStep(0.0, 0.0, delay2) // pause for delay2
             .build();
-    public static Gamepad.RumbleEffect rumble3 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 0balls
+    public static Gamepad.RumbleEffect rumble3 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 3balls (needs to be differentiated)
             .addStep(1.0, 1.0, delay3) // rumble left motor 100% for delay3
             .addStep(0.0, 0.0, delay3) // rumble right motor 100% for delay3
-            // no pause
+            // no pause (more intensity)
             .build();
 
     /** TeleOp tunables (used in BozoTeleOp.java) **/
