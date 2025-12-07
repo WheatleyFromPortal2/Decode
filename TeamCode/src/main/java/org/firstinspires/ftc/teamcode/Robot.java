@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 
 // hardware imports
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
@@ -23,7 +24,8 @@ public class Robot { // create our global class for our robot
     private static Robot instance; // this stores our current instance of Robot, so we can transfer it from auto->TeleOp
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer; // servos
-    public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
+    public Rev2mDistanceSensor intakeSensor, upperTransferSensor; // all of our distance sensors for detecting balls
+    public RevColorSensorV3 lowerTransferSensor; // we're using a color sensor because distance sensors are expensive, and our other is broken :(
 
     private Timer launchStateTimer, // tracks time since we started our last launch state
             intakeTimer, // measures time since last intake measurement
@@ -67,7 +69,7 @@ public class Robot { // create our global class for our robot
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
-        lowerTransferSensor = hw.get(Rev2mDistanceSensor.class, "lowerTransferSensor");
+        lowerTransferSensor = hw.get(RevColorSensorV3.class, "lowerTransferSensor");
         upperTransferSensor = hw.get(Rev2mDistanceSensor.class, "upperTransferSensor");
 
         // Change PIDF coefficients using methods included with DcMotorEx class.
