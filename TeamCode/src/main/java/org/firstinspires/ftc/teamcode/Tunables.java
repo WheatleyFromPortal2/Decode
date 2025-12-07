@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.qualcomm.robotcore.hardware.Gamepad;
 
 @Configurable
 public class Tunables { // this should hold all of our constants
@@ -32,16 +33,43 @@ public class Tunables { // this should hold all of our constants
     // TODO: tune these
 
     public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
-    public static double lowerTransferSensorOpen = 20; // needs to be different than upper transfer because color sensor distance measurements don't exceed 30mm :(
+    public static double lowerTransferSensorOpen = 29; // needs to be different than upper transfer because color sensor distance measurements don't exceed 30mm :(
     public static double upperTransferSensorOpen = 140; // amount of mm's that upper transfer sensor  should report if there is no ball
 
     // delays
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
+    public static int maxTransferDelay = 100; // maximum time to wait for ball to enter lower transfer
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
     public static int firstInterLaunchWait = 75; // time to wait between 1st and 2nd launches
     public static int lastInterLaunchWait = 200; // time to wait between the 2nd and last launch
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
     public static int intakePollingRate = 250; // how many millis to check intake is full
+
+    // rumble effects
+    private static int delay0 = 200; // ms delay for 0balls
+    private static int delay1 = 150; // ms delay for 1ball
+    private static int delay2 = 100; // ms delay for 2balls
+    private static int delay3 = 50; // ms delay for 3balls
+    public static Gamepad.RumbleEffect rumble0 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 0balls
+            .addStep(1.0, 0.0, delay0) // rumble left motor 100% for delay0
+            .addStep(0.0, 1.0, delay0) // rumble right motor 100% for delay0
+            .addStep(0.0, 0.0, delay0) // pause for delay0
+            .build();
+    public static Gamepad.RumbleEffect rumble1 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 0balls
+            .addStep(1.0, 0.0, delay1) // rumble left motor 100% for delay1
+            .addStep(0.0, 1.0, delay1) // rumble right motor 100% for delay1
+            .addStep(0.0, 0.0, delay1) // pause for delay1
+            .build();
+    public static Gamepad.RumbleEffect rumble2 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 0balls
+            .addStep(1.0, 0.0, delay2) // rumble left motor 100% for delay2
+            .addStep(0.0, 1.0, delay2) // rumble right motor 100% for delay2
+            .addStep(0.0, 0.0, delay2) // pause for delay2
+            .build();
+    public static Gamepad.RumbleEffect rumble3 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 0balls
+            .addStep(1.0, 1.0, delay3) // rumble left motor 100% for delay3
+            .addStep(0.0, 0.0, delay3) // rumble right motor 100% for delay3
+            // no pause
+            .build();
 
     /** TeleOp tunables (used in BozoTeleOp.java) **/
 
