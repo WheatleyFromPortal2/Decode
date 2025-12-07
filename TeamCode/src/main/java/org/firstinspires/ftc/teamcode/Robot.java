@@ -2,15 +2,16 @@
 package org.firstinspires.ftc.teamcode;
 
 // hardware imports
+import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
+import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
+import com.qualcomm.robotcore.hardware.Servo;
+
+// unit imports
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-
-import com.qualcomm.robotcore.hardware.HardwareMap;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
-import com.qualcomm.robotcore.hardware.Servo;
 
 // Pedro Pathing imports
 import com.pedropathing.geometry.Pose;
@@ -64,8 +65,6 @@ public class Robot { // create our global class for our robot
         launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
 
         intake.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
-        // Get the PIDF coefficients for the RUN_USING_ENCODER RunMode.
-        //PIDFCoefficients pidfOrig = launch.getPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER);
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
@@ -187,7 +186,9 @@ public class Robot { // create our global class for our robot
                     launchState = LaunchState.OPENING_UPPER_TRANSFER;
                     break;
                 case OPENING_UPPER_TRANSFER:
-                    if (!isBallInLowerTransfer()) { // if we don't have a ball in lower transfer, we don't have any balls, let's not waste our time
+                    if (!isBallInLowerTransfer() // if we don't have a ball in lower transfer
+                            && !isBallInIntake() // AND we don't have a ball waiting in intake
+                            && launchStateTimer.getElapsedTime() >= Tunables.maxTransferDelay ) { // AND we haven't waited our max time for transfer to happen, we don't have any balls, let's not waste our time
                         ballsRemaining = 0;
                         launchState = LaunchState.START;
                         break;
@@ -204,12 +205,13 @@ public class Robot { // create our global class for our robot
                         resetServos(); // reset our servos
                         launchState = LaunchState.START; // get ready for next one
                         ballsRemaining -= 1; // we've launched a ball
-                        isLaunching = false; // we are no longer launching
+                        launchStateTimer.resetTimer(); // reset our timer
+                        return true; // notify OpMode we are finished launching ball(s)
                     }
                     break;
             }
         }
-        return false; // we're still working on launching balls
+        return false;
     }
 
     public void updateBalls() { // checks our intake sensor and updates our balls
@@ -217,7 +219,7 @@ public class Robot { // create our global class for our robot
         if (!wasBallInIntake && ballInIntake) ballsRemaining++; // if we previously didn't have a ball in intake, and we do now, then increment our remaining balls
 
         if (intakeTimer.getElapsedTime() > Tunables.intakePollingRate) { // it's been a while since we last checked if intake is full
-           if (wasBallInIntake && ballInIntake) {
+           if (wasBallInIntake && ballInIntake && launchStateTimer.getElapsedTime() >= Tunables.intakeFeedTime) {
                intakeFull = true;
                ballsRemaining = 3; // hopefully fix desync
            } else {
