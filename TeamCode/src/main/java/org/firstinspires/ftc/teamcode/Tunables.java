@@ -28,9 +28,11 @@ public class Tunables { // this should hold all of our constants
 
     // distance sensor limits (better to undershoot rather than to overshoot)
     // these are all in millimeters
+    // if we have less than either of these, then we have a ball
     // TODO: tune these
-    public static double intakeOpen = 180; // amount of mm's the intake sensor should report if there is no ball
-    public static double transferOpen = 120; // amount of mm's that either of the transfer sensors (lower/upper, left/right) should report if there is no ball
+
+    public static double intakeOpen = 210; // amount of mm's the intake sensor should report if there is no ball
+    public static double transferOpen = 140; // amount of mm's that either of the transfer sensors (lower/upper, left/right) should report if there is no ball
 
     // delays
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
