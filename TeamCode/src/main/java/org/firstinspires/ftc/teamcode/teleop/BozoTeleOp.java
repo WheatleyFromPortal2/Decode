@@ -30,7 +30,6 @@ public abstract class BozoTeleOp extends OpMode {
     private boolean isIntakePowered = true; // start with intake powered
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
-    private boolean isLaunching = false; // whether we are launching balls, allows it to be cancelled
     double targetHeading;
     double launchVelocity; // target launch velocity in TPS
 
@@ -70,8 +69,7 @@ public abstract class BozoTeleOp extends OpMode {
         follower.update(); // update our Pedro Pathing follower
         robot.updateBalls(); // update how many balls we have in our intake
         boolean updateLaunchStatus = robot.updateLaunch(); // idk if running it directly with the && might cause it to be skipped
-        if (updateLaunchStatus && isLaunching) { // update our launch state machine and check if it's done
-            isLaunching = false; // if it's done, turn off isLaunching
+        if (updateLaunchStatus && robot.isLaunching()) { // update our launch state machine and check if it's done
             follower.startTeleOpDrive();
         }
 
@@ -82,21 +80,19 @@ public abstract class BozoTeleOp extends OpMode {
             automatedLaunch = !automatedLaunch;
         }
         if (gamepad1.yWasReleased()) {
-            if (isLaunching) { // if we release y while we're launching, it will cancel
+            if (robot.isLaunching()) { // if we release y while we're launching, it will cancel
                 robot.cancelLaunch();
                 follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
             } else { // if we're not already launching
                 follower.holdPoint(follower.getPose()); // hold our pose while we're launching
                 //automatedDrive = true; i don't this is necessary
                 robot.launchBalls(3); // launch 3 balls
-                isLaunching = true;
             }
         }
         if (gamepad1.rightBumperWasReleased()) {
             follower.holdPoint(follower.getPose()); // hold our pose while we're launching
             //automatedDrive = true; i don't this is necessary
             robot.launchBalls(1);
-            isLaunching = true;
         }
         if (gamepad1.startWasReleased()) { // if we press the start button, swap between robot and field centric
             isRobotCentric = !isRobotCentric;
@@ -155,7 +151,7 @@ public abstract class BozoTeleOp extends OpMode {
         if (isIntakePowered && !robot.isFull()) { // if we want to power our intake, and it isn't full
             if (!isIntakeReversed) robot.intake.setPower(1); // our intake is 0% or 100%
             else robot.intake.setPower(-1); // reverse intake to eject/unclog
-        } else if (isLaunching) {
+        } else if (robot.isLaunching()) {
             robot.intake.setPower(1); // always power intake while we're launching
         } else {
             robot.intake.setPower(0); // turn off intake if other conditions aren't fulfilled
@@ -164,6 +160,7 @@ public abstract class BozoTeleOp extends OpMode {
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         if (robot.isFull()) telemetryM.addLine("WARNING: INTAKE FULL!!!"); // alert driver intake is over current
+        telemetryM.addData("ballsRemaing", robot.getBallsRemaining());
         telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
