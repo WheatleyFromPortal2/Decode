@@ -67,7 +67,7 @@ make sure to connect every motor with the correct polarity, the reversing should
 | port/bus | device                 | location                    | verbatim name         |
 |:---------|:-----------------------|-----------------------------|:----------------------|
 | 0        | REV 2M Distance Sensor | intake                      | `intakeSensor`        |
-| 1        | REV 2M Distance Sensor | lower transfer              | `lowerTransferSensor` |
+| 1        | REV Color Sensor V3    | lower transfer              | `lowerTransferSensor` |
 | 2        | REV 2M Distance Sensor | left side of lower transfer | `upperTransferSensor` |
 | 3        | *unused*               | *unused*                    | *unused*              |
 
