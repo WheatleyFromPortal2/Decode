@@ -150,13 +150,13 @@ public class Robot { // create our global class for our robot
         return RPMToTPS(RPM); // return our TPS
     }
     public boolean isBallInIntake() { // return true if there is a ball reducing our measured distance
-        return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeOpen;
+        return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeSensorOpen;
     }
     public boolean isBallInLowerTransfer() { // return true if there is a ball reducing our measured distance
-        return lowerTransferSensor.getDistance(DistanceUnit.MM) < Tunables.transferOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
+        return lowerTransferSensor.getDistance(DistanceUnit.MM) < Tunables.lowerTransferSensorOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
     }
     public boolean isBallInUpperTransfer() { // return true if there is a ball reducing our measured distance
-        return upperTransferSensor.getDistance(DistanceUnit.MM) < Tunables.transferOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
+        return upperTransferSensor.getDistance(DistanceUnit.MM) < Tunables.upperTransferSensorOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
     }
 
     /** ball launching methods **/
@@ -215,16 +215,18 @@ public class Robot { // create our global class for our robot
     public void updateBalls() { // checks our intake sensor and updates our balls
         boolean ballInIntake = isBallInIntake();
         if (!wasBallInIntake && ballInIntake) ballsRemaining++; // if we previously didn't have a ball in intake, and we do now, then increment our remaining balls
-        wasBallInIntake = ballInIntake; // update our reading
 
-        if (intakeTimer.getElapsedTime() > Tunables.intakePollingRate) { // it's been a while since we last checked intake
+        if (intakeTimer.getElapsedTime() > Tunables.intakePollingRate) { // it's been a while since we last checked if intake is full
            if (wasBallInIntake && ballInIntake) {
                intakeFull = true;
+               ballsRemaining = 3; // hopefully fix desync
            } else {
                intakeFull = false;
            }
            intakeTimer.resetTimer(); // wait to check for a while
         }
+
+        wasBallInIntake = ballInIntake; // update our reading at the end
     }
 
     public int getBallsRemaining() { return ballsRemaining; }

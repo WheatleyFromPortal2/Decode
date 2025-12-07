@@ -31,8 +31,9 @@ public class Tunables { // this should hold all of our constants
     // if we have less than either of these, then we have a ball
     // TODO: tune these
 
-    public static double intakeOpen = 210; // amount of mm's the intake sensor should report if there is no ball
-    public static double transferOpen = 140; // amount of mm's that either of the transfer sensors (lower/upper, left/right) should report if there is no ball
+    public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
+    public static double lowerTransferSensorOpen = 20; // needs to be different than upper transfer because color sensor distance measurements don't exceed 30mm :(
+    public static double upperTransferSensorOpen = 140; // amount of mm's that upper transfer sensor  should report if there is no ball
 
     // delays
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
@@ -40,13 +41,13 @@ public class Tunables { // this should hold all of our constants
     public static int firstInterLaunchWait = 75; // time to wait between 1st and 2nd launches
     public static int lastInterLaunchWait = 200; // time to wait between the 2nd and last launch
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
+    public static int intakePollingRate = 250; // how many millis to check intake is full
 
     /** TeleOp tunables (used in BozoTeleOp.java) **/
 
     public static double turnRateMultiplier = 0.75; // always have our turns 75% speed
     public static int adjustRPM = 50; // driver increments/decrements by adjustRPM
     public static double initialLaunchRPM = 2300; // maybe 2500; from crease
-    public static int intakePollingRate = 50; // test if intake is stalled every 50millis
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
     public static boolean holdEnd = true; // whether to hold end while shooting
     public static double launchTurnMargin = Math.toRadians(5); // margin we want to get our turn to for launch

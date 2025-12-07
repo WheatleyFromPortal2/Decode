@@ -31,8 +31,9 @@ public class SensorTest extends LinearOpMode {
 
             telemetryM.addLine(""); // spacing
             telemetryM.debug("---sensor endpoints---");
-            telemetryM.addData("intakeOpen", Tunables.intakeOpen);
-            telemetryM.addData("transferOpen", Tunables.transferOpen);
+            telemetryM.addData("intakeSensorOpen", Tunables.intakeSensorOpen);
+            telemetryM.addData("lowerTransferSensorOpen", Tunables.lowerTransferSensorOpen);
+            telemetryM.addData("upperTransferSensorOpen", Tunables.upperTransferSensorOpen);
 
             telemetryM.update(telemetry); // update our telemetry
             idle();
