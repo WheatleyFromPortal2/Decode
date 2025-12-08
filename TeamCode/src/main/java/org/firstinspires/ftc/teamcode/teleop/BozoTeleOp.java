@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -210,13 +212,13 @@ public abstract class BozoTeleOp extends OpMode {
         robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
 
         targetHeading = robot.getGoalHeading(follower.getPose(), goalPose);
-        /*Pose holdPose = follower.getPose().setHeading(targetHeading);
+        Pose holdPose = follower.getPose().setHeading(targetHeading);
         PathChain turnPath = follower.pathBuilder()
                 .addPath(new BezierLine(follower.getPose(), holdPose))
                 .setLinearHeadingInterpolation(follower.getHeading(), targetHeading) // we want to turn from our current heading to our target heading
                 .build();
-        follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end */
-        follower.turnTo(targetHeading); // see if this works
+        follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end
+        //follower.turnTo(targetHeading); // see if this works
         //follower.holdPoint(holdPose); // hopefully this doesn't interfere
         automatedDrive = true; // we're driving automatically now
         automatedLaunch = true; // make sure our launch is automated while we're turning to the goal

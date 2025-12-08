@@ -2,6 +2,7 @@
 package org.firstinspires.ftc.teamcode;
 
 // hardware imports
+
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
@@ -12,6 +13,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 // unit imports
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeRadians;
 
 // Pedro Pathing imports
 import com.pedropathing.geometry.Pose;
@@ -91,22 +93,27 @@ public class Robot { // create our global class for our robot
         launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew);
     }
     public double getDstFromGoal(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
-        return currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
+        double inchesD = currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
+        return inchesD * 0.0254; // convert to meters
     }
 
     public double getGoalHeading(Pose currentPosition, Pose goalPose) { // return bot heading to point towards goal in radians
         // TODO: fix this only being able to turn counterclockwise
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
-        return Math.atan2(yDst, xDst); // need atan2 to account for negatives
+        double desiredHeading = Math.atan2(yDst, xDst); // need atan2 to account for negatives
+        double currentHeading = normalizeRadians(currentPosition.getHeading());
+        return normalizeRadians(desiredHeading - currentHeading) + currentHeading;
     }
 
     public double getTangentialSpeed(Pose currentPosition, Pose goalPose) { // returns needed tangential speed to launch ball to the goal
         double d = getDstFromGoal(currentPosition, goalPose);
-        double numerator = 19.62 * Math.pow(d, 2);
-        double denominator = (Math.pow(3, 0.5) * d) - 0.8;
-        double beforeMagicNumber =  Math.pow(numerator / denominator, 0.5); // thank u rahul
-        return beforeMagicNumber * Tunables.magicNumber; // fix with magic number
+        double theta = 60;
+        double h = 0.83;
+        double numerator = 9.8*d*d;
+        double denom = (Math.pow(Math.cos(Math.toRadians(theta)), 2)) * (d * Math.tan(Math.toRadians(theta)) - h);
+        double sqrt = Math.sqrt(numerator / denom);
+        return sqrt * Tunables.magicNumber;
     }
 
     public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) { // given positions, use our functions to set our launch speed
@@ -186,13 +193,13 @@ public class Robot { // create our global class for our robot
                     launchState = LaunchState.OPENING_UPPER_TRANSFER;
                     break;
                 case OPENING_UPPER_TRANSFER:
-                    if (!isBallInLowerTransfer() // if we don't have a ball in lower transfer
+                    /*if (!isBallInLowerTransfer() // if we don't have a ball in lower transfer
                             && !isBallInIntake() // AND we don't have a ball waiting in intake
                             && launchStateTimer.getElapsedTime() >= Tunables.maxTransferDelay ) { // AND we haven't waited our max time for transfer to happen, we don't have any balls, let's not waste our time
                         ballsRemaining = 0;
                         launchState = LaunchState.START;
                         break;
-                    }
+                    }*/
                     if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) { // we've given it openDelay millis to open
                         lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
                         launchStateTimer.resetTimer();
@@ -206,7 +213,6 @@ public class Robot { // create our global class for our robot
                         launchState = LaunchState.START; // get ready for next one
                         ballsRemaining -= 1; // we've launched a ball
                         launchStateTimer.resetTimer(); // reset our timer
-                        return true; // notify OpMode we are finished launching ball(s)
                     }
                     break;
             }
