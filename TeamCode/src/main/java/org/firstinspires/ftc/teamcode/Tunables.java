@@ -13,7 +13,7 @@ public class Tunables { // this should hold all of our constants
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
     public static int intakeStallVelocity = 5; // ~5 RPM, velocity lower than this means we think we have a stalled intake
     public static double intakeOvercurrent = 6; // amount of amps that we think means a stalled intake
-    public static double magicNumber = (double) 0.29; // magic number for auto RPM
+    public static double magicNumber = (double) 1 / 15; // magic number for auto RPM
 
     // PIDF coefficients
     public static double launchP = 100; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
