@@ -100,10 +100,9 @@ public class Robot { // create our global class for our robot
     }
 
     public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
-        double h = 0.83
-
-
-        return TPS;
+        double numerator = tangentialSpeed - 0.269926;
+        double RPM = (numerator/0.000636795);
+        return RPMToTPS(RPM); // return our TPS
     }
 
     public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) {
