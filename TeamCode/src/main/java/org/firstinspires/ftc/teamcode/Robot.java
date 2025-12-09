@@ -217,7 +217,7 @@ public class Robot { // create our global class for our robot
         }
         return false;
     }
-
+    /*
     public void updateBalls() { // checks our intake sensor and updates our balls
         boolean ballInIntake = isBallInIntake();
         if (!wasBallInIntake && ballInIntake) ballsRemaining++; // if we previously didn't have a ball in intake, and we do now, then increment our remaining balls
@@ -233,7 +233,7 @@ public class Robot { // create our global class for our robot
         }
 
         wasBallInIntake = ballInIntake; // update our reading at the end
-    }
+    } */
 
     public int getBallsRemaining() { return ballsRemaining; }
     public boolean isLaunching() { return isLaunching; }
