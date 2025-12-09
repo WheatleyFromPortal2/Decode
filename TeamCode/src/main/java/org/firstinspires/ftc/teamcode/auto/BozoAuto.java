@@ -291,13 +291,15 @@ public abstract class BozoAuto extends OpMode {
         buildPaths(); // this will create our paths from our predefined variables
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
-        telemetryM.addData("init time (millis)", loopTimer.getElapsedTime());
-        telemetryM.update();
+        telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
+        telemetryM.update(telemetry);
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
+    /* not needed
     @Override
     public void init_loop() {}
+    */
 
     /** This method is called once at the start of the OpMode.
      * It runs all the setup actions, including building paths and starting the path system **/
@@ -312,5 +314,7 @@ public abstract class BozoAuto extends OpMode {
 
     /** We do not use this because everything should automatically disable **/
     @Override
-    public void stop() {}
+    public void stop() {
+        robot.resetServos(); // return servos to starting position
+    }
 }
