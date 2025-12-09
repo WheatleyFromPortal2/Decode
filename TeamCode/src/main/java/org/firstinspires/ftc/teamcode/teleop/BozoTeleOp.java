@@ -69,7 +69,7 @@ public abstract class BozoTeleOp extends OpMode {
     public void loop() {
         loopTimer.resetTimer();
         follower.update(); // update our Pedro Pathing follower
-        robot.updateBalls(); // update how many balls we have in our intake
+        //robot.updateBalls(); // update how many balls we have in our intake
         boolean updateLaunchStatus = robot.updateLaunch(); // idk if running it directly with the && might cause it to be skipped
         if (updateLaunchStatus && !follower.isTeleopDrive()) { // check if we're done with holding position
             follower.startTeleOpDrive();
@@ -213,13 +213,13 @@ public abstract class BozoTeleOp extends OpMode {
         robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
 
         targetHeading = robot.getGoalHeading(follower.getPose(), goalPose);
-        Pose holdPose = follower.getPose().setHeading(targetHeading);
+        /*Pose holdPose = follower.getPose().setHeading(targetHeading);
         PathChain turnPath = follower.pathBuilder()
                 .addPath(new BezierLine(follower.getPose(), holdPose))
                 .setLinearHeadingInterpolation(follower.getHeading(), targetHeading) // we want to turn from our current heading to our target heading
                 .build();
-        follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end
-        //follower.turnTo(targetHeading); // see if this works
+        follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end */
+        follower.turnTo(targetHeading); // see if this works
         //follower.holdPoint(holdPose); // hopefully this doesn't interfere
         automatedDrive = true; // we're driving automatically now
         automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
