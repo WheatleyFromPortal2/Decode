@@ -94,7 +94,8 @@ public class Robot { // create our global class for our robot
     }
     public double getDstFromGoal(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
         double inchesD = currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
-        return inchesD * 0.0254; // convert to meters
+        return inchesD;
+        //return inchesD * 0.0254; // convert to meters
     }
 
     public double getGoalHeading(Pose currentPosition, Pose goalPose) { // return bot heading to point towards goal in radians
