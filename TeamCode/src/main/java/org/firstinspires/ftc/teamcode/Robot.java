@@ -39,6 +39,13 @@ public class Robot { // create our global class for our robot
         WAITING_FOR_EXIT,
     }
 
+    public enum Pattern { // the possible patterns for the balls
+        GPP,
+        PGP,
+        PPG,
+        UNKNOWN
+    }
+
     /** only these variables should change during runtime **/
     LaunchState launchState = LaunchState.START; // set our launch state to start
 
