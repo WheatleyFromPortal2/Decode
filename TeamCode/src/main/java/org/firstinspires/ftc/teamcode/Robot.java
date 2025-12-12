@@ -109,10 +109,9 @@ public class Robot { // create our global class for our robot
 
     public double getTangentialSpeed(Pose currentPosition, Pose goalPose) { // returns needed tangential speed to launch ball to the goal
         double d = getDstFromGoal(currentPosition, goalPose);
-        double numerator = 19.62 * Math.pow(d, 2);
-        double denominator = (Math.pow(3, 0.5) * d) - 0.8;
-        double beforeMagicNumber =  Math.pow(numerator / denominator, 0.5); // thank u rahul
-        return beforeMagicNumber * Tunables.magicNumber; // fix with magic number
+        double fraction = (4.9)/((d * 1.73205) - 0.83);
+        double beforeMagicNumber = Math.pow(fraction, 0.5) * 2 * d;
+        return tunables.magicNumber * beforeMagicNumber;
     }
 
     public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) { // given positions, use our functions to set our launch speed
