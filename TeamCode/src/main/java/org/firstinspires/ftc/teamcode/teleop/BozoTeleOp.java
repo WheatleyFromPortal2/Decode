@@ -4,11 +4,6 @@ import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes;
-import com.qualcomm.hardware.limelightvision.LLStatus;
-import com.qualcomm.hardware.limelightvision.Limelight3A;
-
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
