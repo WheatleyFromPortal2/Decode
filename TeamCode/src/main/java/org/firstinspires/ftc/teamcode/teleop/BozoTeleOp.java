@@ -57,6 +57,7 @@ public abstract class BozoTeleOp extends OpMode {
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         launchVelocity = robot.RPMToTPS(Tunables.initialLaunchRPM); // convert from RPM->TPS, starting point
+        vision.start(); // start limelight
         telemetryM.debug("init time: " + loopTimer.getElapsedTime()); // tell how long our init tool
         telemetryM.update(telemetry);
     }
