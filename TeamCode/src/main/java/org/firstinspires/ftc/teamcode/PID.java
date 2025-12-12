@@ -3,7 +3,7 @@
 
 package org.firstinspires.ftc.teamcode;
 
-public class PIDF {
+public class PID {
     // PIDF coefficients
     public double kP, kI, kD, kF;
 
@@ -12,11 +12,16 @@ public class PIDF {
     private double lastError = 0;
     private double lastTime = 0;
 
-    public PIDF(double kP, double kI, double kD, double kF) {
+    public PID(double kP, double kI, double kD) {
         this.kP = kP;
         this.kI = kI;
         this.kD = kD;
-        this.kF = kF;
+    }
+
+    public void set(double kP, double kI, double kD) { // update coefficients
+        this.kP = kP;
+        this.kI = kI;
+        this.kD = kD;
     }
 
     public void reset() {
@@ -25,11 +30,9 @@ public class PIDF {
         lastTime = 0;
     }
 
-    public double calc(double target, double current) {
+    public double calc(double error) {
         double currentTime = System.nanoTime() / 1e9;
         double deltaTime = (lastTime == 0) ? 0 : (currentTime - lastTime);
-
-        double error = target - current;
 
         // Proportional
         double P = kP * error;
@@ -44,14 +47,11 @@ public class PIDF {
         double derivative = (deltaTime > 0) ? (error - lastError) / deltaTime : 0;
         double D = kD * derivative;
 
-        // Feedforward
-        double F = kF * target;
-
         // Store for next loop
         lastError = error;
         lastTime = currentTime;
 
         // Total output
-        return P + I + D + F;
+        return P + I + D;
     }
 }
