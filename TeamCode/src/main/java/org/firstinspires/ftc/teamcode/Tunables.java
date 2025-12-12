@@ -98,38 +98,8 @@ public class Tunables { // this should hold all of our constants
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
 
     /** Vision tunables (used in Vision.java) **/
-    // processor variables
-    public static Position cameraPosition = new Position(
-            DistanceUnit.MM, // we use MM in cad, so this just make sense
-            140, // taken from CAD
-            0, // our camera should be centered
-            233, // taken from CAD
-            0 // this has no acquisition time
-    );
-    public static YawPitchRollAngles cameraOrientation = new YawPitchRollAngles(
-            AngleUnit.DEGREES,
-            0,
-            10, // TODO: calibrate this
-            0,
-            0 // no acquisition time
-    );
-    public static int decimation = 2; // TODO: tune this
-
-    // logic variables
-    public static int visionUpdateInterval = 50; // update vision every x millis
-    public static int aprilTagUpdateInterval = 20; // update apriltags from vision every x millis
-    public static double maxPoseJumpDistance = 3.0; // only ever change our position this many inches based off of vision data
-    public static double maxTagDisagreement = 2.0; // tags should only disagree by 2 inches
-    public static double maxHeadingJump = Math.toRadians(15); // only ever change our heading by this many radians based off of vision data
-    // left corner tag information
-
-    // testing variables
-    public static boolean drawAxis = true;
-    public static boolean drawCubeProjections = true;
-    public static boolean drawTagOutline = true;
-    public static boolean drawTagID = true;
-    public static boolean enableLiveView = true;
-    public static Size cameraResolution = new Size(640, 480);
-    public static VisionPortal.StreamFormat streamFormat = VisionPortal.StreamFormat.YUY2; // MPJEG is faster if we don't have enough bandwidth
-
+    public static double turnP = 1;
+    public static double turnI = 0;
+    public static double turnD = 0;
+    public static double turnF = 0;
 }
