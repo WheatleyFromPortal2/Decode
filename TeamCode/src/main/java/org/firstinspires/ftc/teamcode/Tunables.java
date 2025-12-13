@@ -13,7 +13,7 @@ public class Tunables { // this should hold all of our constants
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
     public static int intakeStallVelocity = 5; // ~5 RPM, velocity lower than this means we think we have a stalled intake
     public static double intakeOvercurrent = 6; // amount of amps that we think means a stalled intake
-    public static double magicNumber = (double) 1 / 15; // magic number for auto RPM
+    public static double magicNumber = 1; // magic number for auto RPM
 
     // PIDF coefficients
     public static double launchP = 100; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
@@ -83,7 +83,7 @@ public class Tunables { // this should hold all of our constants
 
     /** Auto tunables (used in BozoAuto.java) **/
 
-    public static double scoreRPM = 2400; // RPM to set for launching (stolen from teleop)
+    public static double scoreRPM = 2300; // RPM to set for launching (stolen from teleop)
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static int beginningLaunchDelay =  100; // time to wait before launching first ball
