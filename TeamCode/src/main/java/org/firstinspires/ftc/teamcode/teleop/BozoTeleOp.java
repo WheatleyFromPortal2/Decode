@@ -27,7 +27,7 @@ public abstract class BozoTeleOp extends OpMode {
     private Timer intakeTimer; // used for polling whether intake is stalled
     private Timer loopTimer; // measures the speed of our loop
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
-    private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
+    private boolean automatedLaunch = false; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
     private boolean isIntakePowered = true; // start with intake powered
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
@@ -128,7 +128,7 @@ public abstract class BozoTeleOp extends OpMode {
                         false // true = robot centric; false = field centric
                 );
             }
-            if (gamepad1.leftBumperWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
+            //if (gamepad1.leftBumperWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
         } else { // we're in automated drive
             if (gamepad1.leftBumperWasReleased() // if the user presses the left bumper again, cancel
                     || !follower.isTurning() // if the follower is done, cancel
@@ -183,6 +183,7 @@ public abstract class BozoTeleOp extends OpMode {
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         if (robot.isFull()) telemetryM.addLine("WARNING: INTAKE FULL!!!"); // alert driver intake is over current
+        telemetryM.addData("d", robot.getDstFromGoal(follower.getPose(), getGoalPose()));
         telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
         // TODO: convey ballsRemaining with haptic feedback
         telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
