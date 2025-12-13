@@ -21,20 +21,20 @@ driver station config name: `parallel plate v0`
 
 ## control hub
 
-### I2C Bus 0
-| port | device                | verbatim name |
-|:-----|:----------------------|:--------------|
-| 0    | BN0055                | `imu`         |
-| 1    | Pinpoint Odo Computer | `odo`         |
+### I²C ports/buses
+| port/bus | device                 | location                     | verbatim name          |
+|:---------|:-----------------------|------------------------------|:-----------------------|
+| 1        | Pinpoint Odo Computer  | left side under control hub  | `odo`                  |
 
-(the `BN0055` is internal so you don't need to *physically* connect it)
-make sure you set the device specifically to `REV internal IMU (BN0055)`, control hubs <2022 have older, less accurate and different ones that we don't want to use
+having sensors 1/2 on the left/right doesn't matter because we are just comparing values
 
 ### USB port
 
-| port | device        | verbatim name |
-|:-----|:--------------|:--------------|
-| USB  | Logitech C290 | `camera`      |
+| port | device       | verbatim name |
+|:-----|:-------------|:--------------|
+| USB  | Limelight 3A | `limelight`   |
+
+the Limelight will show up as `Ethernet Device` under the USB devices, make sure to rename it to the verbatim name
 
 ### DC motors
 
@@ -59,8 +59,20 @@ make sure to connect every motor with the correct polarity, the reversing should
 | 5           | none            |
 
 ## expansion hub
+
 ### connection method (ports matter)
 ![expansion hub connection](doc/media/expansionHubConnection.png)
+
+### I2C ports/buses
+| port/bus | device                 | location                    | verbatim name         |
+|:---------|:-----------------------|-----------------------------|:----------------------|
+| 0        | REV 2M Distance Sensor | intake                      | `intakeSensor`        |
+| 1        | REV Color Sensor V3    | lower transfer              | `lowerTransferSensor` |
+| 2        | REV 2M Distance Sensor | left side of lower transfer | `upperTransferSensor` |
+| 3        | *unused*               | *unused*                    | *unused*              |
+
+having sensors 1/2 on the left/right doesn't matter because we are just comparing values
+
 ### DC motors
 
 | motor port | verbatim name | encoder? |

@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.pedropathing.geometry.BezierLine;
+import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -14,8 +16,6 @@ import com.bylazar.telemetry.TelemetryManager;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 
 @Configurable
@@ -27,13 +27,11 @@ public abstract class BozoTeleOp extends OpMode {
     private Timer intakeTimer; // used for polling whether intake is stalled
     private Timer loopTimer; // measures the speed of our loop
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
-    private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
+    private boolean automatedLaunch = false; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
     private boolean isIntakePowered = true; // start with intake powered
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
-    private boolean isIntakeStalled = false;
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
-    private boolean isLaunching = false; // whether we are launching balls, allows it to be cancelled
     double targetHeading;
     double launchVelocity; // target launch velocity in TPS
 
@@ -64,16 +62,16 @@ public abstract class BozoTeleOp extends OpMode {
 
     public void start() {
         follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
-        robot.initServos(); // set servos to starting state
+        robot.resetServos(); // set servos to starting state
     }
 
     @Override
     public void loop() {
         loopTimer.resetTimer();
         follower.update(); // update our Pedro Pathing follower
+        //robot.updateBalls(); // update how many balls we have in our intake
         boolean updateLaunchStatus = robot.updateLaunch(); // idk if running it directly with the && might cause it to be skipped
-        if (updateLaunchStatus && isLaunching) { // update our launch state machine and check if it's done
-            isLaunching = false; // if it's done, turn off isLaunching
+        if (updateLaunchStatus && !follower.isTeleopDrive()) { // check if we're done with holding position
             follower.startTeleOpDrive();
         }
 
@@ -84,21 +82,19 @@ public abstract class BozoTeleOp extends OpMode {
             automatedLaunch = !automatedLaunch;
         }
         if (gamepad1.yWasReleased()) {
-            if (isLaunching) { // if we release y while we're launching, it will cancel
+            if (robot.isLaunching()) { // if we release y while we're launching, it will cancel
                 robot.cancelLaunch();
                 follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
             } else { // if we're not already launching
                 follower.holdPoint(follower.getPose()); // hold our pose while we're launching
                 //automatedDrive = true; i don't this is necessary
                 robot.launchBalls(3); // launch 3 balls
-                isLaunching = true;
             }
         }
         if (gamepad1.rightBumperWasReleased()) {
             follower.holdPoint(follower.getPose()); // hold our pose while we're launching
             //automatedDrive = true; i don't this is necessary
             robot.launchBalls(1);
-            isLaunching = true;
         }
         if (gamepad1.startWasReleased()) { // if we press the start button, swap between robot and field centric
             isRobotCentric = !isRobotCentric;
@@ -132,7 +128,7 @@ public abstract class BozoTeleOp extends OpMode {
                         false // true = robot centric; false = field centric
                 );
             }
-            if (gamepad1.leftBumperWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
+            //if (gamepad1.leftBumperWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
         } else { // we're in automated drive
             if (gamepad1.leftBumperWasReleased() // if the user presses the left bumper again, cancel
                     || !follower.isTurning() // if the follower is done, cancel
@@ -154,28 +150,47 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         // intake control
-        if (isIntakePowered && !isIntakeStalled) {
-            if (!isIntakeReversed) robot.intake.setPower(1); // our intake is 0% or 100%
-            else robot.intake.setPower(-1); // reverse intake to eject/unclog
-        } else robot.intake.setPower(0);
-
-        if (robot.isIntakeStalled()) {
-            isIntakeStalled = true;
-            intakeTimer.resetTimer();
-            robot.intake.setPower(0); // let's save our voltage
+        if (isIntakePowered) { // if we want to power our intake, and it isn't full
+            // our intake is 0% or 100%
+            if (!isIntakeReversed) robot.intake.setPower(1); // only power intake normal direction if we aren't full
+            //if (!isIntakeReversed && !robot.isFull()) robot.intake.setPower(1); // only power intake normal direction if we aren't full
+            else if (isIntakeReversed) robot.intake.setPower(-1); // reverse intake to eject/unclog
+        } else if (robot.isLaunching()) {
+            robot.intake.setPower(1); // always power intake while we're launching
+        } else {
+            robot.intake.setPower(0); // turn off intake if other conditions aren't fulfilled
         }
+        /*
+        switch (robot.getBallsRemaining()) { // haptic feedback
+            case 0:
 
-        if (isIntakeStalled && intakeTimer.getElapsedTime() >= Tunables.intakePollingRate) {
-            isIntakeStalled = false; // let's try this again
-        }
+                break;
+            case 1:
+
+                break;
+            case 2:
+
+                break;
+
+            case 3:
+
+                break;
+
+            default:
+                break;
+        } */
 
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
-        if (isIntakeStalled) telemetryM.addLine("WARNING: INTAKE STALLED!!!"); // alert driver intake is over current
+        if (robot.isFull()) telemetryM.addLine("WARNING: INTAKE FULL!!!"); // alert driver intake is over current
+        telemetryM.addData("d", robot.getDstFromGoal(follower.getPose(), getGoalPose()));
+        telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
+        // TODO: convey ballsRemaining with haptic feedback
         telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
         telemetryM.debug("automated drive?: " + automatedDrive);
+        telemetryM.debug("TeleOp drive?: " + follower.isTeleopDrive());
         telemetryM.debug("automated launch?: " + automatedLaunch);
         telemetryM.debug("follower busy?: " + follower.isBusy());
         telemetryM.debug("desired launch RPM: " + robot.TPSToRPM(robot.neededLaunchVelocity)); // make sure to convert from TPS->RPM
