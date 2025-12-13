@@ -13,7 +13,7 @@ public class Tunables { // this should hold all of our constants
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
     public static int intakeStallVelocity = 5; // ~5 RPM, velocity lower than this means we think we have a stalled intake
     public static double intakeOvercurrent = 6; // amount of amps that we think means a stalled intake
-    public static double magicNumber = 1; // magic number for auto RPM
+    public static double magicNumber = 1/2; // magic number for auto RPM
 
     // PIDF coefficients
     public static double launchP = 100; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
@@ -38,7 +38,7 @@ public class Tunables { // this should hold all of our constants
 
     // delays
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
-    public static int maxTransferDelay = 100; // maximum time to wait for ball to enter lower transfer
+    public static int maxTransferDelay = 60; // maximum time to wait for ball to enter lower transfer
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
     public static int firstInterLaunchWait = 75; // time to wait between 1st and 2nd launches
     public static int lastInterLaunchWait = 200; // time to wait between the 2nd and last launch
@@ -76,7 +76,7 @@ public class Tunables { // this should hold all of our constants
 
     public static double turnRateMultiplier = 0.75; // always have our turns 75% speed
     public static int adjustRPM = 50; // driver increments/decrements by adjustRPM
-    public static double initialLaunchRPM = 2300; // maybe 2500; from crease
+    public static double initialLaunchRPM = 2350; // 2400 is a little too much
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
     public static boolean holdEnd = true; // whether to hold end while shooting
     public static double launchTurnMargin = Math.toRadians(5); // margin we want to get our turn to for launch
@@ -86,6 +86,6 @@ public class Tunables { // this should hold all of our constants
     public static double scoreRPM = 2300; // RPM to set for launching (stolen from teleop)
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
-    public static int beginningLaunchDelay =  100; // time to wait before launching first ball
+    public static int beginningLaunchDelay =  200; // time to wait before launching first ball
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
 }
