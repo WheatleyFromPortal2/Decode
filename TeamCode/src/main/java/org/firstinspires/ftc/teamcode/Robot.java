@@ -70,7 +70,7 @@ public class Robot { // create our global class for our robot
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
-        lowerTransferSensor = hw.get(RevColorSensorV3.class, "lowerTransferSensor");
+        //lowerTransferSensor = hw.get(RevColorSensorV3.class, "lowerTransferSensor");
         upperTransferSensor = hw.get(Rev2mDistanceSensor.class, "upperTransferSensor");
 
         // Change PIDF coefficients using methods included with DcMotorEx class.
@@ -94,8 +94,7 @@ public class Robot { // create our global class for our robot
     }
     public double getDstFromGoal(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
         double inchesD = currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
-        return inchesD;
-        //return inchesD * 0.0254; // convert to meters
+        return inchesD * 0.0254; // convert to meters
     }
 
     public double getGoalHeading(Pose currentPosition, Pose goalPose) { // return bot heading to point towards goal in radians
@@ -110,8 +109,8 @@ public class Robot { // create our global class for our robot
     public double getTangentialSpeed(Pose currentPosition, Pose goalPose) { // returns needed tangential speed to launch ball to the goal
         double d = getDstFromGoal(currentPosition, goalPose);
         double fraction = (4.9)/((d * 1.73205) - 0.83);
-        double beforeMagicNumber = Math.pow(fraction, 0.5) * 2 * d;
-        return tunables.magicNumber * beforeMagicNumber;
+        double beforeMagicNumber = Math.pow(fraction, 0.5)* 2 * d;
+        return beforeMagicNumber * Tunables.magicNumber;
     }
 
     public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) { // given positions, use our functions to set our launch speed
