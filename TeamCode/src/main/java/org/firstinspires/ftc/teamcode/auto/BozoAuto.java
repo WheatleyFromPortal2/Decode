@@ -15,8 +15,6 @@ import org.firstinspires.ftc.teamcode.Tunables;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Robot;
 
-
-//@Autonomous(name = "BozoAuto", group = "Auto") // this is the base file which will just be extended so we don't want this OpMode to be directly run
 public abstract class BozoAuto extends OpMode {
     protected AutoConfig config;
     protected abstract AutoConfig buildConfig();
@@ -135,7 +133,7 @@ public abstract class BozoAuto extends OpMode {
         // this path goes from the score point to the beginning of the 4th set of balls
         startPickup4 = follower.pathBuilder()
                 .addPath(new BezierCurve(config.scorePose, config.pickup4StartPose))
-                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup4StartPose.getHeading())
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup4StartPose.getHeading(), Tunables.startPickup4EndTime) // we need to make sure we turn before we reach the end of our path
                 .build();
 
         // this path picks up the 4th set of balls
@@ -147,7 +145,7 @@ public abstract class BozoAuto extends OpMode {
         // this path goes from the endpoint of the ball pickup to our score position
         scorePickup4 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup4EndPose, config.scorePose))
-                .setLinearHeadingInterpolation(config.pickup4EndPose.getHeading(), config.scorePose.getHeading())
+                .setLinearHeadingInterpolation(config.pickup4EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
                 .build();
 
         // this path goes form our score point to our ending position
@@ -158,7 +156,7 @@ public abstract class BozoAuto extends OpMode {
     }
 
     // isn't as flexible as https://state-factory.gitbook.io/state-factory, but it should be good enough for now
-    public void autonomousPathUpdate() throws InterruptedException {
+    public void autonomousPathUpdate() {
             /* You could check for
             - Follower State: "if(!follower.isBusy()) {}"
             - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
@@ -175,6 +173,7 @@ public abstract class BozoAuto extends OpMode {
                         && robot.isLaunchWithinMargin() // check if our launch velocity is within our margin
                         && follower.getPose().roughlyEquals(config.scorePose, Tunables.launchDistanceMargin)) { // check if we're holding position close enough to where we want to shoot
                     robot.intake.setPower(1); // turn on intake
+                    robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
                     setPathState(State.LAUNCH);
                 }
                 break;
@@ -225,7 +224,7 @@ public abstract class BozoAuto extends OpMode {
                     setPathState(State.RELOAD); // now that we're reloaded, let's go to launch
                 }
                 break;
-            case RELOAD: // grab the balls in a straight line
+            case RELOAD: // grab the balls in a straight lineA
                 if(!follower.isBusy()) { // we're done reloading balls
                     robot.intake.setPower(0); // disable intake to save power
                     if (ballTripletsRemaining == 3) {
@@ -244,8 +243,12 @@ public abstract class BozoAuto extends OpMode {
                             follower.followPath(scorePickup4, true);
                             break;
                     }
-                    robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
                     setPathState(State.TRAVEL_TO_LAUNCH);
+                } else if (ballTripletsRemaining == 1 && ( stateTimer.getElapsedTime() >= Tunables.maxGrab4Time || opModeTimer.getElapsedTimeSeconds() >= 25)) {
+                    // if we have been trying to pick up balls for long enough, or we only have 5s left, let's just go to score
+                    follower.followPath(scorePickup4, true);
+                    setPathState(State.TRAVEL_TO_LAUNCH);
+                    break;
                 }
                 break;
             case GO_TO_CLEAR:
@@ -289,22 +292,18 @@ public abstract class BozoAuto extends OpMode {
 
         Robot.switchoverPose = follower.getPose(); // get our switchover pose ready for TeleOp (this may drift if we stop the OpMode mid-motion)
 
-        try {
-            autonomousPathUpdate();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        autonomousPathUpdate();
 
         // Feedback to Driver Hub for debugging
-        telemetryM.addData("balls remaining", robot.getBallsRemaining());
         telemetryM.debug("path state: " + state);
+        telemetryM.addData("balls remaining", robot.getBallsRemaining());
         telemetryM.addData("is follower busy", follower.isBusy());
         telemetryM.addData("ball triplets remaining", ballTripletsRemaining);
         telemetryM.addData("desired launch RPM", Tunables.scoreRPM);
         telemetryM.addData("launch RPM", robot.getLaunchRPM());
-        telemetryM.debug("x", follower.getPose().getX());
-        telemetryM.debug("y", follower.getPose().getY());
-        telemetryM.debug("heading", follower.getPose().getHeading());
+        telemetryM.addData("x", follower.getPose().getX());
+        telemetryM.addData("y", follower.getPose().getY());
+        telemetryM.addData("heading", follower.getPose().getHeading());
         telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
         telemetryM.update(telemetry); // update telemetry
     }
@@ -319,19 +318,27 @@ public abstract class BozoAuto extends OpMode {
         opModeTimer = new Timer();
         opModeTimer.resetTimer();
 
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
         robot = Robot.getInstance(hardwareMap); // create our robot class
+        robot.resetServos(); // get servos ready
+
+        telemetryM.debug("creating follower... (this may take a while)");
+        telemetryM.update(telemetry);
 
         follower = Constants.createFollower(hardwareMap);
         startPose = getStartPose(); // the getStartPose method will be included in different classes for start points
+
+        telemetryM.debug("building paths... (this may take a while)");
+        telemetryM.update(telemetry);
         buildPaths(); // this will create our paths from our predefined variables
+
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
         telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
         telemetryM.update(telemetry);
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
-    /* not needed
+    /* could be used for detecting april tag pattern before we even begin
     @Override
     public void init_loop() {}
     */
@@ -351,6 +358,7 @@ public abstract class BozoAuto extends OpMode {
     // everything else should automatically disable, but we should probably reset our servos just in case
     @Override
     public void stop() {
+        Robot.switchoverPose = follower.getPose(); // try to prevent drift
         robot.resetServos(); // return servos to starting position
     }
 }

@@ -87,6 +87,8 @@ public class Tunables { // this should hold all of our constants
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double clearEndTime = 0.1; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
+    public static double startPickup4EndTime = 0.2; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
-    public static double clearTime = 1000; // amount of ms to wait for clear
+    public static double clearTime = 1500; // amount of ms to wait for clear
+    public static double maxGrab4Time = 1500; // grab4 is unreliable, so we need to set a max time
 }
