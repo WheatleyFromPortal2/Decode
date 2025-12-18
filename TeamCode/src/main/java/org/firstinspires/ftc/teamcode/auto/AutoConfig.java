@@ -4,18 +4,19 @@ package org.firstinspires.ftc.teamcode.auto;
 import com.pedropathing.geometry.Pose;
 
 public class AutoConfig {
-    public Pose goalPose;
-    public Pose scorePose;
-    public Pose scoreIntermediatePose;
-    public Pose pickup1StartPose;
-    public Pose pickup1EndPose;
-    public Pose pickup2StartPose;
-    public Pose pickup2EndPose;
-    public Pose pickup3StartPose;
-    public Pose pickup3EndPose;
-    public Pose pickup4StartPose;
-    public Pose pickup4EndPose;
-    public Pose endPose;
+    public Pose goalPose,
+    scorePose,
+    scoreIntermediatePose,
+    pickup1StartPose,
+    pickup1EndPose,
+    pickup2StartPose,
+    pickup2EndPose,
+    pickup3StartPose,
+    pickup3EndPose,
+    pickup4StartPose,
+    pickup4EndPose,
+    releasePose,
+    endPose;
 
     public AutoConfig(Pose goalPose,
                       Pose scorePose,
@@ -28,6 +29,7 @@ public class AutoConfig {
                       Pose pickup3EndPose,
                       Pose pickup4StartPose,
                       Pose pickup4EndPose,
+                      Pose releasePose,
                       Pose endPose) {
         this.goalPose = goalPose;
         this.scorePose = scorePose;
@@ -40,6 +42,7 @@ public class AutoConfig {
         this.pickup3EndPose = pickup3EndPose;
         this.pickup4StartPose = pickup4StartPose;
         this.pickup4EndPose = pickup4EndPose;
+        this.releasePose = releasePose;
         this.endPose = endPose;
     }
 }

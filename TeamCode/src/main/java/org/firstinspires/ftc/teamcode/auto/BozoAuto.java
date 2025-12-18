@@ -23,7 +23,7 @@ public abstract class BozoAuto extends OpMode {
     protected abstract Pose getStartPose();
     Robot robot;
     private Follower follower;
-    private Timer pathTimer, opmodeTimer, loopTimer;
+    private Timer stateTimer, opModeTimer, loopTimer;
     private TelemetryManager telemetryM; // create our telemetry object
     private Pose startPose;
 
@@ -33,6 +33,8 @@ public abstract class BozoAuto extends OpMode {
         LAUNCH, // wait for us to stop moving
         TRAVEL_TO_BALLS, // travel to the starting point of gathering balls
         RELOAD, // drive in the straight line to grab the balls
+        GO_TO_CLEAR,
+        CLEAR,
         GO_TO_END, // travel to our end position
         END // end state: do nothing
     }
@@ -40,7 +42,6 @@ public abstract class BozoAuto extends OpMode {
     /** these are the **only variables** that should change throughout the auto **/
     State state = State.START; // set PathState to start
     private int ballTripletsRemaining = 4; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
-    private int ballsRemaining = 3; // balls remaining in he robot
 
     // example paths
     private PathChain // some of these can probably just be Paths, but whatever
@@ -57,6 +58,7 @@ public abstract class BozoAuto extends OpMode {
             startPickup4,
             grabPickup4,
             scorePickup4,
+            hitRelease,
             goToEnd;
 
     public void buildPaths() {
@@ -98,9 +100,15 @@ public abstract class BozoAuto extends OpMode {
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup2EndPose.getHeading())
                 .build();
 
+        // this path hits the release once we are done with grabbing the second pickup, so we don't lose any pts to overflow
+        hitRelease = follower.pathBuilder()
+                .addPath(new BezierCurve(config.pickup2EndPose, config.pickup2StartPose, config.releasePose))
+                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.releasePose.getHeading())
+                .build();
+
         // this path goes from the endpoint of the ball pickup to our score position
         scorePickup2 = follower.pathBuilder() // extra 2 lines to prevent hitting anything
-                .addPath(new BezierCurve(config.pickup2EndPose, config.pickup2StartPose, config.scorePose)) // test if this works
+                .addPath(new BezierCurve(config.releasePose, config.scorePose)) // test if this works
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
                 .build();
 
@@ -155,63 +163,30 @@ public abstract class BozoAuto extends OpMode {
             - Robot Position: "if(follower.getPose().getX() > 36) {}"
             */
         switch (state) {
-            case START:
-                follower.followPath(scorePreload);
-                robot.launchBalls(3);
-                setPathState(State.LAUNCH);
+            case START: // while we are traveling to our first launch
+                if (!follower.isBusy()) {
+                    setPathState(State.LAUNCH);
+                }
                 break;
             case TRAVEL_TO_LAUNCH:
-                if(!follower.isBusy()) {
-                    if (ballTripletsRemaining == 0) { // if we're out of balls, just go to the end
-                        state = State.GO_TO_END;
-                        break;
-                    }
-                    switch (ballTripletsRemaining) { // this should always be between 4 and 0
-                        case 4:
-                            follower.followPath(scorePickup1, true); // hold end to prevent other robots from moving us
-                            break;
-                        case 3:
-                            follower.followPath(scorePickup2, true);
-                            break;
-                        case 2:
-                            follower.followPath(scorePickup3, true);
-                            break;
-                        case 1:
-                            follower.followPath(scorePickup4, true);
-                            break;
-                    }
-                    state = State.LAUNCH; // let's launch
-                    robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
+                if (!follower.isBusy() // check if our follower is busy
+                        && robot.isLaunchWithinMargin() // check if our launch velocity is within our margin
+                        && follower.getPose().roughlyEquals(config.scorePose, Tunables.launchDistanceMargin)) { // check if we're holding position close enough to where we want to shoot
+                    robot.intake.setPower(1); // turn on intake
+                    setPathState(State.LAUNCH);
                 }
                 break;
             case LAUNCH:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
-                if (!follower.isBusy() // check if our follower is busy
-                        && robot.isLaunchWithinMargin() // check if our launch velocity is within our margin
-                        && opmodeTimer.getElapsedTime() >= Tunables.beginningLaunchDelay // check if we've waited enough time since the last launch
-                        && follower.getPose().roughlyEquals(config.scorePose, Tunables.launchDistanceMargin)) { // check if we're holding position close enough to where we want to shoot
-                    //follower.holdPoint(config.scorePose); // this should already be done by holdEnd: true
-                    /* if we're holding point, we shouldn't have to disable motors
-                    follower.pausePathFollowing();
-                    follower.deactivateAllPIDFs(); */
-                    robot.intake.setPower(1); // turn on intake
-                    if (robot.updateLaunch()) { // we're done with launching balls
-                        ballTripletsRemaining -= 1;
-                        robot.intake.setPower(0); // save power
-                        setPathState(State.TRAVEL_TO_BALLS);
-                        /* if we're holding point, we shouldn't have to re-enable motors
-                        follower.activateAllPIDFs();
-                        follower.resumePathFollowing(); */
-                    } // if we're not done with launching balls, just break
-                }
-                break;
-            case TRAVEL_TO_BALLS: // travel to the start position of the balls, but don't grab them yet
-                if(!follower.isBusy()) {
+                // robot.updateLaunch() only returns true when we are done launching balls, so otherwise we just break
+                if (robot.updateLaunch()) { // we're done with launching balls
+                    ballTripletsRemaining -= 1;
+                    robot.intake.setPower(0); // save power
                     if (ballTripletsRemaining == 0) { // if we're out of balls, just go to the end
-                        state = State.GO_TO_END;
+                        follower.followPath(goToEnd); // start going to end
+                        setPathState(State.GO_TO_END);
                         break;
                     }
-                    switch (ballTripletsRemaining) { // this should always be between 4 and 0
+                    switch (ballTripletsRemaining) { // this should always be between 4 and 1
                         case 4:
                             follower.followPath(startPickup1);
                             break;
@@ -225,14 +200,14 @@ public abstract class BozoAuto extends OpMode {
                             follower.followPath(startPickup4);
                             break;
                     }
-                    state = State.RELOAD; // now lets reload
-                }
+                    setPathState(State.TRAVEL_TO_BALLS);
+                } // if we're not done with launching balls, just break
                 break;
-            case RELOAD: // grab the balls in a straight line
-                if(!follower.isBusy()) {
+            case TRAVEL_TO_BALLS: // traveling to the start position of the balls, but not grabbing them just yet
+                if(!follower.isBusy()) { // we're done traveling with balls, let's get ready to grab them
                     robot.intake.setPower(1); // re-enable intake to pickup balls
                     switch (ballTripletsRemaining) { // this should always be between 3 and 0
-                        case 3:
+                        case 4:
                             follower.followPath(grabPickup1);
                             break;
                         case 3:
@@ -245,35 +220,62 @@ public abstract class BozoAuto extends OpMode {
                             follower.followPath(grabPickup4);
                             break;
                     }
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    setPathState(State.TRAVEL_TO_LAUNCH); // now that we're reloaded, let's go to launch
+                    setPathState(State.RELOAD); // now that we're reloaded, let's go to launch
+                }
+                break;
+            case RELOAD: // grab the balls in a straight line
+                if(!follower.isBusy()) { // we're done reloading balls
+                    robot.intake.setPower(0); // disable intake to save power
+                    if (ballTripletsRemaining == 3) {
+                        follower.followPath(hitRelease, false);
+                        setPathState(State.GO_TO_CLEAR);
+                        break; // exit without running the rest of the function
+                    }
+                    switch (ballTripletsRemaining) { // this should always be between 4 and 1
+                        case 4:
+                            follower.followPath(scorePickup1, true); // hold end to prevent other robots from moving us
+                            break;
+                        case 2:
+                            follower.followPath(scorePickup3, true);
+                            break;
+                        case 1:
+                            follower.followPath(scorePickup4, true);
+                            break;
+                    }
+                    robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
+                    setPathState(State.TRAVEL_TO_LAUNCH);
+                }
+                break;
+            case GO_TO_CLEAR:
+                if (follower.isBusy()) { // wait until we are done moving
+                    setPathState(State.CLEAR);
+                }
+                break;
+            case CLEAR:
+                if (stateTimer.getElapsedTime() >= Tunables.clearTime) { // wait until we're done clearing
+                    follower.followPath(scorePickup2);
+                    setPathState(State.TRAVEL_TO_LAUNCH);
                 }
                 break;
             case GO_TO_END: // travels to the end
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
                 if(!follower.isBusy()) {
-                    /* Grab Sample */
-
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.followPath(goToEnd);
-                    setPathState(State.END);
+                    setPathState(State.END); // we're completely done now
                 }
                 break;
             case END:
-                if (!follower.isBusy()) {
-                    robot.intake.setPower(0); // turn off intake
-                    Robot.switchoverPose = follower.getPose(); // try to prevent drift
-                    follower.deactivateAllPIDFs(); // stop the follower
-                    requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
-                }
+                Robot.switchoverPose = follower.getPose(); // try to prevent drift
+                follower.deactivateAllPIDFs(); // stop the follower
+                telemetryM.addData("total auto time", opModeTimer.getElapsedTimeSeconds());
+                telemetryM.update(telemetry);
+                requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
                 break;
         }
     }
 
-    /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
+    // change our state, and update our timer for it
     public void setPathState(State pState) {
         state = pState;
-        pathTimer.resetTimer();
+        stateTimer.resetTimer();
     }
 
     /** This is the main loop of the OpMode, it will run repeatedly after clicking "Play". **/
@@ -292,7 +294,7 @@ public abstract class BozoAuto extends OpMode {
         }
 
         // Feedback to Driver Hub for debugging
-        telemetryM.addData("balls remaining", ballsRemaining);
+        telemetryM.addData("balls remaining", robot.getBallsRemaining());
         telemetryM.debug("path state: " + state);
         telemetryM.addData("is follower busy", follower.isBusy());
         telemetryM.addData("ball triplets remaining", ballTripletsRemaining);
@@ -311,9 +313,9 @@ public abstract class BozoAuto extends OpMode {
         // set up our timers
         loopTimer = new Timer();
         loopTimer.resetTimer();
-        pathTimer = new Timer();
-        opmodeTimer = new Timer();
-        opmodeTimer.resetTimer();
+        stateTimer = new Timer();
+        opModeTimer = new Timer();
+        opModeTimer.resetTimer();
 
         robot = Robot.getInstance(hardwareMap); // create our robot class
 
@@ -332,18 +334,19 @@ public abstract class BozoAuto extends OpMode {
     public void init_loop() {}
     */
 
-    /** This method is called once at the start of the OpMode.
-     * It runs all the setup actions, including building paths and starting the path system **/
+    /** This method is called once at the start of the OpMode. **/
     @Override
     public void start() {
-        opmodeTimer.resetTimer();
+        opModeTimer.resetTimer();
         robot.resetServos(); // get servos ready
         robot.intake.setPower(1); // start intake
         robot.setLaunchVelocity(robot.RPMToTPS(Tunables.scoreRPM)); // we're just gonna keep our score RPM constant for now
+        follower.followPath(scorePreload);
+        robot.launchBalls(3);
         setPathState(State.START);
     }
 
-    /** We do not use this because everything should automatically disable **/
+    // everything else should automatically disable, but we should probably reset our servos just in case
     @Override
     public void stop() {
         robot.resetServos(); // return servos to starting position
