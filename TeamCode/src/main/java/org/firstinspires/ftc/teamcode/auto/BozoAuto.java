@@ -41,7 +41,7 @@ public abstract class BozoAuto extends OpMode {
 
     /** these are the **only variables** that should change throughout the auto **/
     State state = State.START; // set PathState to start
-    private int ballTripletsRemaining = 4; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
+    private int ballTripletsRemaining = 5; // start with 5 ball triplets (1 in robot, 4 on field), decrements every LAUNCH
 
     // example paths
     private PathChain // some of these can probably just be Paths, but whatever
@@ -102,8 +102,10 @@ public abstract class BozoAuto extends OpMode {
 
         // this path hits the release once we are done with grabbing the second pickup, so we don't lose any pts to overflow
         hitRelease = follower.pathBuilder()
-                .addPath(new BezierCurve(config.pickup2EndPose, config.pickup2StartPose, config.releasePose))
-                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.releasePose.getHeading())
+                .addPath(new BezierLine(config.pickup2EndPose, config.pickup2StartPose))
+                .setConstantHeadingInterpolation(config.pickup2StartPose.getHeading())
+                .addPath(new BezierCurve(config.pickup2StartPose, config.releasePose))
+                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime)
                 .build();
 
         // this path goes from the endpoint of the ball pickup to our score position
@@ -132,7 +134,7 @@ public abstract class BozoAuto extends OpMode {
 
         // this path goes from the score point to the beginning of the 4th set of balls
         startPickup4 = follower.pathBuilder()
-                .addPath(new BezierLine(config.scorePose, config.pickup4StartPose))
+                .addPath(new BezierCurve(config.scorePose, config.pickup4StartPose))
                 .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup4StartPose.getHeading())
                 .build();
 
@@ -247,7 +249,7 @@ public abstract class BozoAuto extends OpMode {
                 }
                 break;
             case GO_TO_CLEAR:
-                if (follower.isBusy()) { // wait until we are done moving
+                if (!follower.isBusy()) { // wait until we are done moving
                     setPathState(State.CLEAR);
                 }
                 break;
