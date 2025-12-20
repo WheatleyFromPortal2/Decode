@@ -190,18 +190,21 @@ public abstract class BozoAuto extends OpMode {
                     switch (ballTripletsRemaining) { // this should always be between 4 and 1
                         case 4:
                             follower.followPath(startPickup1);
+                            setPathState(State.TRAVEL_TO_BALLS);
                             break;
                         case 3:
                             follower.followPath(startPickup2);
+                            setPathState(State.TRAVEL_TO_BALLS);
                             break;
                         case 2:
-                            follower.followPath(startPickup3);
+                            follower.followPath(hitRelease);
+                            setPathState(State.GO_TO_CLEAR);
                             break;
                         case 1:
-                            follower.followPath(startPickup4);
+                            follower.followPath(startPickup3);
+                            setPathState(State.TRAVEL_TO_BALLS);
                             break;
                     }
-                    setPathState(State.TRAVEL_TO_BALLS);
                 } // if we're not done with launching balls, just break
                 break;
             case TRAVEL_TO_BALLS: // traveling to the start position of the balls, but not grabbing them just yet
