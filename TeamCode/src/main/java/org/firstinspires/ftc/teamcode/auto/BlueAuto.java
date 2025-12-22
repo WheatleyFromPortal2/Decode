@@ -18,7 +18,7 @@ public abstract class BlueAuto extends BozoAuto { // these positions override th
                 new Pose(20, 47, Math.toRadians(180)), // pickup3EndPose
                 new Pose(12, 40, Math.toRadians(270)), // pickup4StartPose
                 new Pose(12, 25, Math.toRadians(270)), // pickup4EndPose
-                new Pose(16, 68, Math.toRadians(80)), // releasePose
+                new Pose(16, 68, Math.toRadians(135)), // releasePose
                 new Pose(40, 65, Math.toRadians(90)) // endPose (idk if we can end in red square)
         );
     }
