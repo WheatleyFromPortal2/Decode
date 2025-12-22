@@ -4,6 +4,7 @@ package org.firstinspires.ftc.teamcode.util;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -13,11 +14,11 @@ import org.firstinspires.ftc.teamcode.Tunables;
 
 @TeleOp(name="SensorTest", group="Util")
 public class SensorTest extends LinearOpMode {
-
     @Override
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap); // create our robot class
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
+        Timer functionTimer = new Timer();
 
         waitForStart();
 
@@ -37,9 +38,11 @@ public class SensorTest extends LinearOpMode {
 
             telemetryM.addLine(""); // spacing
             telemetryM.debug("---function outputs---");
+            functionTimer.resetTimer();
             telemetryM.addData("isBallInIntake()", robot.isBallInIntake());
             telemetryM.addData("isBallInLowerTransfer()", robot.isBallInLowerTransfer());
             telemetryM.addData("isBallInUpperTransfer()", robot.isBallInUpperTransfer());
+            telemetryM.addData("total sensor check time (millis)", functionTimer.getElapsedTime());
 
             telemetryM.update(telemetry); // update our telemetry
             idle();
