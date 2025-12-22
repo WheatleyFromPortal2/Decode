@@ -27,11 +27,12 @@ public class Robot { // create our global class for our robot
     private static Robot instance; // this stores our current instance of Robot, so we can transfer it from auto->TeleOp
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer; // servos
-    public Rev2mDistanceSensor intakeSensor, upperTransferSensor; // all of our distance sensors for detecting balls
-    public RevColorSensorV3 lowerTransferSensor; // we're using a color sensor because distance sensors are expensive, and our other is broken :(
+    public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
 
     private Timer launchStateTimer, // tracks time since we started our last launch state
             intakeTimer, // measures time since last intake measurement
+            intakeOvercurrentTimer, // measures time intake has been overcurrent
+            transferTimer, // measure time since ball was launched to see how long we need to wait for transfer
             launchIntervalTimer; // this timer measures the time between individual launches
     private enum LaunchState { // these are the possible states our launch state machine can be in
         START,
@@ -48,6 +49,7 @@ public class Robot { // create our global class for our robot
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
     private boolean intakeFull = false; // tracks whether intake has 3 balls
+    private double lastLaunchInterval; // stores the amount of time it took for our last launch
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
         // DC motors (all are DcMotorEx for current monitoring)
@@ -70,7 +72,7 @@ public class Robot { // create our global class for our robot
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
-        //lowerTransferSensor = hw.get(RevColorSensorV3.class, "lowerTransferSensor");
+        lowerTransferSensor = hw.get(Rev2mDistanceSensor.class, "lowerTransferSensor");
         upperTransferSensor = hw.get(Rev2mDistanceSensor.class, "upperTransferSensor");
 
         // Change PIDF coefficients using methods included with DcMotorEx class.
@@ -80,6 +82,9 @@ public class Robot { // create our global class for our robot
 
         launchStateTimer = new Timer(); // set up timer for the launch state machine
         intakeTimer = new Timer(); // set up timer to measure balls in intake
+        intakeOvercurrentTimer = new Timer();
+        launchIntervalTimer = new Timer();
+        transferTimer = new Timer();
     }
 
     public static Robot getInstance(HardwareMap hw) { // this allows us to preserve the Robot instance from auto->teleop
@@ -129,7 +134,7 @@ public class Robot { // create our global class for our robot
     }
     public double getIntakeCurrent() { return intake.getCurrent(CurrentUnit.AMPS); } // return intake current in amps
     public boolean isFull() {
-        return intakeFull;
+        return ballsRemaining >= 3;
     }
     public double getLaunchRPM() { return TPSToRPM(launch.getVelocity()); } // return launch velocity in RPM
     public double getLaunchCurrent() { return launch.getCurrent(CurrentUnit.AMPS); } // return launch current in amps
@@ -141,11 +146,6 @@ public class Robot { // create our global class for our robot
     public void setLaunchVelocity(double velocity) { // velocity is in TPS
         neededLaunchVelocity = velocity; // update our desired launch velocity
         launch.setVelocity(velocity); // set our launch velocity
-    }
-    public void launchOff() { // turn launch off
-        neededLaunchVelocity = 0; // we don't need any launch velocity
-        launch.setPower(0);
-        launch.setVelocity(0); // prob don't need this but ok
     }
     public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
         double numerator = tangentialSpeed - 0.269926;
@@ -188,15 +188,16 @@ public class Robot { // create our global class for our robot
                     upperTransfer.setPosition(Tunables.upperTransferOpen);
                     launchStateTimer.resetTimer();
                     launchState = LaunchState.OPENING_UPPER_TRANSFER;
+                    launchIntervalTimer.resetTimer(); // start measuring our time for this launch
                     break;
                 case OPENING_UPPER_TRANSFER:
-                    /*if (!isBallInLowerTransfer() // if we don't have a ball in lower transfer
+                    if (!isBallInLowerTransfer() // if we don't have a ball in lower transfer
                             && !isBallInIntake() // AND we don't have a ball waiting in intake
-                            && launchStateTimer.getElapsedTime() >= Tunables.maxTransferDelay ) { // AND we haven't waited our max time for transfer to happen, we don't have any balls, let's not waste our time
+                            && launchStateTimer.getElapsedTime() >= Tunables.maxTransferDelay ) { // AND we have waited our max time for transfer to happen, we don't have any balls, let's not waste our time
                         ballsRemaining = 0;
                         launchState = LaunchState.START;
                         break;
-                    }*/
+                    }
                     if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) { // we've given it openDelay millis to open
                         lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
                         launchStateTimer.resetTimer();
@@ -210,30 +211,40 @@ public class Robot { // create our global class for our robot
                         launchState = LaunchState.START; // get ready for next one
                         ballsRemaining -= 1; // we've launched a ball
                         launchStateTimer.resetTimer(); // reset our timer
+                        lastLaunchInterval = launchIntervalTimer.getElapsedTime();
+                        transferTimer.resetTimer(); // we are starting transfer for next ball
                     }
                     break;
             }
         }
         return false;
     }
-    /*
+
     public void updateBalls() { // checks our intake sensor and updates our balls
         boolean ballInIntake = isBallInIntake();
         if (!wasBallInIntake && ballInIntake) ballsRemaining++; // if we previously didn't have a ball in intake, and we do now, then increment our remaining balls
+        if (ballsRemaining > 3) { ballsRemaining = 3; } // shouldn't ever have >3balls
 
-        if (intakeTimer.getElapsedTime() > Tunables.intakePollingRate) { // it's been a while since we last checked if intake is full
-           if (wasBallInIntake && ballInIntake && launchStateTimer.getElapsedTime() >= Tunables.intakeFeedTime) {
-               intakeFull = true;
-               ballsRemaining = 3; // hopefully fix desync
-           } else {
-               intakeFull = false;
-           }
-           intakeTimer.resetTimer(); // wait to check for a while
+        if (!isBallInLowerTransfer() // if we are missing a ball in lower transfer
+                && !isBallInIntake() // AND we don't have a ball waiting in intake
+                && transferTimer.getElapsedTime() >= Tunables.maxTransferDelay) { // AND we have exceeded our max time for transfer
+            ballsRemaining = 0; // we can safely say we are out of balls
         }
 
+        if (ballsRemaining == 0 && isBallInLowerTransfer()) { ballsRemaining = 1; } // if we have a ball in lower transfer, then we probably have at least 1 ball
+
+        if (intake.getCurrent(CurrentUnit.AMPS) <= Tunables.intakeOvercurrent) { // our intake is not overcurrent
+            intakeOvercurrentTimer.resetTimer(); // reset our overcurrent timer
+        } else {
+            if (intakeOvercurrentTimer.getElapsedTime() >= Tunables.intakeOvercurrentDelay) { // our intake has been full for intakeOvercurrentDelay
+                ballsRemaining = 3; // our intake is full, so we have 3 balls
+            }
+        }
+        intakeTimer.resetTimer(); // wait to check for a while
         wasBallInIntake = ballInIntake; // update our reading at the end
-    } */
+    }
 
     public int getBallsRemaining() { return ballsRemaining; }
+    public double getLastLaunchInterval() { return lastLaunchInterval; }
     public boolean isLaunching() { return isLaunching; }
 }
