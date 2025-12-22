@@ -152,9 +152,8 @@ public abstract class BozoTeleOp extends OpMode {
         // intake control
         if (isIntakePowered) { // if we want to power our intake, and it isn't full
             // our intake is 0% or 100%
-            if (!isIntakeReversed) robot.intake.setPower(1); // only power intake normal direction if we aren't full
-            //if (!isIntakeReversed && !robot.isFull()) robot.intake.setPower(1); // only power intake normal direction if we aren't full
-            else if (isIntakeReversed) robot.intake.setPower(-1); // reverse intake to eject/unclog
+            if (!isIntakeReversed && !robot.isFull()) robot.intake.setPower(1); // only power intake normal direction if we aren't full
+            if (isIntakeReversed) robot.intake.setPower(-1); // reverse intake to eject/unclog (works even if intake is full)
         } else if (robot.isLaunching()) {
             robot.intake.setPower(1); // always power intake while we're launching
         } else {
