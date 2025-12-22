@@ -16,4 +16,9 @@ public class RedTeleOp extends BozoTeleOp {
         // because the buildConfig() function is protected, we cannot call it here - possibly replace separate variables
         return new Pose (132, 138); // taken from RedAuto.java
     }
+
+    @Override
+    public boolean isBlueTeam() {
+        return false;
+    }
 }
