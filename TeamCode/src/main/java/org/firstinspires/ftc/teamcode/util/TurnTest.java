@@ -1,8 +1,11 @@
 /** OpMode to test automated turning behaviours **/
+/** CONCLUSION: follower.turnTo() only ever turns counterclockwise for some reason **/
+
 package org.firstinspires.ftc.teamcode.util;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import com.bylazar.telemetry.PanelsTelemetry;
@@ -15,17 +18,16 @@ public class TurnTest extends OpMode {
     private TelemetryManager telemetryM;
     private boolean automatedDrive = false;
 
-    private enum TurnMode {
-        A,
-        B,
-        C,
-        D
-    }
+    private enum TurnMode { A, B, C, D }
 
     @Override
     public void init() {
         follower = Constants.createFollower(hardwareMap); // create our Pedro Pathing follower
+        follower.setStartingPose(new Pose(0,0, 0)); // set our starting pose
+        follower.setPose(new Pose(0, 0, 0)); // maybe this will work?
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // create our telemetry class
+        follower.startTeleopDrive();
+        follower.update();
     }
 
     @Override
