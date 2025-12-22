@@ -38,7 +38,7 @@ public class Tunables { // this should hold all of our constants
 
     // delays
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
-    public static int maxTransferDelay = 60; // maximum time to wait for ball to enter lower transfer
+    public static int maxTransferDelay = 200; // maximum time to wait for ball to enter lower transfer
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
