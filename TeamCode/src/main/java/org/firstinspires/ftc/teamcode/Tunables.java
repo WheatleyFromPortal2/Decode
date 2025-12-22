@@ -45,15 +45,9 @@ public class Tunables { // this should hold all of our constants
     public static int intakeOvercurrentDelay = 250; // if intake has been overcurrent for more than this many millis, we consider it full
 
     // rumble effects
-    private static int delay0 = 200; // ms delay for 0balls
-    private static int delay1 = 150; // ms delay for 1ball
+    private static int delay1 = 200; // ms delay for 1ball
     private static int delay2 = 100; // ms delay for 2balls
-    private static int delay3 = 50; // ms delay for 3balls
-    public static Gamepad.RumbleEffect rumble0 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 0balls
-            .addStep(1.0, 0.0, delay0) // rumble left motor 100% for delay0
-            .addStep(0.0, 1.0, delay0) // rumble right motor 100% for delay0
-            .addStep(0.0, 0.0, delay0) // pause for delay0
-            .build();
+    private static int delay3 = 10; // ms delay for 3balls
     public static Gamepad.RumbleEffect rumble1 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 1ball
             .addStep(0.0, 1.0, delay1) // rumble left motor 100% for delay1
             .addStep(1.0, 0.0, delay1) // rumble right motor 100% for delay1

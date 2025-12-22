@@ -159,25 +159,20 @@ public abstract class BozoTeleOp extends OpMode {
         } else {
             robot.intake.setPower(0); // turn off intake if other conditions aren't fulfilled
         }
-        /*
-        switch (robot.getBallsRemaining()) { // haptic feedback
+        switch (robot.getBallsRemaining()) { // haptic feedback based on how many balls are in the robot
             case 0:
-
+                gamepad1.stopRumble(); // don't rumble if we don't have any balls
                 break;
             case 1:
-
+                gamepad1.runRumbleEffect(Tunables.rumble1);
                 break;
             case 2:
-
+                gamepad1.runRumbleEffect(Tunables.rumble2);
                 break;
-
             case 3:
-
+                gamepad1.runRumbleEffect(Tunables.rumble3);
                 break;
-
-            default:
-                break;
-        } */
+        }
 
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
