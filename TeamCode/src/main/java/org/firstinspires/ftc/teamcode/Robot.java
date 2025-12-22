@@ -164,9 +164,9 @@ public class Robot { // create our global class for our robot
     /** ball launching methods **/
     public void launchBalls(int balls) { // sets to launch this many balls
         ballsRemaining = balls;
-        isLaunching = true;
+        isLaunching = true; // we are launching now
         launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
-        launchState = LaunchState.START;
+        launchState = LaunchState.START; // reset our state machine to the start
     }
 
     public void cancelLaunch() { // set servos to default position, this could break if activated at the right time
@@ -177,7 +177,6 @@ public class Robot { // create our global class for our robot
     }
 
     public boolean updateLaunch() { // outputs true/false whether we are done with launching
-
         if (ballsRemaining == 0) {
             isLaunching = false;
             return true; // we're done with launching balls
@@ -195,7 +194,8 @@ public class Robot { // create our global class for our robot
                             && launchStateTimer.getElapsedTime() >= Tunables.maxTransferDelay ) { // AND we have waited our max time for transfer to happen, we don't have any balls, let's not waste our time
                         ballsRemaining = 0;
                         launchState = LaunchState.START;
-                        break;
+                        isLaunching = false;
+                        return true;
                     }
                     if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) { // we've given it openDelay millis to open
                         lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
@@ -220,17 +220,21 @@ public class Robot { // create our global class for our robot
     }
 
     public void updateBalls() { // checks our intake sensor and updates our balls
+        // we want to only read from our sensors once, because they take a long time to read from
         boolean ballInIntake = isBallInIntake();
+        boolean ballInLowerTransfer = isBallInLowerTransfer();
+
         if (!wasBallInIntake && ballInIntake) ballsRemaining++; // if we previously didn't have a ball in intake, and we do now, then increment our remaining balls
         if (ballsRemaining > 3) { ballsRemaining = 3; } // shouldn't ever have >3balls
+        if (ballsRemaining == 3 && !ballInIntake) { ballsRemaining = 2; }
 
-        if (!isBallInLowerTransfer() // if we are missing a ball in lower transfer
-                && !isBallInIntake() // AND we don't have a ball waiting in intake
+        if (!ballInLowerTransfer // if we are missing a ball in lower transfer
+                && !ballInIntake // AND we don't have a ball waiting in intake
                 && transferTimer.getElapsedTime() >= Tunables.maxTransferDelay) { // AND we have exceeded our max time for transfer
             ballsRemaining = 0; // we can safely say we are out of balls
         }
 
-        if (ballsRemaining == 0 && isBallInLowerTransfer()) { ballsRemaining = 1; } // if we have a ball in lower transfer, then we probably have at least 1 ball
+        if (ballsRemaining == 0 && ballInLowerTransfer) { ballsRemaining = 1; } // if we have a ball in lower transfer, then we probably have at least 1 ball
 
         if (intake.getCurrent(CurrentUnit.AMPS) <= Tunables.intakeOvercurrent) { // our intake is not overcurrent
             intakeOvercurrentTimer.resetTimer(); // reset our overcurrent timer
