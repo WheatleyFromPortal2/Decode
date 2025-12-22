@@ -40,10 +40,9 @@ public class Tunables { // this should hold all of our constants
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
     public static int maxTransferDelay = 60; // maximum time to wait for ball to enter lower transfer
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
-    public static int firstInterLaunchWait = 75; // time to wait between 1st and 2nd launches
-    public static int lastInterLaunchWait = 200; // time to wait between the 2nd and last launch
+
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
-    public static int intakePollingRate = 250; // how many millis to check intake is full
+    public static int intakeOvercurrentDelay = 250; // if intake has been overcurrent for more than this many millis, we consider it full
     public static int intakeFeedTime = 200; // how many millis to run intake for after launching a ball to advance ball to lower transfer
 
     // rumble effects
