@@ -114,16 +114,15 @@ public class Robot { // create our global class for our robot
         return normalizeRadians(desiredHeading - currentHeading) + currentHeading;
     }
 
-    public double getTangentialSpeed(Pose currentPosition, Pose goalPose) { // returns needed tangential speed to launch ball to the goal
-        double d = getDstFromGoal(currentPosition, goalPose);
+    public double getTangentialSpeed(double d) { // returns needed tangential speed to launch ball to the goal
         double numerator = 19.62 * Math.pow(d, 2);
         double denominator = (Math.pow(3, 0.5) * d) - 0.8;
         double beforeMagicNumber =  Math.pow(numerator / denominator, 0.5); // thank u rahul
         return beforeMagicNumber * Tunables.magicNumber; // fix with magic number
     }
 
-    public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) { // given positions, use our functions to set our launch speed
-        double neededTangentialSpeed = getTangentialSpeed(currentPosition, goalPose);
+    public void setAutomatedLaunchVelocity(double d) { // given positions, use our functions to set our launch speed
+        double neededTangentialSpeed = getTangentialSpeed(d);
         double neededVelocity = getNeededVelocity(neededTangentialSpeed);
         setLaunchVelocity(neededVelocity);
     }

@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.teleop;
 
-import com.pedropathing.geometry.BezierLine;
-import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.Robot;
@@ -47,7 +45,7 @@ public abstract class BozoTeleOp extends OpMode {
 
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
         follower = Constants.createFollower(hardwareMap);
-        vision = new Vision(hardwareMap); // create our vision class
+        vision = new Vision(hardwareMap, isBlueTeam()); // create our vision class
 
         if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
         else { // hopefully this works
@@ -62,8 +60,9 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.update(telemetry);
     }
 
-    protected abstract double flipControl(); // this will be filled in by Blue/Red TeleOp
-    protected abstract Pose getGoalPose(); // this will be filled in by Blue/Red TeleOp
+    protected abstract double flipControl(); // this will be filled in by blue/red TeleOp
+    protected abstract Pose getGoalPose(); // this will be filled in by blue/red TeleOp
+    protected abstract boolean isBlueTeam(); // this will be filled in by blue/red TeleOp
 
     public void start() {
         follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
@@ -141,7 +140,7 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.leftBumperWasReleased()) automatedDrive = !automatedDrive; // reverse automated drive, to enable automatic turning
 
         if (automatedLaunch) {
-            robot.setAutomatedLaunchVelocity(follower.getPose(), getGoalPose()); // set our launch to its needed speed and get our needed TPS
+            robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance()); // set our launch to its needed speed and get our needed TPS
         } else { // set our launch velocity manually based off the right trigger
             robot.setLaunchVelocity(launchVelocity); // set our launch velocity to our desired launch velocity
             /*
@@ -212,7 +211,7 @@ public abstract class BozoTeleOp extends OpMode {
     public void teleOpLaunchPrep() { // start spinning up and following the turn path
         // we shouldn't need to set our needed velocity because this should automatically be done by the teleop every loop
         // yet we will still check one more time
-        double neededTangentialSpeed = robot.getTangentialSpeed(follower.getPose(), goalPose);
+        double neededTangentialSpeed = robot.getTangentialSpeed(vision.getLastGoalDistance());
         double neededVelocity = robot.getNeededVelocity(neededTangentialSpeed); // honestly can combine these into the same function and return our needed TPS to check if we're spun up
         robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
 
