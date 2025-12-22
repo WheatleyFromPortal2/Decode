@@ -40,22 +40,14 @@ public class Tunables { // this should hold all of our constants
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
     public static int maxTransferDelay = 60; // maximum time to wait for ball to enter lower transfer
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
-    public static int firstInterLaunchWait = 75; // time to wait between 1st and 2nd launches
-    public static int lastInterLaunchWait = 200; // time to wait between the 2nd and last launch
+
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
-    public static int intakePollingRate = 250; // how many millis to check intake is full
-    public static int intakeFeedTime = 200; // how many millis to run intake for after launching a ball to advance ball to lower transfer
+    public static int intakeOvercurrentDelay = 250; // if intake has been overcurrent for more than this many millis, we consider it full
 
     // rumble effects
-    private static int delay0 = 200; // ms delay for 0balls
-    private static int delay1 = 150; // ms delay for 1ball
+    private static int delay1 = 200; // ms delay for 1ball
     private static int delay2 = 100; // ms delay for 2balls
-    private static int delay3 = 50; // ms delay for 3balls
-    public static Gamepad.RumbleEffect rumble0 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 0balls
-            .addStep(1.0, 0.0, delay0) // rumble left motor 100% for delay0
-            .addStep(0.0, 1.0, delay0) // rumble right motor 100% for delay0
-            .addStep(0.0, 0.0, delay0) // pause for delay0
-            .build();
+    private static int delay3 = 10; // ms delay for 3balls
     public static Gamepad.RumbleEffect rumble1 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 1ball
             .addStep(0.0, 1.0, delay1) // rumble left motor 100% for delay1
             .addStep(1.0, 0.0, delay1) // rumble right motor 100% for delay1
