@@ -48,7 +48,6 @@ public class Robot { // create our global class for our robot
     private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
-    private boolean intakeFull = false; // tracks whether intake has 3 balls
     private double lastLaunchInterval; // stores the amount of time it took for our last launch
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class

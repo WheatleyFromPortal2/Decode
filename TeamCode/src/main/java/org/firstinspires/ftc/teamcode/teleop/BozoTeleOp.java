@@ -71,6 +71,7 @@ public abstract class BozoTeleOp extends OpMode {
         follower.update(); // update our Pedro Pathing follower
         //robot.updateBalls(); // update how many balls we have in our intake
         boolean updateLaunchStatus = robot.updateLaunch(); // idk if running it directly with the && might cause it to be skipped
+        robot.updateBalls(); // update how many balls we have in intake
         if (updateLaunchStatus && !follower.isTeleopDrive()) { // check if we're done with holding position
             follower.startTeleOpDrive();
         }
