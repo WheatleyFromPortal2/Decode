@@ -50,13 +50,14 @@ public abstract class BozoAuto extends OpMode {
             startPickup2,
             grabPickup2,
             scorePickup2,
+            scoreClear,
             startPickup3,
             grabPickup3,
             scorePickup3,
             startPickup4,
             grabPickup4,
             scorePickup4,
-            hitRelease,
+            getClear,
             goToEnd;
 
     public void buildPaths() {
@@ -98,18 +99,24 @@ public abstract class BozoAuto extends OpMode {
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup2EndPose.getHeading())
                 .build();
 
+        // this path goes from the end of the 2nd set of balls to our score position
+        scorePickup2 = follower.pathBuilder()
+                .addPath(new BezierCurve(config.pickup2EndPose, config.pickup2StartPose, config.scoreIntermediatePose))
+                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
+                .build();
+
         // this path hits the release once we are done with grabbing the second pickup, so we don't lose any pts to overflow
-        hitRelease = follower.pathBuilder()
+        getClear = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup2EndPose, config.pickup2StartPose))
                 .setConstantHeadingInterpolation(config.pickup2StartPose.getHeading())
                 .addPath(new BezierCurve(config.pickup2StartPose, config.releasePose))
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime)
                 .build();
 
-        // this path goes from the endpoint of the ball pickup to our score position
-        scorePickup2 = follower.pathBuilder() // extra 2 lines to prevent hitting anything
+        // this path goes from the release position to the scoring position
+        scoreClear = follower.pathBuilder()
                 .addPath(new BezierCurve(config.releasePose, config.scorePose)) // test if this works
-                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
+                .setLinearHeadingInterpolation(config.releasePose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
                 .build();
 
         // this path goes from the score point to the beginning of the 3rd set of balls
@@ -197,7 +204,7 @@ public abstract class BozoAuto extends OpMode {
                             setPathState(State.TRAVEL_TO_BALLS);
                             break;
                         case 2:
-                            follower.followPath(hitRelease);
+                            follower.followPath(getClear);
                             setPathState(State.GO_TO_CLEAR);
                             break;
                         case 1:
@@ -230,8 +237,8 @@ public abstract class BozoAuto extends OpMode {
             case RELOAD: // grab the balls in a straight lineA
                 if(!follower.isBusy()) { // we're done reloading balls
                     robot.intake.setPower(0); // disable intake to save power
-                    if (ballTripletsRemaining == 3) {
-                        follower.followPath(hitRelease, false);
+                    if (ballTripletsRemaining == 3) { // since we need to break earlier, we are going to put this outside of the switch statement
+                        follower.followPath(getClear, false);
                         setPathState(State.GO_TO_CLEAR);
                         break; // exit without running the rest of the function
                     }
@@ -240,10 +247,10 @@ public abstract class BozoAuto extends OpMode {
                             follower.followPath(scorePickup1, true); // hold end to prevent other robots from moving us
                             break;
                         case 2:
-                            follower.followPath(scorePickup3, true);
+                            follower.followPath(scorePickup2, true);
                             break;
                         case 1:
-                            follower.followPath(scorePickup4, true);
+                            follower.followPath(scorePickup3, true);
                             break;
                     }
                     setPathState(State.TRAVEL_TO_LAUNCH);
@@ -261,7 +268,7 @@ public abstract class BozoAuto extends OpMode {
                 break;
             case CLEAR:
                 if (stateTimer.getElapsedTime() >= Tunables.clearTime) { // wait until we're done clearing
-                    follower.followPath(scorePickup2);
+                    follower.followPath(scoreClear);
                     setPathState(State.TRAVEL_TO_LAUNCH);
                 }
                 break;
@@ -273,8 +280,6 @@ public abstract class BozoAuto extends OpMode {
             case END:
                 Robot.switchoverPose = follower.getPose(); // try to prevent drift
                 follower.deactivateAllPIDFs(); // stop the follower
-                telemetryM.addData("total auto time", opModeTimer.getElapsedTimeSeconds());
-                telemetryM.update(telemetry);
                 requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
                 break;
         }
