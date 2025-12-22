@@ -35,6 +35,12 @@ public class SensorTest extends LinearOpMode {
             telemetryM.addData("lowerTransferSensorOpen", Tunables.lowerTransferSensorOpen);
             telemetryM.addData("upperTransferSensorOpen", Tunables.upperTransferSensorOpen);
 
+            telemetryM.addLine(""); // spacing
+            telemetryM.debug("---function outputs---");
+            telemetryM.addData("isBallInIntake()", robot.isBallInIntake());
+            telemetryM.addData("isBallInLowerTransfer()", robot.isBallInLowerTransfer());
+            telemetryM.addData("isBallInUpperTransfer()", robot.isBallInUpperTransfer());
+
             telemetryM.update(telemetry); // update our telemetry
             idle();
         }
