@@ -33,7 +33,7 @@ public class Tunables { // this should hold all of our constants
     // TODO: tune these
 
     public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
-    public static double lowerTransferSensorOpen = 29; // needs to be different than upper transfer because color sensor distance measurements don't exceed 30mm :(
+    public static double lowerTransferSensorOpen = 140; // needs to be different than upper transfer because color sensor distance measurements don't exceed 30mm :(
     public static double upperTransferSensorOpen = 140; // amount of mm's that upper transfer sensor  should report if there is no ball
 
     // delays
