@@ -40,6 +40,9 @@ public class Vision {
     }
 
     public boolean update() { // update our vision
+        if (!started) { // make sure we have started
+            throw new RuntimeException();
+        }
         LLResult result = limelight.getLatestResult();
         if (result != null && result.isValid()) {
             lastGoalTx = result.getTx();
