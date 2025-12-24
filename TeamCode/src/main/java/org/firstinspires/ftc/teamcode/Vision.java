@@ -16,12 +16,13 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import java.util.List;
 
 public class Vision {
-    private static Limelight3A limelight;
+    public static Limelight3A limelight;
     Pose lastBotpose;
     double lastGoalTx, lastGoalDistance, lastGoalTa;
     boolean isBlue; // whether we are blue or red team
     Robot.Pattern lastPattern = Robot.Pattern.UNKNOWN;
     PID turnController;
+    private boolean started = false;
 
     public Vision(HardwareMap hw, boolean isBlueTeam) {
         limelight = hw.get(Limelight3A.class, "limelight");
@@ -35,6 +36,7 @@ public class Vision {
 
     public void start() {
         limelight.start();
+        started = true;
     }
 
     public boolean update() { // update our vision

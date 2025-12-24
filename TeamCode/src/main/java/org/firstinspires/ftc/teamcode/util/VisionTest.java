@@ -11,16 +11,20 @@ import org.firstinspires.ftc.teamcode.Vision;
 
 @TeleOp(name="VisionTest", group="Util")
 public class VisionTest extends LinearOpMode {
+    public boolean isBlueTeam = true;
 
     @Override
     public void runOpMode() {
-        Vision vision = new Vision(hardwareMap, true); // let's just say that we are blue team
+        Vision vision = new Vision(hardwareMap, isBlueTeam); // let's just say that we are blue team
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
+        vision.start();
 
         waitForStart();
 
         while (opModeIsActive()) {
             vision.update();
+            telemetryM.debug("isBlueTeam: " + isBlueTeam);
+
             telemetryM.addData("last goal distance", vision.getLastGoalDistance());
             telemetryM.addData("last goal tx", vision.getLastGoalTx());
             telemetryM.addData("last goal ta", vision.getLastGoalTa());
