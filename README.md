@@ -30,9 +30,9 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 
 ### USB port
 
-| port | device       | verbatim name |
-|:-----|:-------------|:--------------|
-| USB  | Limelight 3A | `limelight`   |
+| port    | device       | verbatim name |
+|:--------|:-------------|:--------------|
+| USB 3.0 | Limelight 3A | `limelight`   |
 
 the Limelight will show up as `Ethernet Device` under the USB devices, make sure to rename it to the verbatim name
 
@@ -117,7 +117,6 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 - start: toggle field/robot centric
 - back: reset field centric heading
 
-
 # OpModes
 ## TeleOp
 - `BlueTeleOp`: TeleOp for blue team
@@ -132,9 +131,11 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 - `RedGoalAuto`: starting by red team goal
 
 ## util
-- `FlywheelTest`: test flywheel max speed
-- `LaunchDelay`: test and tune delays for launch
+- `FlywheelTuner`: tune flywheel PIDF
+- `LaunchTuner`: tune launch delays
+- `SensorTest`: test distance sensors and their trigger points
 - `ServoTest`: test servo endpoints
+- `TurnTest`: test Pedro Pathing turning behaviour
 
 # State Machines
 ## auto states
