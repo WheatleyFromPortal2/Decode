@@ -20,6 +20,11 @@ public class Tunables { // this should hold all of our constants
     public static double launchD = 0; // orig 0.2
     public static double launchF = 20; // ChatGPT was onto nothing with this
 
+    // TODO: tune these
+    public static double turretP = 0;
+    public static double turretI = 0;
+    public static double turretD = 0;
+
     // servo open/close points (don't find these with the backplate on!)
     public static double lowerTransferLowerLimit = 0.28;
     public static double lowerTransferUpperLimit = 0.49;
@@ -27,8 +32,8 @@ public class Tunables { // this should hold all of our constants
     public static double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
 
     // don't allow the hood to be set outside of these positions
-    public static double maximumHoodPosition = 1; // TODO: fill this in
-    public static double minimumHoodPosition = 0; // TODO: fill this in
+    public static double hoodMaximum = 1; // TODO: fill this in
+    public static double hoodMinimum = 0; // TODO: fill this in
 
     // distance sensor limits (better to undershoot rather than to overshoot)
     public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
