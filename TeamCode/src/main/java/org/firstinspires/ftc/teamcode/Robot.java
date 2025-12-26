@@ -20,11 +20,14 @@ import com.pedropathing.util.Timer;
 
 
 public class Robot { // create our global class for our robot
-    public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
+    public static final int MOTOR_TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
+    public static final int TURRET_TICKS_PER_REV = 8192; // TODO: check this
+    public static final double TURRET_ENCODER_RATIO = 5.5; // ratio from turretEncoder->turret
+    public static final double TURRET_SERVO_RATIO = 5.5 / 3; // ratio from turret1/2->turret
     public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
     private static Robot instance; // this stores our current instance of Robot, so we can transfer it from auto->TeleOp
-    public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
-    public Servo lowerTransfer, upperTransfer; // servos
+    public DcMotorEx intake, launch, turretEncoder; // drive motors are handled by Pedro Pathing
+    public Servo lowerTransfer, upperTransfer, turret1, turret2, hood; // servos
     public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
 
     private final Timer launchStateTimer, // tracks time since we started our last launch state
@@ -46,16 +49,22 @@ public class Robot { // create our global class for our robot
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
     private double lastLaunchInterval; // stores the amount of time it took for our last launch
+
+    private double desiredTurretPosition = 0;
     /** end vars that change **/
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
         // DC motors (all are DcMotorEx for current monitoring)
         intake = hw.get(DcMotorEx.class, "intake"); // intake motor
         launch = hw.get(DcMotorEx.class, "launch"); // launch motor, connected with launchRatio
+        turretEncoder = hw.get(DcMotorEx.class, "turretEncoder"); // encoder for turret, no motor is connected to it
 
         // servos
         lowerTransfer = hw.get(Servo.class, "lowerTransfer");
         upperTransfer = hw.get(Servo.class, "upperTransfer");
+        turret1 = hw.get(Servo.class, "turret1");
+        turret2 = hw.get(Servo.class, "turret2");
+        hood = hw.get(Servo.class, "hood");
 
         intake.setDirection(DcMotorEx.Direction.FORWARD);
         intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
@@ -65,6 +74,9 @@ public class Robot { // create our global class for our robot
         launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
         PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // use our coefficients from Tunables.java
         launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew); // apply our coefficients to our motor
+
+        turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER); // reset our encoder
+        turretEncoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER); // we won't be using the motor at all
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
@@ -115,8 +127,8 @@ public class Robot { // create our global class for our robot
         setLaunchVelocity(neededVelocity);
     }
 
-    public double TPSToRPM(double TPS) { return (TPS / TICKS_PER_REV) * 60 * Tunables.launchRatio; }
-    public double RPMToTPS(double RPM) { return (RPM * TICKS_PER_REV / 60) / Tunables.launchRatio;}
+    public double TPSToRPM(double TPS) { return (TPS / MOTOR_TICKS_PER_REV) * 60 * Tunables.launchRatio; }
+    public double RPMToTPS(double RPM) { return (RPM * MOTOR_TICKS_PER_REV / 60) / Tunables.launchRatio;}
 
     /** hardware methods **/
     public void resetServos() { // set servos to starting state
@@ -242,4 +254,20 @@ public class Robot { // create our global class for our robot
     public int getBallsRemaining() { return ballsRemaining; }
     public double getLastLaunchInterval() { return lastLaunchInterval; }
     public boolean isLaunching() { return isLaunching; }
+
+    /** turret methods **/
+    public void updateTurret() { // apply changes to keep turret in desired position
+        // TODO: fill this in
+    }
+
+    public void setTurretPosition(double radians) { // set desired turret angle
+        desiredTurretPosition = radians;
+    }
+
+    public double getTurretPosition() { // return our current turret angle in radians +/- from facing forwards
+        int ticks = turretEncoder.getCurrentPosition();
+        double encoderRevs = (double) ticks / TURRET_TICKS_PER_REV;
+        double turretRevs = encoderRevs / TURRET_ENCODER_RATIO;
+        return turretRevs * 2 * Math.PI; // convert to radians
+    }
 }

@@ -49,14 +49,16 @@ make sure to connect every motor with the correct polarity, the reversing should
 
 ### servos
 
-| servo port  | verbatim name   |
-|:------------|:----------------|
-| 0           | `lowerTransfer` |
-| 1           | `upperTransfer` |
-| 2           | none            |
-| 3           | none            |
-| 4           | none            |
-| 5           | none            |
+| servo port | verbatim name   |
+|:-----------|:----------------|
+| 0          | `lowerTransfer` |
+| 1          | `upperTransfer` |
+| 2          | `turret1`       |
+| 3          | `turret2`       |
+| 4          | `hood`          |
+| 5          | none            |
+
+the connection order of turret1/2 shouldn't matter, since we're just using 2 for extra power
 
 ## expansion hub
 
@@ -75,12 +77,14 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 
 ### DC motors
 
-| motor port | verbatim name | encoder? |
-|:-----------|:--------------|:---------|
-| 0          | `intake`      | ❌        |
-| 1          | `launch`      | ✅        |
-| 2          | none          | ❌        |
-| 3          | none          | ❌        |
+| motor port | verbatim name   | encoder?   |
+|:-----------|:----------------|:-----------|
+| 0          | `intake`        | ❌          |
+| 1          | `launch`        | ✅          |
+| 2          | `turretEncoder` | ✅          |
+| 3          | none            | ❌          |
+
+`turret` isn't an actual motor, we are just connecting our encoder for our turret up to it
 
 # Controller Map
 ## Sticks

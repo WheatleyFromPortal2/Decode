@@ -26,6 +26,10 @@ public class Tunables { // this should hold all of our constants
     public static double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
     public static double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
 
+    // don't allow the hood to be set outside of these positions
+    public static double maximumHoodPosition = 1; // TODO: fill this in
+    public static double minimumHoodPosition = 0; // TODO: fill this in
+
     // distance sensor limits (better to undershoot rather than to overshoot)
     public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
     public static double lowerTransferSensorOpen = 140; // needs to be different than upper transfer because color sensor distance measurements don't exceed 30mm :(
