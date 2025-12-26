@@ -1,5 +1,5 @@
-// the purpose of OpMode is to test servo endpoints and max flywheel speed
-// MAKE SURE BOTH SERVOS ARE NOT GOING TO RUN INTO ANYTHING!!!
+/** the purpose of OpMode is to test servo endpoints and max flywheel speed
+ * MAKE SURE BOTH SERVOS ARE NOT GOING TO RUN INTO ANYTHING!!! **/
 
 package org.firstinspires.ftc.teamcode.util;
 

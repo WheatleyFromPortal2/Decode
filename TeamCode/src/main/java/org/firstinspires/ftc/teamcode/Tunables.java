@@ -11,7 +11,6 @@ public class Tunables { // this should hold all of our constants
     // this needs to be calculated+changed every time you modify the launch ratio
     public static double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
-    public static int intakeStallVelocity = 5; // ~5 RPM, velocity lower than this means we think we have a stalled intake
     public static double intakeOvercurrent = 6; // amount of amps that we think means a stalled intake
     public static double magicNumber = (double) 3 / 8; // magic number for auto RPM
 

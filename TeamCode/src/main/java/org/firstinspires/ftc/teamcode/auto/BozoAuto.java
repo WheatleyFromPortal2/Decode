@@ -1,3 +1,8 @@
+/** this is our base class for all of our autos
+ * it is extended by BlueAuto/RedAuto
+ * and then further extended by ...TriAuto/...GoalAuto
+ */
+
 package org.firstinspires.ftc.teamcode.auto;
 
 import com.pedropathing.follower.Follower;
@@ -40,7 +45,6 @@ public abstract class BozoAuto extends OpMode {
     /** these are the **only variables** that should change throughout the auto **/
     State state = State.START; // set PathState to start
     private int ballTripletsRemaining = 4; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
-    private int ballsRemaining = 3; // balls remaining in he robot
 
     // example paths
     private PathChain // some of these can probably just be Paths, but whatever
@@ -261,7 +265,6 @@ public abstract class BozoAuto extends OpMode {
         }
 
         // Feedback to Driver Hub for debugging
-        telemetryM.addData("balls remaining", ballsRemaining);
         telemetryM.debug("path state: " + state);
         telemetryM.addData("is follower busy", follower.isBusy());
         telemetryM.addData("ball triplets remaining", ballTripletsRemaining);
@@ -295,8 +298,8 @@ public abstract class BozoAuto extends OpMode {
         telemetryM.update(telemetry);
     }
 
-    /** This method is called continuously after Init while waiting for "play". **/
     /* not needed
+    // This method is called continuously after Init while waiting for "play".
     @Override
     public void init_loop() {}
     */

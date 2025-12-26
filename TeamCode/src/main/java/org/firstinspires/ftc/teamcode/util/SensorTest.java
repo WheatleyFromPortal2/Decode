@@ -1,4 +1,4 @@
-/** the purpose of OpMode is to test distance sensor endpoints */
+/** the purpose of OpMode is to test distance sensors and their endpoints */
 
 package org.firstinspires.ftc.teamcode.util;
 

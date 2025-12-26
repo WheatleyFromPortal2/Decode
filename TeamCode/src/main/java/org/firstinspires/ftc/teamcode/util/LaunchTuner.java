@@ -1,4 +1,5 @@
-/** this OpMode is used to tune launch times **/
+/** this OpMode is used to tune delays for our launch state machine **/
+
 package org.firstinspires.ftc.teamcode.util;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;

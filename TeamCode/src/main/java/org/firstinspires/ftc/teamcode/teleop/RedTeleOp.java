@@ -1,10 +1,9 @@
+/** this is our teleop OpMode for red team **/
+
 package org.firstinspires.ftc.teamcode.teleop;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-
-import org.firstinspires.ftc.teamcode.auto.RedAuto;
-
 
 @TeleOp(name="RedTeleOp", group="TeleOp")
 public class RedTeleOp extends BozoTeleOp {

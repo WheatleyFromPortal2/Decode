@@ -1,3 +1,5 @@
+/** starting by the red goal **/
+
 package org.firstinspires.ftc.teamcode.auto;
 
 import com.pedropathing.geometry.Pose;

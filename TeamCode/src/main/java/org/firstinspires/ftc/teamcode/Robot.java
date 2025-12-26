@@ -1,11 +1,10 @@
 /** this is our mega-class that holds all robot functions that are shared between auto and teleop **/
+
 package org.firstinspires.ftc.teamcode;
 
 // hardware imports
-
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
-import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -28,11 +27,12 @@ public class Robot { // create our global class for our robot
     public Servo lowerTransfer, upperTransfer; // servos
     public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
 
-    private Timer launchStateTimer, // tracks time since we started our last launch state
+    private final Timer launchStateTimer, // tracks time since we started our last launch state
             intakeTimer, // measures time since last intake measurement
             intakeOvercurrentTimer, // measures time intake has been overcurrent
             transferTimer, // measure time since ball was launched to see how long we need to wait for transfer
             launchIntervalTimer; // this timer measures the time between individual launches
+
     private enum LaunchState { // these are the possible states our launch state machine can be in
         START,
         OPENING_UPPER_TRANSFER,
@@ -41,13 +41,12 @@ public class Robot { // create our global class for our robot
 
     /** only these variables should change during runtime **/
     LaunchState launchState = LaunchState.START; // set our launch state to start
-
     public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
-
     private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
     private double lastLaunchInterval; // stores the amount of time it took for our last launch
+    /** end vars that change **/
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
         // DC motors (all are DcMotorEx for current monitoring)
@@ -58,26 +57,21 @@ public class Robot { // create our global class for our robot
         lowerTransfer = hw.get(Servo.class, "lowerTransfer");
         upperTransfer = hw.get(Servo.class, "upperTransfer");
 
-        // sensors
         intake.setDirection(DcMotorEx.Direction.FORWARD);
-        launch.setDirection(DcMotorEx.Direction.FORWARD);
-
         intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
-        intake.setCurrentAlert(Tunables.intakeOvercurrent, CurrentUnit.AMPS);
-        launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
-
         intake.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
+
+        launch.setDirection(DcMotorEx.Direction.FORWARD);
+        launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
+        PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // use our coefficients from Tunables.java
+        launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew); // apply our coefficients to our motor
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
         lowerTransferSensor = hw.get(Rev2mDistanceSensor.class, "lowerTransferSensor");
         upperTransferSensor = hw.get(Rev2mDistanceSensor.class, "upperTransferSensor");
 
-        // Change PIDF coefficients using methods included with DcMotorEx class.
-        PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // use our coefficients from Tunables.java
-        launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew); // apply our coefficients to our motor
-
-
+        // timers
         launchStateTimer = new Timer(); // set up timer for the launch state machine
         intakeTimer = new Timer(); // set up timer to measure balls in intake
         intakeOvercurrentTimer = new Timer();

@@ -1,5 +1,5 @@
-/** OpMode to test automated turning behaviours **/
-/** CONCLUSION: follower.turnTo() only ever turns counterclockwise for some reason **/
+/** OpMode to test Pedro Pathing turning behaviours
+ * CONCLUSION: follower.turnTo() only ever turns counterclockwise for some reason **/
 
 package org.firstinspires.ftc.teamcode.util;
 
