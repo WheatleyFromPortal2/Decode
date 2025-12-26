@@ -1,4 +1,5 @@
-/** this OpMode is used to tune launch times **/
+/** this OpMode is used to tune delays for our launch state machine **/
+
 package org.firstinspires.ftc.teamcode.util;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
@@ -8,10 +9,10 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
 @TeleOp(name="LaunchDelay", group="Util")
-public class LaunchDelay extends LinearOpMode {
+public class LaunchTuner extends LinearOpMode {
     private boolean intakeOn = true;
 
-    private final static int  manualChangeAmount = 10; // amount to increment/decrement when d-pad is pressed
+    private final static int  manualChangeAmount = 10; // amount of millis to increment/decrement when d-pad is pressed
 
     @Override
     public void runOpMode() {
@@ -25,7 +26,7 @@ public class LaunchDelay extends LinearOpMode {
             if (intakeOn) robot.intake.setPower(1);
             else robot.intake.setPower(0);
 
-            if (gamepad1.rightBumperWasReleased()) robot.launchBalls(); // launch 1 ball
+            if (gamepad1.rightBumperWasReleased()) robot.launchBalls(1); // launch 1 ball
 
             if (gamepad1.dpadUpWasReleased()) Tunables.openDelay += manualChangeAmount; // increment openDelay
             if (gamepad1.dpadDownWasReleased()) Tunables.openDelay -= manualChangeAmount; // decrement openDelay
@@ -33,8 +34,8 @@ public class LaunchDelay extends LinearOpMode {
             if (gamepad1.dpadRightWasReleased()) Tunables.maxPushDelay += manualChangeAmount; // increment pushDelay
             if (gamepad1.dpadLeftWasReleased()) Tunables.maxPushDelay -= manualChangeAmount; // decrement pushDelay
 
-            if (gamepad1.xWasReleased()) Tunables.firstInterLaunchWait += manualChangeAmount; // increment interLaunchWait
-            if (gamepad1.bWasReleased()) Tunables.firstInterLaunchWait -= manualChangeAmount; // decrement interLaunchWait
+            if (gamepad1.xWasReleased()) Tunables.maxTransferDelay += manualChangeAmount; // increment interLaunchWait
+            if (gamepad1.bWasReleased()) Tunables.maxTransferDelay -= manualChangeAmount; // decrement interLaunchWait
 
 
             telemetry.addLine("use d-pad up/down to modify openDelay (upper transfer opening)");
@@ -42,13 +43,9 @@ public class LaunchDelay extends LinearOpMode {
             telemetry.addLine("use X/B to modify interLaunchWait (time between ball launches for macro)");
 
             telemetry.addData("openDelay (millis)", Tunables.openDelay);
+            telemetry.addData("maxTransferDelay (millis)", Tunables.maxTransferDelay);
             telemetry.addData("maxPushDelay (millis)", Tunables.maxPushDelay);
-            telemetry.addData("firstInterLaunchWait (millis)", Tunables.firstInterLaunchWait);
-            telemetry.addData("lastInterLaunchWait (millis)", Tunables.lastInterLaunchWait);
-
-            telemetry.addData("max 1 ball launch time (millis)", Tunables.openDelay + Tunables.maxPushDelay); // calc time to shoot 1 ball
-            telemetry.addData("max 3 ball launch time (millis)",
-                    (Tunables.openDelay + Tunables.maxPushDelay) * 3 + Tunables.firstInterLaunchWait * 2); // calc time to shoot 3 balls
+            telemetry.addData("last launch interval", robot.getLastLaunchInterval());
             telemetry.addData("launch RPM", robot.getLaunchRPM());
 
             telemetry.addData("launching?: ", robot.updateLaunch()); // update what's happening in our launch and send it to driver

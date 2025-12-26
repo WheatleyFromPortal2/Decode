@@ -1,4 +1,5 @@
-// base red auto
+/** base red auto **/
+
 package org.firstinspires.ftc.teamcode.auto;
 
 import com.pedropathing.geometry.Pose;

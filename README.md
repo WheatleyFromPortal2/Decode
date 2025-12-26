@@ -30,9 +30,9 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 
 ### USB port
 
-| port | device       | verbatim name |
-|:-----|:-------------|:--------------|
-| USB  | Limelight 3A | `limelight`   |
+| port    | device       | verbatim name |
+|:--------|:-------------|:--------------|
+| USB 3.0 | Limelight 3A | `limelight`   |
 
 the Limelight will show up as `Ethernet Device` under the USB devices, make sure to rename it to the verbatim name
 
@@ -60,11 +60,14 @@ make sure to connect every motor with the correct polarity, the reversing should
 
 ## expansion hub
 
+### connection method (ports matter)
+![expansion hub connection](doc/media/expansionHubConnection.png)
+
 ### I2C ports/buses
 | port/bus | device                 | location                    | verbatim name         |
 |:---------|:-----------------------|-----------------------------|:----------------------|
 | 0        | REV 2M Distance Sensor | intake                      | `intakeSensor`        |
-| 1        | REV 2M Distance Sensor | lower transfer              | `lowerTransferSensor` |
+| 1        | REV Color Sensor V3    | lower transfer              | `lowerTransferSensor` |
 | 2        | REV 2M Distance Sensor | left side of lower transfer | `upperTransferSensor` |
 | 3        | *unused*               | *unused*                    | *unused*              |
 
@@ -90,7 +93,7 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 - Y: not used
 
 ## bumpers
-- left bumper: not used
+- left bumper: auto turn to goal
 - right bumper: launch ball
 
 ## triggers
@@ -100,7 +103,9 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 ## buttons
 ### face buttons
 - A: toggle intake
-- B: toggle manual/automatic intake
+- B: toggle manual/automatic launch
+  - **auto**: uses odo to find out needed launch speed to reach goal
+  - **manual**: sets launch speed to constant defined in Tunables.java (calibrated for shooting from crease)
 - Y: launch 3 balls
 - X: reverse intake
 
@@ -111,7 +116,6 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 ### other buttons
 - start: toggle field/robot centric
 - back: reset field centric heading
-
 
 # OpModes
 ## TeleOp
@@ -127,9 +131,11 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 - `RedGoalAuto`: starting by red team goal
 
 ## util
-- `FlywheelTest`: test flywheel max speed
-- `LaunchDelay`: test and tune delays for launch
+- `FlywheelTuner`: tune flywheel PIDF
+- `LaunchTuner`: tune launch delays
+- `SensorTest`: test distance sensors and their trigger points
 - `ServoTest`: test servo endpoints
+- `TurnTest`: test Pedro Pathing turning behaviour
 
 # State Machines
 ## auto states
@@ -146,10 +152,9 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 - decrements every launch
 
 ## launch states
-1. START
-2. OPENING_UPPER_TRANSFER
-3. PUSHING_LOWER_TRANSFER
-4. WAITING_FOR_EXIT
+1. OPENING_UPPER_TRANSFER
+2. PUSHING_LOWER_TRANSFER
+3. WAITING_FOR_EXIT
 
 ### balls remaining
 - starts at 3 (all in robot)

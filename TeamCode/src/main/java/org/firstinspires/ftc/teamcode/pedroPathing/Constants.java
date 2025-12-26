@@ -21,9 +21,9 @@ public class Constants {
             .rightFrontMotorName("frontRight")
             .leftRearMotorName("backLeft")
             .rightRearMotorName("backRight")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD) // this should be correct
-            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD) // this should be correct
+            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
             .useBrakeModeInTeleOp(true); // use brake mode
 
