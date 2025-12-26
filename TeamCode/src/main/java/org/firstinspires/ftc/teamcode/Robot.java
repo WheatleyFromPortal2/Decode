@@ -8,6 +8,7 @@ import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.CRServo;
 
 // unit imports
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -27,8 +28,10 @@ public class Robot { // create our global class for our robot
     public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
     private static Robot instance; // this stores our current instance of Robot, so we can transfer it from auto->TeleOp
     public DcMotorEx intake, launch, turretEncoder; // drive motors are handled by Pedro Pathing
-    public Servo lowerTransfer, upperTransfer, turret1, turret2, hood; // servos
+    public Servo lowerTransfer, upperTransfer, hood; // servos
+    public CRServo turret1, turret2; // continuous servos
     public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
+    private PID turretPID;
 
     private final Timer launchStateTimer, // tracks time since we started our last launch state
             intakeTimer, // measures time since last intake measurement
@@ -62,9 +65,11 @@ public class Robot { // create our global class for our robot
         // servos
         lowerTransfer = hw.get(Servo.class, "lowerTransfer");
         upperTransfer = hw.get(Servo.class, "upperTransfer");
-        turret1 = hw.get(Servo.class, "turret1");
-        turret2 = hw.get(Servo.class, "turret2");
         hood = hw.get(Servo.class, "hood");
+
+        // continuous servos
+        turret1 = hw.get(CRServo.class, "turret1");
+        turret2 = hw.get(CRServo.class, "turret2");
 
         intake.setDirection(DcMotorEx.Direction.FORWARD);
         intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
@@ -77,6 +82,7 @@ public class Robot { // create our global class for our robot
 
         turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER); // reset our encoder
         turretEncoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER); // we won't be using the motor at all
+        turretPID = new PID(Tunables.turretP, Tunables.turretI, Tunables.turretD); // create our PID controller for our turret
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
@@ -134,6 +140,7 @@ public class Robot { // create our global class for our robot
     public void resetServos() { // set servos to starting state
         upperTransfer.setPosition(Tunables.upperTransferClosed); // make sure balls cannot launch
         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
+        hood.setPosition((Tunables.hoodMaximum + Tunables.hoodMinimum) / 2); // go to midpoint between our hood max and min
     }
     public double getIntakeCurrent() { return intake.getCurrent(CurrentUnit.AMPS); } // return intake current in amps
     public boolean isFull() {
@@ -257,7 +264,9 @@ public class Robot { // create our global class for our robot
 
     /** turret methods **/
     public void updateTurret() { // apply changes to keep turret in desired position
-        // TODO: fill this in
+        double correction = turretPID.calc(desiredTurretPosition - getTurretPosition());
+        turret1.setPower(correction);
+        turret2.setPower(correction);
     }
 
     public void setTurretPosition(double radians) { // set desired turret angle
