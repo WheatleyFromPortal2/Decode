@@ -5,7 +5,7 @@ package org.firstinspires.ftc.teamcode;
 
 public class PID {
     // PIDF coefficients
-    public double kP, kI, kD, kF;
+    public double kP, kI, kD;
 
     // State variables
     private double sumError = 0;
