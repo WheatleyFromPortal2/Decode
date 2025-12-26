@@ -31,8 +31,8 @@ public abstract class BozoAuto extends OpMode {
         LAUNCH, // wait for us to stop moving
         TRAVEL_TO_BALLS, // travel to the starting point of gathering balls
         RELOAD, // drive in the straight line to grab the balls
-        GO_TO_CLEAR,
-        CLEAR,
+        GO_TO_CLEAR, // go to the clear gate
+        CLEAR, // wait at the clear gate for the balls
         GO_TO_END, // travel to our end position
         END // end state: do nothing
     }
