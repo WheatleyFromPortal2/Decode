@@ -22,7 +22,6 @@ import com.pedropathing.util.Timer;
 
 public class Robot { // create our global class for our robot
     public static final int TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
-    // TODO: replace switchover pose with inverting controller inputs to avoid modifying robot heading - driver will need to point a different way for adjusting heading
     public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
     private static Robot instance; // this stores our current instance of Robot, so we can transfer it from auto->TeleOp
     public DcMotorEx intake, launch; // drive motors are handled by Pedro Pathing
@@ -102,7 +101,6 @@ public class Robot { // create our global class for our robot
     }
 
     public double getGoalHeading(Pose currentPosition, Pose goalPose) { // return bot heading to point towards goal in radians
-        // TODO: fix this only being able to turn counterclockwise
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
         double desiredHeading = Math.atan2(yDst, xDst); // need atan2 to account for negatives
