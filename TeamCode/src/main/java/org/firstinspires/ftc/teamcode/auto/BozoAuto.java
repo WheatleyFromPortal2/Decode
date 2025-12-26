@@ -39,7 +39,7 @@ public abstract class BozoAuto extends OpMode {
 
     /** these are the **only variables** that should change throughout the auto **/
     State state = State.START; // set PathState to start
-    private int ballTripletsRemaining = 5; // start with 5 ball triplets (1 in robot, 4 on field), decrements every LAUNCH
+    private int ballTripletsRemaining = 6; // start with 5 ball triplets (1 in robot, 3 on field, 2 to get from clear), decrements every LAUNCH
 
     // example paths
     private PathChain // some of these can probably just be Paths, but whatever
@@ -54,9 +54,6 @@ public abstract class BozoAuto extends OpMode {
             startPickup3,
             grabPickup3,
             scorePickup3,
-            startPickup4,
-            grabPickup4,
-            scorePickup4,
             getClear,
             goToEnd;
 
@@ -137,24 +134,6 @@ public abstract class BozoAuto extends OpMode {
                 .setLinearHeadingInterpolation(config.pickup3EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
                 .build();
 
-        // this path goes from the score point to the beginning of the 4th set of balls
-        startPickup4 = follower.pathBuilder()
-                .addPath(new BezierCurve(config.scorePose, config.pickup4StartPose))
-                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup4StartPose.getHeading(), Tunables.startPickup4EndTime) // we need to make sure we turn before we reach the end of our path
-                .build();
-
-        // this path picks up the 4th set of balls
-        grabPickup4 = follower.pathBuilder()
-                .addPath(new BezierLine(config.pickup4StartPose, config.pickup4EndPose))
-                .setLinearHeadingInterpolation(config.pickup4StartPose.getHeading(), config.pickup4EndPose.getHeading())
-                .build();
-
-        // this path goes from the endpoint of the ball pickup to our score position
-        scorePickup4 = follower.pathBuilder()
-                .addPath(new BezierLine(config.pickup4EndPose, config.scorePose))
-                .setLinearHeadingInterpolation(config.pickup4EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
-                .build();
-
         // this path goes form our score point to our ending position
         goToEnd = follower.pathBuilder()
                 .addPath(new BezierLine(config.scorePose, config.endPose))
@@ -195,22 +174,28 @@ public abstract class BozoAuto extends OpMode {
                         break;
                     }
                     switch (ballTripletsRemaining) { // this should always be between 4 and 1
-                        case 4:
+                        case 5:
                             follower.followPath(startPickup1);
                             setPathState(State.TRAVEL_TO_BALLS);
                             break;
-                        case 3:
+                        case 4:
                             follower.followPath(startPickup2);
                             setPathState(State.TRAVEL_TO_BALLS);
                             break;
-                        case 2:
+                        case 3:
                             follower.followPath(getClear);
                             setPathState(State.GO_TO_CLEAR);
                             break;
-                        case 1:
+                        case 2:
                             follower.followPath(startPickup3);
                             setPathState(State.TRAVEL_TO_BALLS);
                             break;
+                        case 1:
+                            follower.followPath(getClear);
+                            setPathState(State.GO_TO_CLEAR);
+                            break;
+                        default: // we should never reach this
+                            throw new IllegalStateException("no paths for this amount of balls remaining; ballTripletsRemaining: " + ballTripletsRemaining);
                     }
                 } // if we're not done with launching balls, just break
                 break;
@@ -218,18 +203,19 @@ public abstract class BozoAuto extends OpMode {
                 if(!follower.isBusy()) { // we're done traveling with balls, let's get ready to grab them
                     robot.intake.setPower(1); // re-enable intake to pickup balls
                     switch (ballTripletsRemaining) { // this should always be between 3 and 0
-                        case 4:
+                        case 5:
                             follower.followPath(grabPickup1);
                             break;
-                        case 3:
+                        case 4:
                             follower.followPath(grabPickup2);
                             break;
+                        // case 3 should be using clear
                         case 2:
                             follower.followPath(grabPickup3);
                             break;
-                        case 1:
-                            follower.followPath(grabPickup4);
-                            break;
+                        // case 4 should be using clear
+                        default: // we should never reach this
+                            throw new IllegalStateException("no paths for this amount of balls remaining; ballTripletsRemaining: " + ballTripletsRemaining);
                     }
                     setPathState(State.RELOAD); // now that we're reloaded, let's go to launch
                 }
@@ -237,28 +223,22 @@ public abstract class BozoAuto extends OpMode {
             case RELOAD: // grab the balls in a straight lineA
                 if(!follower.isBusy()) { // we're done reloading balls
                     robot.intake.setPower(0); // disable intake to save power
-                    if (ballTripletsRemaining == 3) { // since we need to break earlier, we are going to put this outside of the switch statement
-                        follower.followPath(getClear, false);
-                        setPathState(State.GO_TO_CLEAR);
-                        break; // exit without running the rest of the function
-                    }
                     switch (ballTripletsRemaining) { // this should always be between 4 and 1
-                        case 4:
+                        case 5:
                             follower.followPath(scorePickup1, true); // hold end to prevent other robots from moving us
                             break;
-                        case 2:
-                            follower.followPath(scorePickup2, true);
+                        case 4:
+                            follower.followPath(scorePickup2, false);
                             break;
-                        case 1:
+                        // case 3 should be using clear
+                        case 2:
                             follower.followPath(scorePickup3, true);
                             break;
+                        // case 1 should be using clear
+                        default: // we should never reach this
+                            throw new IllegalStateException("no paths for this amount of balls remaining; ballTripletsRemaining: " + ballTripletsRemaining);
                     }
                     setPathState(State.TRAVEL_TO_LAUNCH);
-                } else if (ballTripletsRemaining == 1 && ( stateTimer.getElapsedTime() >= Tunables.maxGrab4Time || opModeTimer.getElapsedTimeSeconds() >= 25)) {
-                    // if we have been trying to pick up balls for long enough, or we only have 5s left, let's just go to score
-                    follower.followPath(scorePickup4, true);
-                    setPathState(State.TRAVEL_TO_LAUNCH);
-                    break;
                 }
                 break;
             case GO_TO_CLEAR:
