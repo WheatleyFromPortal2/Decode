@@ -26,7 +26,6 @@ public abstract class BozoTeleOp extends OpMode {
     private Robot robot;
     private Follower follower;
     private Pose goalPose; // this will be set by the specific OpMode
-    private Timer intakeTimer; // used for polling whether intake is stalled
     private Timer loopTimer; // measures the speed of our loop
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
     private boolean automatedLaunch = false; // whether our launch speed is manually controlled or based off of distance from goal
@@ -42,8 +41,6 @@ public abstract class BozoTeleOp extends OpMode {
         // create timers and reset them
         loopTimer = new Timer();
         loopTimer.resetTimer();
-        intakeTimer = new Timer();
-        intakeTimer.resetTimer();
 
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
         follower = Constants.createFollower(hardwareMap);
@@ -181,7 +178,6 @@ public abstract class BozoTeleOp extends OpMode {
         if (robot.isFull()) telemetryM.addLine("WARNING: INTAKE FULL!!!"); // alert driver intake is over current
         telemetryM.addData("d", robot.getDstFromGoal(follower.getPose(), getGoalPose()));
         telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
-        // TODO: convey ballsRemaining with haptic feedback
         telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
