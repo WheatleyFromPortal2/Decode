@@ -17,7 +17,6 @@ import java.util.List;
 
 public class Vision {
     public static Limelight3A limelight;
-    Pose lastBotpose;
     double lastGoalTx, lastGoalDistance, lastGoalTa;
     boolean isBlue; // whether we are blue or red team
     Robot.Pattern lastPattern = Robot.Pattern.UNKNOWN;
@@ -57,7 +56,6 @@ public class Vision {
         return 0;
     }
 
-    public Pose getLastBotpose() { return lastBotpose; }
     public double getLastGoalTx() { return lastGoalTx; }
     public double getLastGoalDistance() { return lastGoalDistance; }
     public double getLastGoalTa() { return lastGoalTa; }
