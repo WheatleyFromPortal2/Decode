@@ -1,3 +1,7 @@
+/** this is our base blue teleop
+ * it is extended by either BlueTeleOp/RedTeleOp
+ */
+
 package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -11,7 +15,6 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 
 // Pedro Pathing imports
-import org.firstinspires.ftc.teamcode.Vision;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -22,12 +25,10 @@ import com.pedropathing.util.Timer;
 public abstract class BozoTeleOp extends OpMode {
     private Robot robot;
     private Follower follower;
-    private Vision vision;
     private Pose goalPose; // this will be set by the specific OpMode
-    private Timer intakeTimer; // used for polling whether intake is stalled
     private Timer loopTimer; // measures the speed of our loop
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
-    private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
+    private boolean automatedLaunch = false; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
     private boolean isIntakePowered = true; // start with intake powered
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
@@ -40,13 +41,9 @@ public abstract class BozoTeleOp extends OpMode {
         // create timers and reset them
         loopTimer = new Timer();
         loopTimer.resetTimer();
-        intakeTimer = new Timer();
-        intakeTimer.resetTimer();
 
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
         follower = Constants.createFollower(hardwareMap);
-        vision = new Vision(hardwareMap, isBlueTeam()); // create our vision class
-
         if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
         else { // hopefully this works
             follower.setPose(Robot.switchoverPose);
@@ -55,14 +52,12 @@ public abstract class BozoTeleOp extends OpMode {
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
         launchVelocity = robot.RPMToTPS(Tunables.initialLaunchRPM); // convert from RPM->TPS, starting point
-        vision.start(); // start limelight
         telemetryM.debug("init time: " + loopTimer.getElapsedTime()); // tell how long our init tool
         telemetryM.update(telemetry);
     }
 
-    protected abstract double flipControl(); // this will be filled in by blue/red TeleOp
-    protected abstract Pose getGoalPose(); // this will be filled in by blue/red TeleOp
-    protected abstract boolean isBlueTeam(); // this will be filled in by blue/red TeleOp
+    protected abstract double flipControl(); // this will be filled in by Blue/Red TeleOp
+    protected abstract Pose getGoalPose(); // this will be filled in by Blue/Red TeleOp
 
     public void start() {
         follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
@@ -113,34 +108,37 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.dpadUpWasPressed()) launchVelocity += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
         if (gamepad1.dpadDownWasPressed()) launchVelocity -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
 
-        double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
-        double turnAmount;
-
-        if (automatedDrive) turnAmount = vision.getGoalTurn();
-        else turnAmount = -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier; // reduce speed by our turn rate
-
-        // slow mode is built in using slowModeMultiplier controlled by left trigger
-        if (isRobotCentric) { // we are controlling relative to the robot
-            follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y * slowModeMultiplier,
-                    -gamepad1.left_stick_x * slowModeMultiplier,
-                    turnAmount,
-                    true // true = robot centric; false = field centric
-            );
-        } else { // we are controlling relative to the field
-            // we need to modify our x input to be in accordance with the driver's control position
-            follower.setTeleOpDrive(
-                    -gamepad1.left_stick_y * slowModeMultiplier * flipControl(),
-                    -gamepad1.left_stick_x * slowModeMultiplier * flipControl(),
-                    turnAmount,
-                    false // true = robot centric; false = field centric
-            );
+        if (!automatedDrive) {
+            double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
+            // slow mode is built in using slowModeMultiplier controlled by left trigger
+            if (isRobotCentric) { // we are controlling relative to the robot
+                follower.setTeleOpDrive(
+                        -gamepad1.left_stick_y * slowModeMultiplier,
+                        -gamepad1.left_stick_x * slowModeMultiplier,
+                        -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                        true // true = robot centric; false = field centric
+                );
+            } else { // we are controlling relative to the field
+                // we need to modify our x input to be in accordance with the driver's control position
+                follower.setTeleOpDrive(
+                        -gamepad1.left_stick_y * slowModeMultiplier * flipControl(),
+                        -gamepad1.left_stick_x * slowModeMultiplier * flipControl(),
+                        -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                        false // true = robot centric; false = field centric
+                );
+            }
+            //if (gamepad1.leftBumperWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
+        } else { // we're in automated drive
+            if (gamepad1.leftBumperWasReleased() // if the user presses the left bumper again, cancel
+                    || !follower.isTurning() // if the follower is done, cancel
+                    || Math.abs(follower.getHeading() - targetHeading) <= Tunables.launchTurnMargin) { // sometimes the follower gets stuck, so we will just check if it's within our margin
+                follower.startTeleOpDrive();
+                automatedDrive = false;
+            }
         }
-        //if (gamepad1.leftBumperWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
-        if (gamepad1.leftBumperWasReleased()) automatedDrive = !automatedDrive; // reverse automated drive, to enable automatic turning
 
         if (automatedLaunch) {
-            robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance()); // set our launch to its needed speed and get our needed TPS
+            robot.setAutomatedLaunchVelocity(follower.getPose(), getGoalPose()); // set our launch to its needed speed and get our needed TPS
         } else { // set our launch velocity manually based off the right trigger
             robot.setLaunchVelocity(launchVelocity); // set our launch velocity to our desired launch velocity
             /*
@@ -153,41 +151,33 @@ public abstract class BozoTeleOp extends OpMode {
         // intake control
         if (isIntakePowered) { // if we want to power our intake, and it isn't full
             // our intake is 0% or 100%
-            if (!isIntakeReversed) robot.intake.setPower(1); // only power intake normal direction if we aren't full
-            //if (!isIntakeReversed && !robot.isFull()) robot.intake.setPower(1); // only power intake normal direction if we aren't full
-            else if (isIntakeReversed) robot.intake.setPower(-1); // reverse intake to eject/unclog
+            if (!isIntakeReversed && !robot.isFull()) robot.intake.setPower(1); // only power intake normal direction if we aren't full
+            if (isIntakeReversed) robot.intake.setPower(-1); // reverse intake to eject/unclog (works even if intake is full)
         } else if (robot.isLaunching()) {
             robot.intake.setPower(1); // always power intake while we're launching
         } else {
             robot.intake.setPower(0); // turn off intake if other conditions aren't fulfilled
         }
-        /*
-        switch (robot.getBallsRemaining()) { // haptic feedback
+        switch (robot.getBallsRemaining()) { // haptic feedback based on how many balls are in the robot
             case 0:
-
+                gamepad1.stopRumble(); // don't rumble if we don't have any balls
                 break;
             case 1:
-
+                gamepad1.runRumbleEffect(Tunables.rumble1);
                 break;
             case 2:
-
+                gamepad1.runRumbleEffect(Tunables.rumble2);
                 break;
-
             case 3:
-
+                gamepad1.runRumbleEffect(Tunables.rumble3);
                 break;
-
-            default:
-                break;
-        } */
+        }
 
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         if (robot.isFull()) telemetryM.addLine("WARNING: INTAKE FULL!!!"); // alert driver intake is over current
-        telemetryM.addData("lastGoalTx", vision.getLastGoalTx());
-        telemetryM.addData("turnAmount", turnAmount);
+        telemetryM.addData("d", robot.getDstFromGoal(follower.getPose(), getGoalPose()));
         telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
-        // TODO: convey ballsRemaining with haptic feedback
         telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
@@ -211,7 +201,7 @@ public abstract class BozoTeleOp extends OpMode {
     public void teleOpLaunchPrep() { // start spinning up and following the turn path
         // we shouldn't need to set our needed velocity because this should automatically be done by the teleop every loop
         // yet we will still check one more time
-        double neededTangentialSpeed = robot.getTangentialSpeed(vision.getLastGoalDistance());
+        double neededTangentialSpeed = robot.getTangentialSpeed(follower.getPose(), goalPose);
         double neededVelocity = robot.getNeededVelocity(neededTangentialSpeed); // honestly can combine these into the same function and return our needed TPS to check if we're spun up
         robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
 

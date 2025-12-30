@@ -1,3 +1,5 @@
+/** starting by the triangle on the blue side **/
+
 package org.firstinspires.ftc.teamcode.auto;
 
 import com.pedropathing.geometry.Pose;
