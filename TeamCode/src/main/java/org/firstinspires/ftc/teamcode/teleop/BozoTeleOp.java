@@ -15,6 +15,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 
 // Pedro Pathing imports
+import org.firstinspires.ftc.teamcode.Vision;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
@@ -25,6 +26,7 @@ import com.pedropathing.util.Timer;
 public abstract class BozoTeleOp extends OpMode {
     private Robot robot;
     private Follower follower;
+    private Vision vision;
     private Pose goalPose; // this will be set by the specific OpMode
     private Timer loopTimer; // measures the speed of our loop
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
@@ -43,6 +45,8 @@ public abstract class BozoTeleOp extends OpMode {
         loopTimer.resetTimer();
 
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
+        vision = new Vision(hardwareMap, true);
+        vision.start();
         follower = Constants.createFollower(hardwareMap);
         if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
         else { // hopefully this works
@@ -66,6 +70,7 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        vision.update();
         loopTimer.resetTimer();
         follower.update(); // update our Pedro Pathing follower
         //robot.updateBalls(); // update how many balls we have in our intake
@@ -105,6 +110,10 @@ public abstract class BozoTeleOp extends OpMode {
             follower.setPose(headingPose); // see if this works
         }
 
+        if (gamepad1.leftBumperWasReleased()) {
+            teleOpLaunchPrep();
+        }
+
         if (gamepad1.dpadUpWasPressed()) launchVelocity += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
         if (gamepad1.dpadDownWasPressed()) launchVelocity -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
 
@@ -138,7 +147,11 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         if (automatedLaunch) {
-            robot.setAutomatedLaunchVelocity(follower.getPose(), getGoalPose()); // set our launch to its needed speed and get our needed TPS
+            if (vision.isStale()) { // if it has been a while since our last vision reading
+                robot.setAutomatedLaunchVelocity(follower.getPose().distanceFrom(getGoalPose())); // get goal distance using odo
+            } else {
+                robot.setAutomatedLaunchVelocity(vision.getLastGoalTx()); // get goal distance using vision
+            }
         } else { // set our launch velocity manually based off the right trigger
             robot.setLaunchVelocity(launchVelocity); // set our launch velocity to our desired launch velocity
             /*
@@ -176,7 +189,9 @@ public abstract class BozoTeleOp extends OpMode {
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         if (robot.isFull()) telemetryM.addLine("WARNING: INTAKE FULL!!!"); // alert driver intake is over current
-        telemetryM.addData("d", robot.getDstFromGoal(follower.getPose(), getGoalPose()));
+        telemetryM.addData("lastGoalDistance", vision.getLastGoalDistance());
+        telemetryM.addData("d", follower.getPose().distanceFrom(getGoalPose()));
+        telemetryM.debug("vision stale?: " + vision.isStale());
         telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
         telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
         telemetryM.debug("current heading: " + follower.getHeading());
@@ -199,21 +214,16 @@ public abstract class BozoTeleOp extends OpMode {
     }
 
     public void teleOpLaunchPrep() { // start spinning up and following the turn path
-        // we shouldn't need to set our needed velocity because this should automatically be done by the teleop every loop
-        // yet we will still check one more time
-        double neededTangentialSpeed = robot.getTangentialSpeed(follower.getPose(), goalPose);
-        double neededVelocity = robot.getNeededVelocity(neededTangentialSpeed); // honestly can combine these into the same function and return our needed TPS to check if we're spun up
-        robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
+        if (vision.isStale()) return; // if our vision data is stale, don't try to turn to goal
 
-        targetHeading = robot.getGoalHeading(follower.getPose(), goalPose);
-        /*Pose holdPose = follower.getPose().setHeading(targetHeading);
-        PathChain turnPath = follower.pathBuilder()
-                .addPath(new BezierLine(follower.getPose(), holdPose))
-                .setLinearHeadingInterpolation(follower.getHeading(), targetHeading) // we want to turn from our current heading to our target heading
-                .build();
-        follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end */
-        follower.turnTo(targetHeading); // see if this works
-        //follower.holdPoint(holdPose); // hopefully this doesn't interfere
+        double tx = vision.getLastGoalTx();
+
+        if (tx >= 0) {
+            follower.turnDegrees(tx, false);
+        } else {
+            follower.turnDegrees(-tx, true);
+        }
+
         automatedDrive = true; // we're driving automatically now
         automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
     }

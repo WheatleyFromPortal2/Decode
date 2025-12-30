@@ -20,7 +20,6 @@ public class Vision {
     public static Limelight3A limelight;
     double lastGoalTx, lastGoalDistance, lastGoalTa;
     boolean isBlue; // whether we are blue or red team
-    Robot.Pattern lastPattern = Robot.Pattern.UNKNOWN;
     PID turnController;
     private boolean started = false;
 
@@ -43,7 +42,7 @@ public class Vision {
     public boolean update() { // update our vision
 
         if (!started) { // make sure we have started
-            throw new RuntimeException();
+            throw new RuntimeException("make sure to call vision.start()!");
         }
         LLResult result = limelight.getLatestResult();
         if (result != null && result.isValid()) {
@@ -61,6 +60,7 @@ public class Vision {
     public double getLastGoalTx() { return lastGoalTx; }
     public double getLastGoalDistance() { return lastGoalDistance; }
     public double getLastGoalTa() { return lastGoalTa; }
+    public boolean isStale() { return limelight.getTimeSinceLastUpdate() >= Tunables.maxVisionStaleness; }
     public LLStatus getStatus() { return limelight.getStatus(); }
 
     public double getGoalTurn() { // returns a double (-1)<->(1) that specifies how much Pedro should turn by to point towards the goal

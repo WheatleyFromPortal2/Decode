@@ -89,10 +89,6 @@ public class Robot { // create our global class for our robot
         PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
         launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew);
     }
-    public double getDstFromGoal(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
-        double inchesD = currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
-        return inchesD * 0.0254; // convert to meters
-    }
 
     public double getGoalHeading(Pose currentPosition, Pose goalPose) { // return bot heading to point towards goal in radians
         double xDst = goalPose.getX() - currentPosition.getX();
@@ -102,17 +98,10 @@ public class Robot { // create our global class for our robot
         return normalizeRadians(desiredHeading - currentHeading) + currentHeading;
     }
 
-    public double getTangentialSpeed(Pose currentPosition, Pose goalPose) { // returns needed tangential speed to launch ball to the goal
-        double d = getDstFromGoal(currentPosition, goalPose);
-        double fraction = (4.9)/((d * 1.73205) - 0.83);
-        double beforeMagicNumber = Math.pow(fraction, 0.5)* 2 * d;
-        return beforeMagicNumber * Tunables.magicNumber;
-    }
-
-    public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) { // given positions, use our functions to set our launch speed
-        double neededTangentialSpeed = getTangentialSpeed(currentPosition, goalPose);
-        double neededVelocity = getNeededVelocity(neededTangentialSpeed);
-        setLaunchVelocity(neededVelocity);
+    public void setAutomatedLaunchVelocity(double d) { // given positions, use our functions to set our launch speed
+        // TODO: fill this out
+        double RPM = 0;
+        setLaunchVelocity(RPM);
     }
 
     public double TPSToRPM(double TPS) { return (TPS / TICKS_PER_REV) * 60 * Tunables.launchRatio; }
@@ -138,13 +127,9 @@ public class Robot { // create our global class for our robot
         neededLaunchVelocity = velocity; // update our desired launch velocity
         launch.setVelocity(velocity); // set our launch velocity
     }
-    public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
-        double numerator = tangentialSpeed - 0.269926;
-        double RPM = (numerator/0.000636795);
-        return RPMToTPS(RPM); // return our TPS
-    }
     public boolean isBallInIntake() { // return true if there is a ball reducing our measured distance
-        return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeSensorOpen;
+        if (intakeSensor.getDistance(DistanceUnit.MM) == 0) return true; // if our intake sensor isn't working
+        else return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeSensorOpen;
     }
     public boolean isBallInLowerTransfer() { // return true if there is a ball reducing our measured distance
         return lowerTransferSensor.getDistance(DistanceUnit.MM) < Tunables.lowerTransferSensorOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both

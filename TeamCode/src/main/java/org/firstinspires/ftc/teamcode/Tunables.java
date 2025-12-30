@@ -88,4 +88,6 @@ public class Tunables { // this should hold all of our constants
     public static double turnP = 1;
     public static double turnI = 0;
     public static double turnD = 0;
+
+    public static long maxVisionStaleness = 20; // amount of millis without a reading where vision becomes stale
 }

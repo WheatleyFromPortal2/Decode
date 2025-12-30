@@ -16,8 +16,4 @@ public class RedTeleOp extends BozoTeleOp {
         return new Pose (132, 138); // taken from RedAuto.java
     }
 
-    @Override
-    public boolean isBlueTeam() {
-        return false;
-    }
 }
