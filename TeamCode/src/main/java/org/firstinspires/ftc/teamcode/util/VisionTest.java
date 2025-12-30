@@ -28,6 +28,7 @@ public class VisionTest extends LinearOpMode {
             telemetryM.addData("last goal distance", vision.getLastGoalDistance());
             telemetryM.addData("last goal tx", vision.getLastGoalTx());
             telemetryM.addData("last goal ta", vision.getLastGoalTa());
+            telemetryM.addData("limelight status", vision.getStatus());
             telemetryM.update(telemetry); // update our telemetry
             idle();
         }

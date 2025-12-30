@@ -3,6 +3,7 @@ package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
 import com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult;
+import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
@@ -25,6 +26,7 @@ public class Vision {
 
     public Vision(HardwareMap hw, boolean isBlueTeam) {
         limelight = hw.get(Limelight3A.class, "limelight");
+        limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
 
         if (isBlueTeam) limelight.pipelineSwitch(1);
         else limelight.pipelineSwitch(2);
@@ -39,6 +41,7 @@ public class Vision {
     }
 
     public boolean update() { // update our vision
+
         if (!started) { // make sure we have started
             throw new RuntimeException();
         }
@@ -52,13 +55,13 @@ public class Vision {
     }
 
     private double getGoalDistance(double ta) { // returns goal distance in inches
-        // TODO: gather data for this and fill it out
-        return 0;
+        return 18.86428*ta*ta - 91.66931*ta + 138.66433; // from Desmos
     }
 
     public double getLastGoalTx() { return lastGoalTx; }
     public double getLastGoalDistance() { return lastGoalDistance; }
     public double getLastGoalTa() { return lastGoalTa; }
+    public LLStatus getStatus() { return limelight.getStatus(); }
 
     public double getGoalTurn() { // returns a double (-1)<->(1) that specifies how much Pedro should turn by to point towards the goal
         turnController.set(Tunables.turnP, Tunables.turnI, Tunables.turnD); // update our coefficients (they may have been changed with Configurables)
