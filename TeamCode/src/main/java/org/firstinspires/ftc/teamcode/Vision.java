@@ -54,7 +54,8 @@ public class Vision {
     }
 
     private double getGoalDistance(double ta) { // returns goal distance in inches
-        return 18.86428*ta*ta - 91.66931*ta + 138.66433; // from Desmos
+        double d = 18.86428*ta*ta - 91.66931*ta + 138.66433; // from Desmos
+        return d + Tunables.goalOffset;
     }
 
     public double getLastGoalTx() { return lastGoalTx; }

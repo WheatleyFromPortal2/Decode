@@ -90,4 +90,5 @@ public class Tunables { // this should hold all of our constants
     public static double turnD = 0;
 
     public static long maxVisionStaleness = 20; // amount of millis without a reading where vision becomes stale
+    public static double goalOffset = 16; // how many inches less our vision reports the goal to be at than it actually is
 }
