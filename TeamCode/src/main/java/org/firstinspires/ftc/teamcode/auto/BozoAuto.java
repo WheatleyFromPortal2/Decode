@@ -284,6 +284,11 @@ public abstract class BozoAuto extends OpMode {
 
         // Feedback to Driver Hub for debugging
         telemetryM.debug("path state: " + state);
+        telemetryM.debug("path: " + follower.getCurrentPath());
+        telemetryM.debug("pose0: " + follower.getCurrentPath().getPose(0));
+        telemetryM.debug("pose1: " + follower.getCurrentPath().getPose(1));
+        telemetryM.debug("pose2: " + follower.getCurrentPath().getPose(2));
+        telemetryM.debug("path completion: " + follower.getPathCompletion());
         telemetryM.addData("balls remaining", robot.getBallsRemaining());
         telemetryM.addData("is follower busy", follower.isBusy());
         telemetryM.addData("ball triplets remaining", ballTripletsRemaining);
@@ -322,6 +327,9 @@ public abstract class BozoAuto extends OpMode {
 
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
         telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
+        telemetryM.debug(scorePreload.getPath(0));
+        telemetryM.debug("startPose: " + startPose.getX() + ", " + startPose.getY() + " h: " + startPose.getHeading());
+        telemetryM.debug("follower pose: " + follower.getPose().getX() + ", " + follower.getPose().getY() + " h: " + follower.getPose().getHeading());
         telemetryM.update(telemetry);
     }
 
