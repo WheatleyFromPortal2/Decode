@@ -150,7 +150,7 @@ public abstract class BozoTeleOp extends OpMode {
             if (vision.isStale()) { // if it has been a while since our last vision reading
                 robot.setAutomatedLaunchVelocity(follower.getPose().distanceFrom(getGoalPose())); // get goal distance using odo
             } else {
-                robot.setAutomatedLaunchVelocity(vision.getLastGoalTx()); // get goal distance using vision
+                robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance()); // get goal distance using vision
             }
         } else { // set our launch velocity manually based off the right trigger
             robot.setLaunchVelocity(launchVelocity); // set our launch velocity to our desired launch velocity
