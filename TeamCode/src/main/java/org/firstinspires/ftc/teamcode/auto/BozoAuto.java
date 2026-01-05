@@ -1,7 +1,7 @@
 /** this is our base class for all of our autos
  * it is extended by BlueAuto/RedAuto
- * and then further extended by ...TriAuto/...GoalAuto
- */
+ * and then extended again by ...TriAuto/...GoalAuto
+ **/
 
 package org.firstinspires.ftc.teamcode.auto;
 
@@ -21,7 +21,6 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Robot;
 
 
-//@Autonomous(name = "BozoAuto", group = "Auto") // this is the base file which will just be extended so we don't want this OpMode to be directly run
 public abstract class BozoAuto extends OpMode {
     protected AutoConfig config;
     protected abstract AutoConfig buildConfig();
@@ -38,6 +37,8 @@ public abstract class BozoAuto extends OpMode {
         LAUNCH, // wait for us to stop moving
         TRAVEL_TO_BALLS, // travel to the starting point of gathering balls
         RELOAD, // drive in the straight line to grab the balls
+        GO_TO_CLEAR, // go to the clear gate
+        CLEAR, // wait at the clear gate for the balls
         GO_TO_END, // travel to our end position
         END // end state: do nothing
     }
@@ -46,7 +47,7 @@ public abstract class BozoAuto extends OpMode {
 
     State state = State.START; // set PathState to start
     private int ballTripletsScored = 0; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
-    private final int maxBallTriplets = 4; // amount of ball triplets we will try to score before going to end
+    private final int maxBallTriplets = 5; // amount of ball triplets we will try to score before going to end
 
     // example paths
     private PathChain // some of these can probably just be Paths, but whatever
@@ -109,17 +110,18 @@ public abstract class BozoAuto extends OpMode {
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
                 .build();
 
-        // this path hits the release once we are done with grabbing the second pickup, so we don't lose any pts to overflow
+        // this path gets our balls from clear from our scorePose
         getClear = follower.pathBuilder()
-                .addPath(new BezierLine(config.pickup2EndPose, config.pickup2StartPose))
-                .setConstantHeadingInterpolation(config.pickup2StartPose.getHeading())
+                .addPath(new BezierLine(config.scorePose, config.pickup2StartPose)) // to prevent coming in at a weird angle, we first go to our pickup2StartPose
+                // we want to rotate to the correct heading before we even get close to the release
+                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime)
                 .addPath(new BezierCurve(config.pickup2StartPose, config.releasePose))
-                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime)
+                .setConstantHeadingInterpolation(config.releasePose.getHeading()) // while making the last travel to release, we just want to keep the same heading
                 .build();
 
         // this path goes from the release position to the scoring position
         scoreClear = follower.pathBuilder()
-                .addPath(new BezierCurve(config.releasePose, config.scorePose)) // test if this works
+                .addPath(new BezierCurve(config.releasePose, config.pickup2StartPose, config.scorePose)) // use the pickup2StartPose so it backs out more directly
                 .setLinearHeadingInterpolation(config.releasePose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
                 .build();
 
@@ -191,17 +193,24 @@ public abstract class BozoAuto extends OpMode {
                         switch (ballTripletsScored) { // this should always be between 3 and 0
                             case 1:
                                 follower.followPath(startPickup1);
+                                setPathState(State.TRAVEL_TO_BALLS); // now we reload
                                 break;
                             case 2:
                                 follower.followPath(startPickup2);
+                                setPathState(State.TRAVEL_TO_BALLS); // now we reload
                                 break;
                             case 3:
+                                robot.intake.setPower(1); // enable intake to grab balls
+                                follower.followPath(getClear);
+                                setPathState(State.GO_TO_CLEAR);
+                                break;
+                            case 4:
                                 follower.followPath(startPickup3);
+                                setPathState(State.TRAVEL_TO_BALLS); // now we reload
                                 break;
                             default: // if we have another amount of ball triplets scored, then crash the program and report the error
                                 throw new IllegalStateException("[LAUNCH] invalid amount of ballTripletsScored: " + ballTripletsScored);
                         }
-                        setPathState(State.TRAVEL_TO_BALLS); // now we reload
                     }
                 } // if we're not done with launching balls, just break
                 break;
@@ -215,7 +224,8 @@ public abstract class BozoAuto extends OpMode {
                         case 2:
                             follower.followPath(grabPickup2);
                             break;
-                        case 3:
+                        // case 3: clearing (done in LAUNCH)
+                        case 4:
                             follower.followPath(grabPickup3);
                             break;
                         default: // if we have another amount of ball triplets scored, then crash the program and report the error
@@ -233,7 +243,8 @@ public abstract class BozoAuto extends OpMode {
                         case 2:
                             follower.followPath(scorePickup2, true);
                             break;
-                        case 3:
+                        // case 3: clearing (done in LAUNCH)
+                        case 4:
                             follower.followPath(scorePickup3, true);
                             break;
                         default: // if we have another amount of ball triplets scored, then crash the program and report the error
@@ -241,6 +252,17 @@ public abstract class BozoAuto extends OpMode {
                     }
                     setPathState(State.TRAVEL_TO_LAUNCH);
                 }
+            case GO_TO_CLEAR:
+                if (!follower.isBusy()) {
+                    setPathState(State.CLEAR); // this will also reset stateTimer, allowing us to measure how long we have been at clear
+                }
+                break;
+            case CLEAR:
+                if (stateTimer.getElapsedTime() >= Tunables.clearTime) { // we have waited long enough at clear
+                    follower.followPath(scoreClear);
+                    setPathState(State.TRAVEL_TO_LAUNCH);
+                }
+                break;
             case GO_TO_END: // travels to the end
                 if(!follower.isBusy()) {
                     setPathState(State.END);
@@ -256,7 +278,7 @@ public abstract class BozoAuto extends OpMode {
     }
 
     /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
-    public void setPathState(State pState) {
+    private void setPathState(State pState) {
         state = pState;
         stateTimer.resetTimer();
     }
@@ -270,20 +292,9 @@ public abstract class BozoAuto extends OpMode {
 
         Robot.switchoverPose = follower.getPose(); // get our switchover pose ready for TeleOp (this may drift if we stop the OpMode mid-motion)
 
-        autonomousPathUpdate();
+        autonomousPathUpdate(); // update our state machine and run its actions
 
-        // Feedback to Driver Hub for debugging
-        telemetryM.debug("path state: " + state);
-        telemetryM.debug("maxBallTriplets: " + maxBallTriplets);
-        telemetryM.addData("is follower busy", follower.isBusy());
-        telemetryM.addData("ballTripletsScored", ballTripletsScored);
-        telemetryM.addData("desired launch RPM", Tunables.scoreRPM);
-        telemetryM.addData("launch RPM", robot.getLaunchRPM());
-        telemetryM.debug("x", follower.getPose().getX());
-        telemetryM.debug("y", follower.getPose().getY());
-        telemetryM.debug("heading", follower.getPose().getHeading());
-        telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
-        telemetryM.update(telemetry); // update telemetry
+        sendTelemetry(false); // we don't want to send our init time now that our OpMode is running
     }
 
     /** This method is called once at the init of the OpMode. **/
@@ -308,19 +319,19 @@ public abstract class BozoAuto extends OpMode {
 
         telemetryM.debug("building paths... (this may take a while)");
         telemetryM.update(telemetry);
+
         buildPaths(); // this will create our paths from our predefined variables
 
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
 
-        telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
-        telemetryM.update(telemetry);
+        sendTelemetry(true); // begin our full telemetry, so in Panels we can set all graphs to true
+        // this lets us observe our telemetry graphs from the start
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
-    /* could be used for detecting april tag pattern before we even begin
     @Override
     public void init_loop() {}
-    */
+    // this could be used for detecting april tag pattern before we even begin
 
     /** This method is called once at the start of the OpMode. **/
     @Override
@@ -337,5 +348,23 @@ public abstract class BozoAuto extends OpMode {
     public void stop() {
         Robot.switchoverPose = follower.getPose(); // try to prevent drift
         robot.resetServos(); // return servos to starting position
+    }
+
+    public void sendTelemetry(boolean sendInitTime) {
+        // sendInitTime = true; is only for init()
+        if (sendInitTime) telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
+
+        // Feedback to Driver Hub for debugging
+        telemetryM.debug("path state: " + state);
+        telemetryM.debug("maxBallTriplets: " + maxBallTriplets);
+        telemetryM.addData("is follower busy", follower.isBusy());
+        telemetryM.addData("ballTripletsScored", ballTripletsScored);
+        telemetryM.addData("desired launch RPM", Tunables.scoreRPM);
+        telemetryM.addData("launch RPM", robot.getLaunchRPM());
+        telemetryM.debug("x", follower.getPose().getX());
+        telemetryM.debug("y", follower.getPose().getY());
+        telemetryM.debug("heading", follower.getPose().getHeading());
+        telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
+        telemetryM.update(telemetry); // update telemetry
     }
 }
