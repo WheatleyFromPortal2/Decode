@@ -28,7 +28,7 @@ public abstract class BozoAuto extends OpMode {
     protected abstract Pose getStartPose();
     Robot robot;
     private Follower follower;
-    private Timer pathTimer, opmodeTimer, loopTimer;
+    private Timer stateTimer, opModeTimer, loopTimer;
     private TelemetryManager telemetryM; // create our telemetry object
     private Pose startPose;
 
@@ -57,9 +57,11 @@ public abstract class BozoAuto extends OpMode {
             startPickup2,
             grabPickup2,
             scorePickup2,
+            scoreClear,
             startPickup3,
             grabPickup3,
             scorePickup3,
+            getClear,
             goToEnd;
 
     public void buildPaths() {
@@ -71,13 +73,13 @@ public abstract class BozoAuto extends OpMode {
                 .setLinearHeadingInterpolation(startPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // hopefully this works
                 .build();
 
-        // this path goes from the score point to the beginning of the first set of balls
+        // this path goes from the score point to the beginning of the 1st set of balls
         startPickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(config.scorePose, config.pickup1StartPose))
                 .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup1StartPose.getHeading(), Tunables.grabEndTime)
                 .build();
 
-        // this path picks up the first set of balls
+        // this path picks up the 1st set of balls
         grabPickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup1StartPose, config.pickup1EndPose))
                 .setLinearHeadingInterpolation(config.pickup1StartPose.getHeading(), config.pickup1EndPose.getHeading())
@@ -89,31 +91,45 @@ public abstract class BozoAuto extends OpMode {
                 .setLinearHeadingInterpolation(config.pickup1EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
                 .build();
 
-        // this path goes from the score point to the beginning of the second set of balls
+        // this path goes from the score point to the beginning of the 2nd set of balls
         startPickup2 = follower.pathBuilder()
                 .addPath(new BezierLine(config.scorePose, config.pickup2StartPose))
                 .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup2StartPose.getHeading(), Tunables.grabEndTime)
                 .build();
 
-        // this path picks up the second set of balls
+        // this path picks up the 2nd set of balls
         grabPickup2 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup2StartPose, config.pickup2EndPose))
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup2EndPose.getHeading())
                 .build();
 
-        // this path goes from the endpoint of the ball pickup to our score position
+        // this path goes from the end of the 2nd set of balls to our score position
         scorePickup2 = follower.pathBuilder() // extra 2 lines to prevent hitting anything
                 .addPath(new BezierCurve(config.pickup2EndPose, config.pickup2StartPose, config.scorePose)) // test if this works
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
                 .build();
 
-        // this path goes from the score point to the beginning of the third set of balls
+        // this path hits the release once we are done with grabbing the second pickup, so we don't lose any pts to overflow
+        getClear = follower.pathBuilder()
+                .addPath(new BezierLine(config.pickup2EndPose, config.pickup2StartPose))
+                .setConstantHeadingInterpolation(config.pickup2StartPose.getHeading())
+                .addPath(new BezierCurve(config.pickup2StartPose, config.releasePose))
+                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime)
+                .build();
+
+        // this path goes from the release position to the scoring position
+        scoreClear = follower.pathBuilder()
+                .addPath(new BezierCurve(config.releasePose, config.scorePose)) // test if this works
+                .setLinearHeadingInterpolation(config.releasePose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
+                .build();
+
+        // this path goes from the score point to the beginning of the 3rd set of balls
         startPickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(config.scorePose, config.pickup3StartPose))
                 .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.pickup3StartPose.getHeading(), Tunables.grabEndTime)
                 .build();
 
-        // this path picks up the third set of balls
+        // this path picks up the 3rd set of balls
         grabPickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup3StartPose, config.pickup3EndPose))
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup3EndPose.getHeading())
@@ -133,7 +149,7 @@ public abstract class BozoAuto extends OpMode {
     }
 
     // isn't as flexible as https://state-factory.gitbook.io/state-factory, but it should be good enough for now
-    public void autonomousPathUpdate() throws InterruptedException {
+    public void autonomousPathUpdate() {
             /* You could check for
             - Follower State: "if(!follower.isBusy()) {}"
             - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
@@ -148,7 +164,6 @@ public abstract class BozoAuto extends OpMode {
             case TRAVEL_TO_LAUNCH:
                 if (!follower.isBusy() // check if our follower is busy
                         && robot.isLaunchWithinMargin() // check if our launch velocity is within our margin
-                        && opmodeTimer.getElapsedTime() >= Tunables.beginningLaunchDelay // check if we've waited enough time since the last launch
                         && follower.getPose().roughlyEquals(config.scorePose, Tunables.launchDistanceMargin)) { // check if we're holding position close enough to where we want to shoot
                     //follower.holdPoint(config.scorePose); // this should already be done by holdEnd: true
                     /* if we're holding point, we shouldn't have to disable motors
@@ -243,7 +258,7 @@ public abstract class BozoAuto extends OpMode {
     /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
     public void setPathState(State pState) {
         state = pState;
-        pathTimer.resetTimer();
+        stateTimer.resetTimer();
     }
 
     /** This is the main loop of the OpMode, it will run repeatedly after clicking "Play". **/
@@ -255,11 +270,7 @@ public abstract class BozoAuto extends OpMode {
 
         Robot.switchoverPose = follower.getPose(); // get our switchover pose ready for TeleOp (this may drift if we stop the OpMode mid-motion)
 
-        try {
-            autonomousPathUpdate();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
+        autonomousPathUpdate();
 
         // Feedback to Driver Hub for debugging
         telemetryM.debug("path state: " + state);
@@ -281,41 +292,50 @@ public abstract class BozoAuto extends OpMode {
         // set up our timers
         loopTimer = new Timer();
         loopTimer.resetTimer();
-        pathTimer = new Timer();
-        opmodeTimer = new Timer();
-        opmodeTimer.resetTimer();
+        stateTimer = new Timer();
+        opModeTimer = new Timer();
+        opModeTimer.resetTimer();
 
+        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
         robot = Robot.getInstance(hardwareMap); // create our robot class
+        robot.resetServos(); // get servos ready
+
+        telemetryM.debug("creating follower... (this may take a while)");
+        telemetryM.update(telemetry);
 
         follower = Constants.createFollower(hardwareMap);
         startPose = getStartPose(); // the getStartPose method will be included in different classes for start points
+
+        telemetryM.debug("building paths... (this may take a while)");
+        telemetryM.update(telemetry);
         buildPaths(); // this will create our paths from our predefined variables
+
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
-        telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
+
         telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
         telemetryM.update(telemetry);
     }
 
-    /* not needed
-    // This method is called continuously after Init while waiting for "play".
+    /** This method is called continuously after Init while waiting for "play". **/
+    /* could be used for detecting april tag pattern before we even begin
     @Override
     public void init_loop() {}
     */
 
-    /** This method is called once at the start of the OpMode.
-     * It runs all the setup actions, including building paths and starting the path system **/
+    /** This method is called once at the start of the OpMode. **/
     @Override
     public void start() {
-        opmodeTimer.resetTimer();
+        opModeTimer.resetTimer();
         robot.resetServos(); // get servos ready
         robot.intake.setPower(1); // start intake
         robot.setLaunchVelocity(robot.RPMToTPS(Tunables.scoreRPM)); // we're just gonna keep our score RPM constant for now
         setPathState(State.START);
     }
 
-    /** We do not use this because everything should automatically disable **/
+    // everything else should automatically disable, but we should probably reset our servos just in case
     @Override
     public void stop() {
+        Robot.switchoverPose = follower.getPose(); // try to prevent drift
         robot.resetServos(); // return servos to starting position
     }
 }
