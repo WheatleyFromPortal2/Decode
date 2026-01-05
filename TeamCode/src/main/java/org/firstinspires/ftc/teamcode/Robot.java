@@ -170,6 +170,7 @@ public class Robot { // create our global class for our robot
 
     public boolean updateLaunch() { // outputs true/false whether we are done with launching
         if (ballsRemaining == 0) {
+            resetServos();
             isLaunching = false;
             return true; // we're done with launching balls
         } else if (isLaunching) { // balls remaining > 0 && we are launching
@@ -198,7 +199,6 @@ public class Robot { // create our global class for our robot
                 case WAITING_FOR_EXIT:
                     if (isBallInUpperTransfer() // wait until we detect a ball in upper transfer (ball has been launched)
                             || launchStateTimer.getElapsedTime() >= Tunables.maxPushDelay) { // or if that hasn't happened in a while, just go to the next launch
-                        resetServos(); // reset our servos
                         launchState = LaunchState.START; // get ready for next one
                         ballsRemaining -= 1; // we've launched a ball
                         launchStateTimer.resetTimer(); // reset our timer
