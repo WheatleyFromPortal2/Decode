@@ -43,8 +43,10 @@ public abstract class BozoAuto extends OpMode {
     }
 
     /** these are the **only variables** that should change throughout the auto **/
+
     State state = State.START; // set PathState to start
-    private int ballTripletsRemaining = 4; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
+    private int ballTripletsScored = 0; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
+    private final int maxBallTriplets = 4; // amount of ball triplets we will try to score before going to end
 
     // example paths
     private PathChain // some of these can probably just be Paths, but whatever
@@ -141,30 +143,9 @@ public abstract class BozoAuto extends OpMode {
             case START:
                 follower.followPath(scorePreload);
                 robot.launchBalls(3);
-                setPathState(State.LAUNCH);
+                setPathState(State.TRAVEL_TO_LAUNCH);
                 break;
             case TRAVEL_TO_LAUNCH:
-                if(!follower.isBusy()) {
-                    if (ballTripletsRemaining == 0) { // if we're out of balls, just go to the end
-                        state = State.GO_TO_END;
-                        break;
-                    }
-                    switch (ballTripletsRemaining) { // this should always be between 3 and 0
-                        case 3:
-                            follower.followPath(scorePickup1, true); // hold end to prevent other robots from moving us
-                            break;
-                        case 2:
-                            follower.followPath(scorePickup2, true);
-                            break;
-                        case 1:
-                            follower.followPath(scorePickup3, true);
-                            break;
-                    }
-                    state = State.LAUNCH; // let's launch
-                    robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
-                }
-                break;
-            case LAUNCH:
                 if (!follower.isBusy() // check if our follower is busy
                         && robot.isLaunchWithinMargin() // check if our launch velocity is within our margin
                         && opmodeTimer.getElapsedTime() >= Tunables.beginningLaunchDelay // check if we've waited enough time since the last launch
@@ -173,72 +154,88 @@ public abstract class BozoAuto extends OpMode {
                     /* if we're holding point, we shouldn't have to disable motors
                     follower.pausePathFollowing();
                     follower.deactivateAllPIDFs(); */
-                    robot.intake.setPower(1); // turn on intake
-                    if (robot.updateLaunch()) { // we're done with launching balls
-                        ballTripletsRemaining -= 1;
-                        robot.intake.setPower(0); // save power
-                        setPathState(State.TRAVEL_TO_BALLS);
-                        /* if we're holding point, we shouldn't have to re-enable motors
-                        follower.activateAllPIDFs();
-                        follower.resumePathFollowing(); */
-                    } // if we're not done with launching balls, just break
+                    robot.intake.setPower(1); // turn on intake so transfer can work
+                    robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
+                    setPathState(State.LAUNCH); // let's launch
                 }
+                break;
+            case LAUNCH:
+                if (robot.updateLaunch()) { // we're done with launching balls
+                    ballTripletsScored++; // increment the amount of triplets that we have scored if we have a successful launch
+                    robot.intake.setPower(0); // save power
+                    setPathState(State.TRAVEL_TO_BALLS);
+                    /* if we're holding point, we shouldn't have to re-enable motors
+                    follower.activateAllPIDFs();
+                    follower.resumePathFollowing(); */
+
+                    if (ballTripletsScored == maxBallTriplets) { // if we're out of balls, just go to the end
+                        follower.followPath(goToEnd);
+                        setPathState(State.GO_TO_END);
+                        break;
+                    } else {
+                        switch (ballTripletsScored) { // this should always be between 3 and 0
+                            case 1:
+                                follower.followPath(startPickup1);
+                                break;
+                            case 2:
+                                follower.followPath(startPickup2);
+                                break;
+                            case 3:
+                                follower.followPath(startPickup3);
+                                break;
+                            default: // if we have another amount of ball triplets scored, then crash the program and report the error
+                                throw new IllegalStateException("[LAUNCH] invalid amount of ballTripletsScored: " + ballTripletsScored);
+                        }
+                        setPathState(State.TRAVEL_TO_BALLS); // now we reload
+                    }
+                } // if we're not done with launching balls, just break
                 break;
             case TRAVEL_TO_BALLS: // travel to the start position of the balls, but don't grab them yet
                 if(!follower.isBusy()) {
-                    if (ballTripletsRemaining == 0) { // if we're out of balls, just go to the end
-                        state = State.GO_TO_END;
-                        break;
-                    }
-                    switch (ballTripletsRemaining) { // this should always be between 3 and 0
-                        case 3:
-                            follower.followPath(startPickup1);
-                            break;
-                        case 2:
-                            follower.followPath(startPickup2);
-                            break;
-                        case 1:
-                            follower.followPath(startPickup3);
-                            break;
-                    }
-                    state = State.RELOAD; // now lets reload
-                }
-                break;
-            case RELOAD: // grab the balls in a straight line
-                if(!follower.isBusy()) {
                     robot.intake.setPower(1); // re-enable intake to pickup balls
-                    switch (ballTripletsRemaining) { // this should always be between 3 and 0
-                        case 3:
+                    switch (ballTripletsScored) { // this should always be between 3 and 0
+                        case 1:
                             follower.followPath(grabPickup1);
                             break;
                         case 2:
                             follower.followPath(grabPickup2);
                             break;
-                        case 1:
+                        case 3:
                             follower.followPath(grabPickup3);
                             break;
+                        default: // if we have another amount of ball triplets scored, then crash the program and report the error
+                            throw new IllegalStateException("[TRAVEL_TO_BALLS] invalid amount of ballTripletsScored: " + ballTripletsScored);
                     }
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    setPathState(State.TRAVEL_TO_LAUNCH); // now that we're reloaded, let's go to launch
+                    setPathState(State.RELOAD); // now that we're reloaded, let's go to launch
                 }
                 break;
+            case RELOAD: // grab the balls in a straight line
+                if (!follower.isBusy()) {
+                    switch (ballTripletsScored) { // this should always be between 3 and 0
+                        case 1:
+                            follower.followPath(scorePickup1, true); // hold end to prevent other robots from moving us
+                            break;
+                        case 2:
+                            follower.followPath(scorePickup2, true);
+                            break;
+                        case 3:
+                            follower.followPath(scorePickup3, true);
+                            break;
+                        default: // if we have another amount of ball triplets scored, then crash the program and report the error
+                            throw new IllegalStateException("[RELOAD] invalid amount of ballTripletsScored: " + ballTripletsScored);
+                    }
+                    setPathState(State.TRAVEL_TO_LAUNCH);
+                }
             case GO_TO_END: // travels to the end
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
                 if(!follower.isBusy()) {
-                    /* Grab Sample */
-
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.followPath(goToEnd);
                     setPathState(State.END);
                 }
                 break;
             case END:
-                if (!follower.isBusy()) {
-                    robot.intake.setPower(0); // turn off intake
-                    Robot.switchoverPose = follower.getPose(); // try to prevent drift
-                    follower.deactivateAllPIDFs(); // stop the follower
-                    requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
-                }
+                robot.intake.setPower(0); // turn off intake
+                Robot.switchoverPose = follower.getPose(); // try to prevent drift
+                follower.deactivateAllPIDFs(); // stop the follower
+                requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
                 break;
         }
     }
@@ -266,8 +263,9 @@ public abstract class BozoAuto extends OpMode {
 
         // Feedback to Driver Hub for debugging
         telemetryM.debug("path state: " + state);
+        telemetryM.debug("maxBallTriplets: " + maxBallTriplets);
         telemetryM.addData("is follower busy", follower.isBusy());
-        telemetryM.addData("ball triplets remaining", ballTripletsRemaining);
+        telemetryM.addData("ballTripletsScored", ballTripletsScored);
         telemetryM.addData("desired launch RPM", Tunables.scoreRPM);
         telemetryM.addData("launch RPM", robot.getLaunchRPM());
         telemetryM.debug("x", follower.getPose().getX());
