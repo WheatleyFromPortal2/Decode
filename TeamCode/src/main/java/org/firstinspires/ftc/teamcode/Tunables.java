@@ -21,10 +21,12 @@ public class Tunables { // this should hold all of our constants
     public static double launchF = 20; // ChatGPT was onto nothing with this
 
     // servo open/close points (don't find these with the backplate on!)
-    public static double lowerTransferLowerLimit = 0.28;
-    public static double lowerTransferUpperLimit = 0.49;
-    public static double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
-    public static double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
+    public static double lowerTransferLowerLimit = 0.00; // recalibrated 1-6-25
+    public static double lowerTransferUpperLimit = 0.30; // recalibrated 1-6-25
+    // servo position where upper transfer prevents balls from passing into launch
+    public static double upperTransferClosed = 0.38; // recalibrated 1-6-25
+    // servo position where upper transfer allows balls to pass into launch
+    public static double upperTransferOpen = 0.00; // recalibrated 1-6-25
 
     // distance sensor limits (better to undershoot rather than to overshoot)
     public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
