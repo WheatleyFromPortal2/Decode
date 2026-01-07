@@ -114,8 +114,10 @@ public abstract class BozoTeleOp extends OpMode {
             teleOpLaunchPrep();
         }
 
-        if (gamepad1.dpadUpWasPressed()) launchVelocity += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
-        if (gamepad1.dpadDownWasPressed()) launchVelocity -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
+        if (gamepad1.dpadUpWasReleased()) launchVelocity += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
+        if (gamepad1.dpadDownWasReleased()) launchVelocity -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
+        if (gamepad1.dpadLeftWasReleased()) launchVelocity += robot.RPMToTPS(Tunables.adjustRPM) / 2; // increment by half of adjustRPM (in TPS)
+        if (gamepad1.dpadRightWasReleased()) launchVelocity -= robot.RPMToTPS(Tunables.adjustRPM) / 2; // decrement by half of adjustRPM (in TPS)
 
         if (!automatedDrive) {
             double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
