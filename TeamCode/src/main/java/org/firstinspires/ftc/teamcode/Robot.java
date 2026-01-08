@@ -15,6 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeRadians;
 
 // Pedro Pathing imports
+import androidx.annotation.NonNull;
+
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
 
@@ -41,7 +43,7 @@ public class Robot { // create our global class for our robot
 
     /** only these variables should change during runtime **/
     LaunchState launchState = LaunchState.START; // set our launch state to start
-    public static double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
+    public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
     private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
@@ -90,7 +92,7 @@ public class Robot { // create our global class for our robot
         launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew);
     }
 
-    public double getGoalHeading(Pose currentPosition, Pose goalPose) { // return bot heading to point towards goal in radians
+    public double getGoalHeading(@NonNull Pose currentPosition, @NonNull Pose goalPose) { // return bot heading to point towards goal in radians
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
         double desiredHeading = Math.atan2(yDst, xDst); // need atan2 to account for negatives
