@@ -101,9 +101,9 @@ public class Robot { // create our global class for our robot
     }
 
     public void setAutomatedLaunchVelocity(double d) { // given positions, use our functions to set our launch speed
-        double RPM = 687.68458 * Math.pow(d, 0.337056); // from Desmos 1-7-26
-        // R^2 = 0.9796 using power regression
-        setLaunchVelocity(RPM); // this also updates our neededLaunchVelocity
+        double RPM = 705.41704 * Math.pow(d, 0.33109); // from Desmos data: 1-7-26
+        // R^2 = 0.9829 using power regression (with log mode)
+        setLaunchVelocity(RPMToTPS(RPM)); // this also updates our neededLaunchVelocity
     }
 
     public double TPSToRPM(double TPS) { return (TPS / TICKS_PER_REV) * 60 * Tunables.launchRatio; }
