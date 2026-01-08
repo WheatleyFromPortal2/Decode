@@ -2,19 +2,11 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.hardware.limelightvision.LLResult;
-import com.qualcomm.hardware.limelightvision.LLResultTypes.FiducialResult;
 import com.qualcomm.hardware.limelightvision.LLStatus;
 import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
-import com.pedropathing.geometry.Pose;
-
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.Pose3D;
-import org.firstinspires.ftc.robotcore.external.navigation.Position;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
-
-import java.util.List;
+import com.pedropathing.util.Timer;
 
 public class Vision {
     public static Limelight3A limelight;
@@ -22,10 +14,13 @@ public class Vision {
     boolean isBlue; // whether we are blue or red team
     PID turnController;
     private boolean started = false;
+    private Timer staleTimer;
 
     public Vision(HardwareMap hw, boolean isBlueTeam) {
         limelight = hw.get(Limelight3A.class, "limelight");
         limelight.setPollRateHz(100); // This sets how often we ask Limelight for data (100 times per second)
+
+        staleTimer = new Timer();
 
         if (isBlueTeam) limelight.pipelineSwitch(1);
         else limelight.pipelineSwitch(2);
@@ -45,7 +40,9 @@ public class Vision {
             throw new RuntimeException("make sure to call vision.start()!");
         }
         LLResult result = limelight.getLatestResult();
-        if (result != null && result.isValid()) {
+        if (result != null && result.isValid()) { // if our result is good
+            staleTimer.resetTimer(); // reset our staleness timer
+
             lastGoalTx = result.getTx();
             lastGoalTa = result.getTa();
             lastGoalDistance = getGoalDistance(lastGoalTa);
@@ -62,7 +59,7 @@ public class Vision {
     public double getLastGoalTx() { return lastGoalTx; }
     public double getLastGoalDistance() { return lastGoalDistance; }
     public double getLastGoalTa() { return lastGoalTa; }
-    public boolean isStale() { return limelight.getTimeSinceLastUpdate() >= Tunables.maxVisionStaleness; }
+    public boolean isStale() { return staleTimer.getElapsedTime() >= Tunables.maxVisionStaleness; }
     public LLStatus getStatus() { return limelight.getStatus(); }
 
     public double getGoalTurn() { // returns a double (-1)<->(1) that specifies how much Pedro should turn by to point towards the goal
