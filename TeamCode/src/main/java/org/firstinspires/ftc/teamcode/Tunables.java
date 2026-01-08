@@ -9,21 +9,24 @@ public class Tunables { // this should hold all of our constants
     /** Robot tunables (used in Robot.java) **/
 
     // this needs to be calculated+changed every time you modify the launch ratio
-    public static double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
+    public static double launchRatio = 1; // both of our launch motors are 1:1
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
     public static double intakeOvercurrent = 6; // amount of amps that we think means a stalled intake
     public static double magicNumber = (double) 3 / 8; // magic number for auto RPM
 
-    // PIDF coefficients
-    public static double launchP = 100; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
-    public static double launchI = 0.1; // orig 0.1
-    public static double launchD = 0; // orig 0.2
-    public static double launchF = 20; // ChatGPT was onto nothing with this
+    // TODO: tune these
+    // launch PIDF coefficients
+    public static double launchP = 0;
+    public static double launchI = 0;
+    public static double launchD = 0;
+    public static double launchF = 0;
 
     // TODO: tune these
+    // turret PIDF coefficients
     public static double turretP = 0;
     public static double turretI = 0;
     public static double turretD = 0;
+    public static double turretF = 0;
 
     // servo open/close points (don't find these with the backplate on!)
     public static double lowerTransferLowerLimit = 0.28;
