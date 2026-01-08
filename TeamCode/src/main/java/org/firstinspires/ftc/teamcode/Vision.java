@@ -54,7 +54,7 @@ public class Vision {
     }
 
     private double getGoalDistance(double ta) { // returns goal distance in inches
-        double d = 64.93981 * Math.pow(ta, -0.555106); // from Desmos 1-7-26
+        double d = 64.93981 * Math.pow(ta, -0.555106); // from Desmos data: 1-7-26
         // R^2 = 0.9928 using power regression
         return d + Tunables.goalOffset;
     }
