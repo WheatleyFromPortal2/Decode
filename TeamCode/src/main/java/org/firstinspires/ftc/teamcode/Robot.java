@@ -41,7 +41,7 @@ public class Robot { // create our global class for our robot
 
     /** only these variables should change during runtime **/
     LaunchState launchState = LaunchState.START; // set our launch state to start
-    public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
+    public static double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
     private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
@@ -99,9 +99,9 @@ public class Robot { // create our global class for our robot
     }
 
     public void setAutomatedLaunchVelocity(double d) { // given positions, use our functions to set our launch speed
-        // TODO: fill this out
-        double RPM = 0;
-        setLaunchVelocity(RPM);
+        double RPM = 687.68458 * Math.pow(d, 0.337056); // from Desmos 1-7-26
+        // R^2 = 0.9796 using power regression
+        setLaunchVelocity(RPM); // this also updates our neededLaunchVelocity
     }
 
     public double TPSToRPM(double TPS) { return (TPS / TICKS_PER_REV) * 60 * Tunables.launchRatio; }
