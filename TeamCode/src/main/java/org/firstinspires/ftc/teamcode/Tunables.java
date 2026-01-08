@@ -35,7 +35,7 @@ public class Tunables { // this should hold all of our constants
     public static double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
 
     // don't allow the hood to be set outside of these positions
-    public static double hoodMaximum = 1; // TODO: fill this in
+    public static double hoodMaximum = 0; // TODO: fill this in
     public static double hoodMinimum = 0; // TODO: fill this in
 
     // distance sensor limits (better to undershoot rather than to overshoot)
