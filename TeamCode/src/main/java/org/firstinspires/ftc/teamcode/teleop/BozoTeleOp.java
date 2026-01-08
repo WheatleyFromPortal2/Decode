@@ -30,7 +30,7 @@ public abstract class BozoTeleOp extends OpMode {
     private Pose goalPose; // this will be set by the specific OpMode
     private Timer loopTimer; // measures the speed of our loop
     private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
-    private boolean automatedLaunch = false; // whether our launch speed is manually controlled or based off of distance from goal
+    private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
     private boolean isIntakePowered = true; // start with intake powered
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
