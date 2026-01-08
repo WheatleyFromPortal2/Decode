@@ -35,7 +35,6 @@ public abstract class BozoTeleOp extends OpMode {
     private boolean isIntakePowered = true; // start with intake powered
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
-    double targetHeading;
     double launchVelocity; // target launch velocity in TPS
 
     @Override
@@ -110,10 +109,6 @@ public abstract class BozoTeleOp extends OpMode {
             follower.setPose(headingPose); // see if this works
         }
 
-        if (gamepad1.leftBumperWasReleased()) {
-            teleOpLaunchPrep();
-        }
-
         if (gamepad1.dpadUpWasReleased()) launchVelocity += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
         if (gamepad1.dpadDownWasReleased()) launchVelocity -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
         if (gamepad1.dpadLeftWasReleased()) launchVelocity += robot.RPMToTPS(Tunables.adjustRPM) / 2; // increment by half of adjustRPM (in TPS)
@@ -138,11 +133,15 @@ public abstract class BozoTeleOp extends OpMode {
                         false // true = robot centric; false = field centric
                 );
             }
+
+            // only run teleOpLaunchPrep() if we are not in automated drive
+            if (gamepad1.leftBumperWasReleased()) {
+                teleOpLaunchPrep();
+            }
             //if (gamepad1.leftBumperWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
         } else { // we're in automated drive
             if (gamepad1.leftBumperWasReleased() // if the user presses the left bumper again, cancel
-                    || !follower.isTurning() // if the follower is done, cancel
-                    || Math.abs(follower.getHeading() - targetHeading) <= Tunables.launchTurnMargin) { // sometimes the follower gets stuck, so we will just check if it's within our margin
+                    || !follower.isBusy()) { // if the follower is done, cancel
                 follower.startTeleOpDrive();
                 automatedDrive = false;
             }
@@ -194,6 +193,7 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.addData("lastGoalDistance", vision.getLastGoalDistance());
         telemetryM.addData("d", follower.getPose().distanceFrom(getGoalPose()));
         telemetryM.debug("vision stale?: " + vision.isStale());
+        telemetryM.debug("lastTx: " + vision.getLastGoalTx());
         telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
         telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
         telemetryM.debug("current heading: " + follower.getHeading());
