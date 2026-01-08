@@ -27,7 +27,8 @@ public class Robot { // create our global class for our robot
     public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
     private static Robot instance; // this stores our current instance of Robot, so we can transfer it from auto->TeleOp
     public DcMotorEx intake, launchLeft, launchRight, turretEncoder; // drive motors are handled by Pedro Pathing
-    public Servo lowerTransfer, upperTransfer, hood; // servos
+    public Servo lowerTransfer, upperTransfer; // servos
+    private Servo hood; // we only want to modify hood through setHoodPosition(pos), to ensure we don't set it out of bounds
     public CRServo turret1, turret2; // continuous servos
     public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
     private PIDF turretPIDF, launchPIDF;
@@ -295,4 +296,23 @@ public class Robot { // create our global class for our robot
     public double getLastLaunchInterval() { return lastLaunchInterval; }
     public boolean isLaunching() { return isLaunching; }
 
+    public void setHoodPosition(double pos) {
+        // ensure pos is within acceptable hw range
+        if (pos > Tunables.hoodMaximum) { // input exceeds maximum hood position!
+            hood.setPosition(Tunables.hoodMaximum); // set hood to maximum position
+        } else if (pos < Tunables.hoodMinimum) { // input is beneath minimum hood position!
+            hood.setPosition(Tunables.hoodMaximum); // set hood to minimum position
+        } else {
+            hood.setPosition(pos); // only if we are within our hw-safe range, do we set hood position to pos
+        }
+    }
+
+    public double getHoodPosition() { return hood.getPosition(); }
+
+    public double setAutomatedHoodPosition(double d) {
+        // TODO: fill this in with data from Desmos
+        double neededHoodPosition = 0.5;
+        hood.setPosition(neededHoodPosition);
+        return neededHoodPosition;
+    }
 }
