@@ -189,7 +189,7 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.debug("TeleOp drive?: " + follower.isTeleopDrive());
         telemetryM.debug("automated launch?: " + automatedLaunch);
         telemetryM.debug("follower busy?: " + follower.isBusy());
-        telemetryM.debug("desired launch RPM: " + robot.TPSToRPM(robot.neededLaunchVelocity)); // make sure to convert from TPS->RPM
+        telemetryM.debug("desired launch RPM: " + robot.TPSToRPM(robot.desiredLaunchVelocity)); // make sure to convert from TPS->RPM
         // we're using addData for these because we want to be able to graph them
         telemetryM.addData("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
         telemetryM.addData("launch current", robot.getLaunchCurrent()); // display launch current
@@ -200,25 +200,5 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.debug("goalPose y: " + goalPose.getY());
         telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
         telemetryM.update(telemetry); // update telemetry (don't know why we need to pass in 'telemetry' object)
-    }
-
-    public void teleOpLaunchPrep() { // start spinning up and following the turn path
-        // we shouldn't need to set our needed velocity because this should automatically be done by the teleop every loop
-        // yet we will still check one more time
-        double neededTangentialSpeed = robot.getTangentialSpeed(follower.getPose(), goalPose);
-        double neededVelocity = robot.getNeededVelocity(neededTangentialSpeed); // honestly can combine these into the same function and return our needed TPS to check if we're spun up
-        robot.launch.setVelocity(neededVelocity); // set our velocity to what we want
-
-        targetHeading = robot.getGoalHeading(follower.getPose(), goalPose);
-        /*Pose holdPose = follower.getPose().setHeading(targetHeading);
-        PathChain turnPath = follower.pathBuilder()
-                .addPath(new BezierLine(follower.getPose(), holdPose))
-                .setLinearHeadingInterpolation(follower.getHeading(), targetHeading) // we want to turn from our current heading to our target heading
-                .build();
-        follower.followPath(turnPath, Tunables.holdEnd); // follow this path and hold end */
-        follower.turnTo(targetHeading); // see if this works
-        //follower.holdPoint(holdPose); // hopefully this doesn't interfere
-        automatedDrive = true; // we're driving automatically now
-        automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
     }
 }
