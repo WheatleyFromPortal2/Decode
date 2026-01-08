@@ -5,7 +5,6 @@ package org.firstinspires.ftc.teamcode;
 // hardware imports
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
-import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.CRServo;
@@ -24,14 +23,14 @@ public class Robot { // create our global class for our robot
     public static final int MOTOR_TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
     public static final int TURRET_TICKS_PER_REV = 8192; // TODO: check this
     public static final double TURRET_ENCODER_RATIO = 5.5; // ratio from turretEncoder->turret
-    public static final double TURRET_SERVO_RATIO = 5.5 / 3; // ratio from turret1/2->turret
+    //public static final double TURRET_SERVO_RATIO = 5.5 / 3; // ratio from turret1/2->turret
     public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
     private static Robot instance; // this stores our current instance of Robot, so we can transfer it from auto->TeleOp
-    public DcMotorEx intake, launch, turretEncoder; // drive motors are handled by Pedro Pathing
+    public DcMotorEx intake, launchLeft, launchRight, turretEncoder; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer, hood; // servos
     public CRServo turret1, turret2; // continuous servos
     public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
-    private PID turretPID;
+    private PIDF turretPIDF, launchPIDF;
 
     private final Timer launchStateTimer, // tracks time since we started our last launch state
             intakeTimer, // measures time since last intake measurement
@@ -47,19 +46,20 @@ public class Robot { // create our global class for our robot
 
     /** only these variables should change during runtime **/
     LaunchState launchState = LaunchState.START; // set our launch state to start
-    public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
+    public double desiredLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
+    public double desiredTurretPosition; // this stores our desired turret position, in radians +/- facing directly forwards
     private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
     private double lastLaunchInterval; // stores the amount of time it took for our last launch
 
-    private double desiredTurretPosition = 0;
     /** end vars that change **/
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
         // DC motors (all are DcMotorEx for current monitoring)
         intake = hw.get(DcMotorEx.class, "intake"); // intake motor
-        launch = hw.get(DcMotorEx.class, "launch"); // launch motor, connected with launchRatio
+        launchLeft = hw.get(DcMotorEx.class, "launchLeft"); // left launch motor, connected with a 1:1 ratio
+        launchRight = hw.get(DcMotorEx.class, "launchRight"); // right launch motor, connected with a 1:1 ratio
         turretEncoder = hw.get(DcMotorEx.class, "turretEncoder"); // encoder for turret, no motor is connected to it
 
         // servos
@@ -75,14 +75,15 @@ public class Robot { // create our global class for our robot
         intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
         intake.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
 
-        launch.setDirection(DcMotorEx.Direction.FORWARD);
-        launch.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
-        PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // use our coefficients from Tunables.java
-        launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew); // apply our coefficients to our motor
+        launchLeft.setDirection(DcMotorEx.Direction.REVERSE);
+        launchLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
+        launchRight.setDirection(DcMotorEx.Direction.FORWARD); // our turret motors rotate the flywheel opposite of each other
+        launchRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
+        launchPIDF = new PIDF(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // create our PIDF controller for our launch motors
 
         turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER); // reset our encoder
         turretEncoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER); // we won't be using the motor at all
-        turretPID = new PID(Tunables.turretP, Tunables.turretI, Tunables.turretD); // create our PID controller for our turret
+        turretPIDF = new PIDF(Tunables.turretP, Tunables.turretI, Tunables.turretD, Tunables.turretF); // create our PIDF controller for our turret
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
@@ -103,10 +104,33 @@ public class Robot { // create our global class for our robot
         }
         return instance;
     }
-    public void updatePIDF() {
-        PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
-        launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew);
+
+    public double getTurretPosition() { // return our current turret angle in radians +/- from facing forwards
+        int ticks = turretEncoder.getCurrentPosition();
+        double encoderRevs = (double) ticks / TURRET_TICKS_PER_REV;
+        double turretRevs = encoderRevs / TURRET_ENCODER_RATIO;
+        return turretRevs * 2 * Math.PI; // convert to radians
     }
+
+    public void setTurretPosition(double radians) { // set desired turret angle
+        desiredTurretPosition = radians;
+    }
+
+    public void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
+        // calc launch PIDF
+        // we don't need to negate values from launchLeft, because we have already set its direction to reversed
+        double launchTPS = getLaunchVelocity();
+        double launchCorrection = launchPIDF.calc(desiredLaunchVelocity, launchTPS); // use PIDF to calculate needed correction`
+        launchLeft.setVelocity(launchCorrection); // apply correction
+        launchRight.setVelocity(launchCorrection); // apply correction
+
+        // calc turret PIDF
+        double turretCorrection = turretPIDF.calc(desiredTurretPosition, getTurretPosition());
+        // turret1/2 should be operating in the same direction
+        turret1.setPower(turretCorrection);
+        turret2.setPower(turretCorrection);
+    }
+
     public double getDstFromGoal(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
         double inchesD = currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
         return inchesD * 0.0254; // convert to meters
@@ -146,17 +170,26 @@ public class Robot { // create our global class for our robot
     public boolean isFull() {
         return ballsRemaining >= 3;
     }
-    public double getLaunchRPM() { return TPSToRPM(launch.getVelocity()); } // return launch velocity in RPM
-    public double getLaunchCurrent() { return launch.getCurrent(CurrentUnit.AMPS); } // return launch current in amps
+    public double getLaunchRPM() { return TPSToRPM(getLaunchVelocity()); } // return launch velocity in RPM
+
+    public double getLaunchCurrent() { // return total launch current in amps
+        return launchLeft.getCurrent(CurrentUnit.AMPS) + launchRight.getCurrent(CurrentUnit.AMPS); // sum current from both servos
+    }
+
     public boolean isLaunchWithinMargin() {
-        if (neededLaunchVelocity == 0) return true; // if our needed launch velocity is 0 (off) then we're within range
-        return Math.abs(neededLaunchVelocity - launch.getVelocity()) < Tunables.scoreMargin; // measure if our launch velocity is within our margin of error
+        if (desiredLaunchVelocity == 0) return true; // if our needed launch velocity is 0 (off) then we're within range
+        return Math.abs(desiredLaunchVelocity - getLaunchVelocity()) < Tunables.scoreMargin; // measure if our launch velocity is within our margin of error
+    }
+
+    public double getLaunchVelocity() {
+        return (launchLeft.getVelocity() + launchRight.getVelocity()) / 2; // average our TPS from both motors (the difference should be low)
     }
 
     public void setLaunchVelocity(double velocity) { // velocity is in TPS
-        neededLaunchVelocity = velocity; // update our desired launch velocity
-        launch.setVelocity(velocity); // set our launch velocity
+        desiredLaunchVelocity = velocity; // update our desired launch velocity
+        // our actual changes to motor power are handled in calcPIDF()
     }
+
     public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
         double numerator = tangentialSpeed - 0.269926;
         double RPM = (numerator/0.000636795);
@@ -262,21 +295,4 @@ public class Robot { // create our global class for our robot
     public double getLastLaunchInterval() { return lastLaunchInterval; }
     public boolean isLaunching() { return isLaunching; }
 
-    /** turret methods **/
-    public void updateTurret() { // apply changes to keep turret in desired position
-        double correction = turretPID.calc(desiredTurretPosition - getTurretPosition());
-        turret1.setPower(correction);
-        turret2.setPower(correction);
-    }
-
-    public void setTurretPosition(double radians) { // set desired turret angle
-        desiredTurretPosition = radians;
-    }
-
-    public double getTurretPosition() { // return our current turret angle in radians +/- from facing forwards
-        int ticks = turretEncoder.getCurrentPosition();
-        double encoderRevs = (double) ticks / TURRET_TICKS_PER_REV;
-        double turretRevs = encoderRevs / TURRET_ENCODER_RATIO;
-        return turretRevs * 2 * Math.PI; // convert to radians
-    }
 }
