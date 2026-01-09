@@ -185,7 +185,7 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.debug("TeleOp drive?: " + follower.isTeleopDrive());
         telemetryM.debug("automated launch?: " + automatedLaunch);
         telemetryM.debug("follower busy?: " + follower.isBusy());
-        telemetryM.debug("desired launch RPM: " + robot.TPSToRPM(robot.neededLaunchVelocity)); // make sure to convert from TPS->RPM
+        telemetryM.debug("desired launch RPM: " + robot.TPSToRPM(robot.desiredLaunchVelocity)); // make sure to convert from TPS->RPM
         // we're using addData for these because we want to be able to graph them
         telemetryM.addData("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
         telemetryM.addData("launch current", robot.getLaunchCurrent()); // display launch current
