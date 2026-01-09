@@ -356,12 +356,13 @@ public abstract class BozoAuto extends OpMode {
         if (sendInitTime) telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
 
         // Feedback to Driver Hub for debugging
+        if (Math.abs(robot.getDesiredLaunchRPM() - robot.getLaunchRPM()) > 100) telemetryM.debug("WARNING: LAUNCH OUT OF 100RPM RANGE");
         telemetryM.debug("path state: " + state);
         telemetryM.debug("maxBallTriplets: " + maxBallTriplets);
         telemetryM.addData("is follower busy", follower.isBusy());
         telemetryM.addData("ballsRemaining", robot.getBallsRemaining());
         telemetryM.addData("ballTripletsScored", ballTripletsScored);
-        telemetryM.addData("desired launch RPM", Tunables.scoreRPM);
+        telemetryM.addData("desiredLaunchRPM", robot.getDesiredLaunchRPM());
         telemetryM.addData("launch RPM", robot.getLaunchRPM());
         telemetryM.debug("x", follower.getPose().getX());
         telemetryM.debug("y", follower.getPose().getY());
