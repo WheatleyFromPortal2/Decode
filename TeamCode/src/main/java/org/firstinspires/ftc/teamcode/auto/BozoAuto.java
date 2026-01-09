@@ -70,7 +70,8 @@ public abstract class BozoAuto extends OpMode {
 
         // this path goes from the starting point to our scoring point
         scorePreload = follower.pathBuilder()
-                .addPath(new BezierCurve(startPose, config.scoreIntermediatePose, config.scorePose)) // test if this works
+                .addPath(new BezierCurve(startPose, config.scorePose)) // test if this works
+                //.addPath(new BezierCurve(startPose, config.scoreIntermediatePose, config.scorePose)) // test if this works
                 .setLinearHeadingInterpolation(startPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // hopefully this works
                 .build();
 
@@ -358,6 +359,7 @@ public abstract class BozoAuto extends OpMode {
         telemetryM.debug("path state: " + state);
         telemetryM.debug("maxBallTriplets: " + maxBallTriplets);
         telemetryM.addData("is follower busy", follower.isBusy());
+        telemetryM.addData("ballsRemaining", robot.getBallsRemaining());
         telemetryM.addData("ballTripletsScored", ballTripletsScored);
         telemetryM.addData("desired launch RPM", Tunables.scoreRPM);
         telemetryM.addData("launch RPM", robot.getLaunchRPM());
