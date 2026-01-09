@@ -34,13 +34,13 @@ public class Tunables { // this should hold all of our constants
     public static double upperTransferSensorOpen = 140; // amount of mm's that upper transfer sensor  should report if there is no ball
 
     // delays
-    public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
+    public static int openDelay = 200; // time to wait for upperTransfer to open (in millis)
     public static int maxTransferDelay = 200; // maximum time to wait for ball to enter lower transfer
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
     public static int intakeOvercurrentDelay = 250; // if intake has been overcurrent for more than this many millis, we consider it full
-    public static double launchingIntakePower = 0.5;
+    public static double launchingIntakePower = 0.65;
 
     // rumble effects
     private static int delay1 = 200; // ms delay for 1ball
@@ -73,7 +73,7 @@ public class Tunables { // this should hold all of our constants
 
     /** Auto tunables (used in BozoAuto.java) **/
 
-    public static double scoreRPM = 2250; // RPM to set for launching (stolen from teleop)
+    public static double scoreRPM = 2225; // RPM to set for launching (stolen from teleop)
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double clearEndTime = 0.1; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
