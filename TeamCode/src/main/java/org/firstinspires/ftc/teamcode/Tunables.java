@@ -34,7 +34,7 @@ public class Tunables { // this should hold all of our constants
     public static double upperTransferSensorOpen = 140; // amount of mm's that upper transfer sensor  should report if there is no ball
 
     // delays
-    public static int openDelay = 200; // time to wait for upperTransfer to open (in millis)
+    public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
     public static int maxTransferDelay = 200; // maximum time to wait for ball to enter lower transfer
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
@@ -78,6 +78,6 @@ public class Tunables { // this should hold all of our constants
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double clearEndTime = 0.1; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static int beginningLaunchDelay =  200; // time to wait before launching first ball
-    public static double clearTime = 2500; // amount of ms to wait for clear
+    public static double clearTime = 1500; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
 }
