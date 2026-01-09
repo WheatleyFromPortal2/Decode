@@ -182,6 +182,7 @@ public class Robot { // create our global class for our robot
                     launchIntervalTimer.resetTimer(); // start measuring our time for this launch
                     break;
                 case OPENING_UPPER_TRANSFER:
+                    /* because lowerTransferSensor keeps disconnecting, it helps to disable this
                     if (!isBallInLowerTransfer() // if we don't have a ball in lower transfer
                             && !isBallInIntake() // AND we don't have a ball waiting in intake
                             && launchStateTimer.getElapsedTime() >= Tunables.maxTransferDelay ) { // AND we have waited our max time for transfer to happen, we don't have any balls, let's not waste our time
@@ -190,6 +191,7 @@ public class Robot { // create our global class for our robot
                         isLaunching = false;
                         return true;
                     }
+                    */
                     if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) { // we've given it openDelay millis to open
                         lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
                         launchStateTimer.resetTimer();
