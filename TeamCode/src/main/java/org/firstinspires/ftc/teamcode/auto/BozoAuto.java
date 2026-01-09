@@ -113,10 +113,10 @@ public abstract class BozoAuto extends OpMode {
 
         // this path gets our balls from clear from our scorePose
         getClear = follower.pathBuilder()
-                .addPath(new BezierLine(config.scorePose, config.pickup2StartPose)) // to prevent coming in at a weird angle, we first go to our pickup2StartPose
+                .addPath(new BezierCurve(config.scorePose, config.pickup2StartPose)) // to prevent coming in at a weird angle, we first go to our pickup2StartPose
                 // we want to rotate to the correct heading before we even get close to the release
                 .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime)
-                .addPath(new BezierCurve(config.pickup2StartPose, config.releasePose))
+                .addPath(new BezierLine(config.pickup2StartPose, config.releasePose))
                 .setConstantHeadingInterpolation(config.releasePose.getHeading()) // while making the last travel to release, we just want to keep the same heading
                 .build();
 
@@ -202,7 +202,7 @@ public abstract class BozoAuto extends OpMode {
                                 break;
                             case 3:
                                 robot.intake.setPower(1); // enable intake to grab balls
-                                follower.followPath(getClear);
+                                follower.followPath(getClear, true);
                                 setPathState(State.GO_TO_CLEAR);
                                 break;
                             case 4:
