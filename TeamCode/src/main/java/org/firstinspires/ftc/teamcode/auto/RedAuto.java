@@ -18,7 +18,7 @@ public abstract class RedAuto extends BozoAuto { // these positions override the
                 new Pose(124, 69, Math.toRadians(0)), // pickup2EndPose
                 new Pose(86, 47, Math.toRadians(0)), // pickup3StartPose
                 new Pose(124, 47, Math.toRadians(0)), // pickup3EndPose
-                new Pose(123, 65, Math.toRadians(30)), // releasePose
+                new Pose(123, 64, Math.toRadians(30)), // releasePose
                 new Pose(104, 65, Math.toRadians(270)) // endPose
         );
     }
