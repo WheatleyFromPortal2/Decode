@@ -43,7 +43,7 @@ public class Robot { // create our global class for our robot
 
     /** only these variables should change during runtime **/
     LaunchState launchState = LaunchState.START; // set our launch state to start
-    public double neededLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
+    public double desiredLaunchVelocity; // this stores our desired launch velocity, used to check if we're in range
     private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
@@ -91,6 +91,10 @@ public class Robot { // create our global class for our robot
         PIDFCoefficients pidfNew = new PIDFCoefficients(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
         launch.setPIDFCoefficients(DcMotorEx.RunMode.RUN_USING_ENCODER, pidfNew);
     }
+    public double getDstFromGoal(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
+        double inchesD = currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
+        return inchesD * 0.0254; // convert to meters
+    }
 
     public double getGoalHeading(@NonNull Pose currentPosition, @NonNull Pose goalPose) { // return bot heading to point towards goal in radians
         double xDst = goalPose.getX() - currentPosition.getX();
@@ -121,14 +125,16 @@ public class Robot { // create our global class for our robot
     public double getLaunchRPM() { return TPSToRPM(launch.getVelocity()); } // return launch velocity in RPM
     public double getLaunchCurrent() { return launch.getCurrent(CurrentUnit.AMPS); } // return launch current in amps
     public boolean isLaunchWithinMargin() {
-        if (neededLaunchVelocity == 0) return true; // if our needed launch velocity is 0 (off) then we're within range
-        return Math.abs(neededLaunchVelocity - launch.getVelocity()) < Tunables.scoreMargin; // measure if our launch velocity is within our margin of error
+        if (desiredLaunchVelocity == 0) return true; // if our needed launch velocity is 0 (off) then we're within range
+        return Math.abs(desiredLaunchVelocity - launch.getVelocity()) < Tunables.scoreMargin; // measure if our launch velocity is within our margin of error
     }
 
     public void setLaunchVelocity(double velocity) { // velocity is in TPS
-        neededLaunchVelocity = velocity; // update our desired launch velocity
+        desiredLaunchVelocity = velocity; // update our desired launch velocity
         launch.setVelocity(velocity); // set our launch velocity
     }
+
+    public double getDesiredLaunchRPM() { return TPSToRPM(desiredLaunchVelocity); }
     public boolean isBallInIntake() { // return true if there is a ball reducing our measured distance
         if (intakeSensor.getDistance(DistanceUnit.MM) == 0) return true; // if our intake sensor isn't working
         else return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeSensorOpen;

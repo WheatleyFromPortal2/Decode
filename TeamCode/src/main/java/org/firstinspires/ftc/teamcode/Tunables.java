@@ -48,7 +48,7 @@ public class Tunables { // this should hold all of our constants
 
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
     public static int intakeOvercurrentDelay = 250; // if intake has been overcurrent for more than this many millis, we consider it full
-    public static double launchingIntakePower = 0.5;
+    public static double launchingIntakePower = 0.65;
 
     // rumble effects
     private static int delay1 = 200; // ms delay for 1ball
@@ -81,10 +81,12 @@ public class Tunables { // this should hold all of our constants
 
     /** Auto tunables (used in BozoAuto.java) **/
 
-    public static double scoreRPM = 2300; // RPM to set for launching (stolen from teleop)
+    public static double scoreRPM = 2225; // RPM to set for launching (stolen from teleop)
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
+    public static double clearEndTime = 0.1; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static int beginningLaunchDelay =  200; // time to wait before launching first ball
+    public static double clearTime = 1500; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
 
     /** Vision tunables (used in Vision.java) **/
