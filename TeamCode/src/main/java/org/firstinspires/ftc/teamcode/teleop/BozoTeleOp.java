@@ -44,7 +44,7 @@ public abstract class BozoTeleOp extends OpMode {
         loopTimer.resetTimer();
 
         robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
-        vision = new Vision(hardwareMap, true);
+        vision = new Vision(hardwareMap, isBlueTeam());
         vision.start();
         follower = Constants.createFollower(hardwareMap);
         if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
@@ -59,7 +59,7 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.update(telemetry);
     }
 
-    protected abstract double flipControl(); // this will be filled in by Blue/Red TeleOp
+    protected abstract boolean isBlueTeam(); // this will be filled in by Blue/Red TeleOp
     protected abstract Pose getGoalPose(); // this will be filled in by Blue/Red TeleOp
 
     public void start() {
@@ -126,9 +126,12 @@ public abstract class BozoTeleOp extends OpMode {
                 );
             } else { // we are controlling relative to the field
                 // we need to modify our x input to be in accordance with the driver's control position
+                double flipControl;
+                if (isBlueTeam()) flipControl = -1; // blue team needs flipped
+                else flipControl = 1; // red team doesn't need flip
                 follower.setTeleOpDrive(
-                        -gamepad1.left_stick_y * slowModeMultiplier * flipControl(),
-                        -gamepad1.left_stick_x * slowModeMultiplier * flipControl(),
+                        -gamepad1.left_stick_y * slowModeMultiplier * flipControl,
+                        -gamepad1.left_stick_x * slowModeMultiplier * flipControl,
                         -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
                         false // true = robot centric; false = field centric
                 );
@@ -149,7 +152,8 @@ public abstract class BozoTeleOp extends OpMode {
 
         if (automatedLaunch) {
             if (vision.isStale()) { // if it has been a while since our last vision reading
-                robot.setAutomatedLaunchVelocity(follower.getPose().distanceFrom(getGoalPose())); // get goal distance using odo
+                //robot.setAutomatedLaunchVelocity(follower.getPose().distanceFrom(getGoalPose())); // get goal distance using odo
+                robot.setLaunchVelocity(robot.RPMToTPS(3000));
             } else {
                 robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance()); // get goal distance using vision
             }
