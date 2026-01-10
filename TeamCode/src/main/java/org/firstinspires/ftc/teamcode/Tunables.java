@@ -20,13 +20,13 @@ public class Tunables { // this should hold all of our constants
     public static double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
     public static double intakeOvercurrent = 6; // amount of amps that we think means a stalled intake
-    public static double magicNumber = 50; // add this many RPMs to auto rpm
+    public static double magicNumber = -50; // add this many RPMs to auto rpm
 
     // PIDF coefficients
-    public static double launchP = 150; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
-    public static double launchI = 0; // orig 0.1
+    public static double launchP = 100; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
+    public static double launchI = 0.1; // orig 0.1
     public static double launchD = 0; // orig 0.2
-    public static double launchF = 12; // ChatGPT was onto nothing with this
+    public static double launchF = 20; // ChatGPT was onto nothing with this
 
     // servo open/close points (don't find these with the backplate on!)
     public static double lowerTransferLowerLimit = 0.00; // recalibrated 1-6-25
@@ -87,7 +87,7 @@ public class Tunables { // this should hold all of our constants
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double clearEndTime = 0.1; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static int beginningLaunchDelay =  200; // time to wait before launching first ball
-    public static double clearTime = 500; // amount of ms to wait for clear
+    public static double clearTime = 000; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
 
     /** Vision tunables (used in Vision.java) **/
