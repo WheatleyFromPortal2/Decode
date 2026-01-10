@@ -20,13 +20,13 @@ public class Tunables { // this should hold all of our constants
     public static double launchRatio = (double) 16 / 20; // this is correct because 5202-0002-0001's gearbox ratio is 1:1, and we go from a 16tooth -> 20tooth pulley
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
     public static double intakeOvercurrent = 6; // amount of amps that we think means a stalled intake
-    public static double magicNumber = (double) 3 / 8; // magic number for auto RPM
+    public static double magicNumber = 50; // add this many RPMs to auto rpm
 
     // PIDF coefficients
-    public static double launchP = 100; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
-    public static double launchI = 0.1; // orig 0.1
+    public static double launchP = 150; // the P is too high when on full-charge batteries but 300 is about right for slightly discharged batteries
+    public static double launchI = 0; // orig 0.1
     public static double launchD = 0; // orig 0.2
-    public static double launchF = 20; // ChatGPT was onto nothing with this
+    public static double launchF = 12; // ChatGPT was onto nothing with this
 
     // servo open/close points (don't find these with the backplate on!)
     public static double lowerTransferLowerLimit = 0.00; // recalibrated 1-6-25
@@ -43,6 +43,7 @@ public class Tunables { // this should hold all of our constants
 
     // delays
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
+    public static int lastOpenDelay = 300;
     public static int maxTransferDelay = 200; // maximum time to wait for ball to enter lower transfer
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
@@ -81,7 +82,7 @@ public class Tunables { // this should hold all of our constants
 
     /** Auto tunables (used in BozoAuto.java) **/
 
-    public static double scoreRPM = 2225; // RPM to set for launching (stolen from teleop)
+    public static double scoreRPM = 2300; // RPM to set for launching (stolen from teleop)
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double clearEndTime = 0.1; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
