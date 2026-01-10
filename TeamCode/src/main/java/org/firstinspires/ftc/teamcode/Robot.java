@@ -107,6 +107,7 @@ public class Robot { // create our global class for our robot
     public void setAutomatedLaunchVelocity(double d) { // given positions, use our functions to set our launch speed
         double RPM = 705.41704 * Math.pow(d, 0.33109); // from Desmos data: 1-7-26
         // R^2 = 0.9829 using power regression (with log mode)
+        RPM += Tunables.magicNumber;
         setLaunchVelocity(RPMToTPS(RPM)); // this also updates our neededLaunchVelocity
     }
 
@@ -185,11 +186,14 @@ public class Robot { // create our global class for our robot
                         return true;
                     }
                     */
-                    if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) { // we've given it openDelay millis to open
-                        lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
-                        launchStateTimer.resetTimer();
-                        launchState = LaunchState.WAITING_FOR_EXIT;
+                    if (ballsRemaining == 1) {
+                        if (launchStateTimer.getElapsedTime() <= Tunables.lastOpenDelay) { break; }
+                    } else {
+                        if (launchStateTimer.getElapsedTime() <= Tunables.openDelay) { break; }
                     }
+                    lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
+                    launchStateTimer.resetTimer();
+                    launchState = LaunchState.WAITING_FOR_EXIT;
                     break;
                 case WAITING_FOR_EXIT:
                     if (isBallInUpperTransfer() // wait until we detect a ball in upper transfer (ball has been launched)
