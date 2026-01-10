@@ -24,6 +24,7 @@ public class LaunchTuner extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
+            robot.updatePIDF();
             robot.setLaunchVelocity(robot.RPMToTPS(2400)); // RPM doesn't really matter
 
             if (gamepad1.aWasReleased()) intakeOn = !intakeOn; // toggle intake
