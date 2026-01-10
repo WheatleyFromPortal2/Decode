@@ -36,6 +36,7 @@ public abstract class BozoTeleOp extends OpMode {
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
     double launchVelocity; // target launch velocity in TPS
+    double launchVelocityOffset = 0;
 
     @Override
     public void init() {
@@ -69,6 +70,7 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        robot.updatePIDF();
         vision.update();
         loopTimer.resetTimer();
         follower.update(); // update our Pedro Pathing follower
@@ -109,10 +111,10 @@ public abstract class BozoTeleOp extends OpMode {
             follower.setPose(headingPose); // see if this works
         }
 
-        if (gamepad1.dpadUpWasReleased()) launchVelocity += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
-        if (gamepad1.dpadDownWasReleased()) launchVelocity -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
-        if (gamepad1.dpadLeftWasReleased()) launchVelocity += robot.RPMToTPS(Tunables.adjustRPM) / 2; // increment by half of adjustRPM (in TPS)
-        if (gamepad1.dpadRightWasReleased()) launchVelocity -= robot.RPMToTPS(Tunables.adjustRPM) / 2; // decrement by half of adjustRPM (in TPS)
+        if (gamepad1.dpadUpWasReleased()) launchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
+        if (gamepad1.dpadDownWasReleased()) launchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
+        if (gamepad1.dpadLeftWasReleased()) launchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM) / 2; // increment by half of adjustRPM (in TPS)
+        if (gamepad1.dpadRightWasReleased()) launchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM) / 2; // decrement by half of adjustRPM (in TPS)
 
         if (!automatedDrive) {
             double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
@@ -158,7 +160,7 @@ public abstract class BozoTeleOp extends OpMode {
                 robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance()); // get goal distance using vision
             }
         } else { // set our launch velocity manually based off the right trigger
-            robot.setLaunchVelocity(launchVelocity); // set our launch velocity to our desired launch velocity
+            robot.setLaunchVelocity(launchVelocity + launchVelocityOffset); // set our launch velocity to our desired launch velocity
             /*
             double launchTPS = ((gamepad1.right_trigger) * (2800)); // calculates max motor speed and multiplies it by the float of the right trigger
             if (launchTPS == 0)
@@ -207,6 +209,7 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.debug("automated launch?: " + automatedLaunch);
         telemetryM.debug("follower busy?: " + follower.isBusy());
         telemetryM.debug("desired launch RPM: " + robot.TPSToRPM(robot.desiredLaunchVelocity)); // make sure to convert from TPS->RPM
+        telemetryM.debug("desired launch RPM offset: " + robot.TPSToRPM(launchVelocityOffset)); // make sure to convert from TPS->RPM
         // we're using addData for these because we want to be able to graph them
         telemetryM.addData("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
         telemetryM.addData("launch current", robot.getLaunchCurrent()); // display launch current
