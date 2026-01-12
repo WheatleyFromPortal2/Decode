@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
-@TeleOp(name="LaunchDelay", group="Util")
+@TeleOp(name="TurretTuner", group="Util")
 public class TurretTuner extends LinearOpMode {
 
     @Override
