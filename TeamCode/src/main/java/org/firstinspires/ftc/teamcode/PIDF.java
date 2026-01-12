@@ -5,7 +5,7 @@ package org.firstinspires.ftc.teamcode;
 
 public class PIDF {
     // PIDF coefficients
-    public double kP, kI, kD;
+    public double kP, kI, kD, kF;
 
     // State variables
     private double sumError = 0;
@@ -23,6 +23,13 @@ public class PIDF {
         sumError = 0;
         lastError = 0;
         lastTime = 0;
+    }
+
+    public void updateTerms(double kP, double kI, double kD, double kF) {
+        this.kP = kP;
+        this.kI = kI;
+        this.kD = kD;
+        this.kF = kF;
     }
 
     public double calc(double target, double current) {
