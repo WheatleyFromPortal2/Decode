@@ -32,14 +32,6 @@ public class ServoTest extends LinearOpMode {
             telemetry.addData("lowerTransfer:", robot.lowerTransfer.getPosition());
             telemetry.addData("upperTransfer:", robot.upperTransfer.getPosition());
 
-
-            if (gamepad1.x) robot.launch.setPower(1);
-            else robot.launch.setPower(0);
-
-            telemetry.addData("launch TPS", robot.launch.getVelocity());
-            telemetry.addData("launch RPM", robot.getLaunchRPM());
-            telemetry.addData("launch current", robot.getLaunchCurrent());
-
             telemetry.update();
             idle();
         }
