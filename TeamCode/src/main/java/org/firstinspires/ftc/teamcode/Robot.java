@@ -119,6 +119,10 @@ public class Robot { // create our global class for our robot
     }
 
     public void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
+        // update all PIDF coefficients in controllers
+        launchPIDF.updateTerms(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
+        turretPIDF.updateTerms(Tunables.turretP, Tunables.turretI, Tunables.turretD, Tunables.launchF);
+
         // calc launch PIDF
         // we don't need to negate values from launchLeft, because we have already set its direction to reversed
         double launchTPS = getLaunchVelocity();
