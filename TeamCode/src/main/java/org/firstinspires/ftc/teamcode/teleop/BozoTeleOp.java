@@ -70,7 +70,7 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void loop() {
-        robot.updatePIDF();
+        robot.calcPIDF();
         vision.update();
         loopTimer.resetTimer();
         follower.update(); // update our Pedro Pathing follower
