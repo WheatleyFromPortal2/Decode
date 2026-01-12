@@ -17,6 +17,7 @@ dependencies {
     implementation 'com.pedropathing:ftc:2.0.3' // Pedro Pathing
     implementation 'com.pedropathing:telemetry:1.0.0' // Pedro Pathing
     implementation 'com.bylazar:fullpanels:1.0.10' // Pedro Pathing
+    implementation 'com.squareup.okhttp3:okhttp:4.10.0' // limelight proxy
     //implementation 'com.bylazar:graph:1.0.4' // hopefully this fixes graphing
 }
 

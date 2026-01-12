@@ -1,8 +1,16 @@
 package org.firstinspires.ftc.teamcode;
 
 
+import android.util.Size;
+
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.Gamepad;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.Position;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
+import org.firstinspires.ftc.vision.VisionPortal;
 
 @Configurable
 public class Tunables { // this should hold all of our constants
@@ -12,7 +20,7 @@ public class Tunables { // this should hold all of our constants
     public static double launchRatio = 1; // both of our launch motors are 1:1
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
     public static double intakeOvercurrent = 6; // amount of amps that we think means a stalled intake
-    public static double magicNumber = (double) 3 / 8; // magic number for auto RPM
+    public static double magicNumber = -50; // add this many RPMs to auto rpm
 
     // TODO: tune these
     // launch PIDF coefficients
@@ -29,10 +37,12 @@ public class Tunables { // this should hold all of our constants
     public static double turretF = 0;
 
     // servo open/close points (don't find these with the backplate on!)
-    public static double lowerTransferLowerLimit = 0.28;
-    public static double lowerTransferUpperLimit = 0.49;
-    public static double upperTransferClosed = 0.36; // servo position where upper transfer prevents balls from passing into launch
-    public static double upperTransferOpen = 0.70; // servo position where upper transfer allows balls to pass into launch
+    public static double lowerTransferLowerLimit = 0.00; // recalibrated 1-6-25
+    public static double lowerTransferUpperLimit = 0.30; // recalibrated 1-6-25
+    // servo position where upper transfer prevents balls from passing into launch
+    public static double upperTransferClosed = 0.38; // recalibrated 1-6-25
+    // servo position where upper transfer allows balls to pass into launch
+    public static double upperTransferOpen = 0.00; // recalibrated 1-6-25
 
     // don't allow the hood to be set outside of these positions
     public static double hoodMaximum = 0; // TODO: fill this in
@@ -45,11 +55,13 @@ public class Tunables { // this should hold all of our constants
 
     // delays
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
+    public static int lastOpenDelay = 350;
     public static int maxTransferDelay = 200; // maximum time to wait for ball to enter lower transfer
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
     public static int intakeOvercurrentDelay = 250; // if intake has been overcurrent for more than this many millis, we consider it full
+    public static double launchingIntakePower = 0.80;
 
     // rumble effects
     private static int delay1 = 200; // ms delay for 1ball
@@ -85,6 +97,16 @@ public class Tunables { // this should hold all of our constants
     public static double scoreRPM = 2300; // RPM to set for launching (stolen from teleop)
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
+    public static double clearEndTime = 0.1; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static int beginningLaunchDelay =  200; // time to wait before launching first ball
+    public static double clearTime = 000; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
+
+    /** Vision tunables (used in Vision.java) **/
+    public static double turnP = 1;
+    public static double turnI = 0;
+    public static double turnD = 0;
+
+    public static long maxVisionStaleness = 20; // amount of millis without a reading where vision becomes stale
+    public static double goalOffset = 0; // how many inches less our vision reports the goal to be at than it actually is
 }

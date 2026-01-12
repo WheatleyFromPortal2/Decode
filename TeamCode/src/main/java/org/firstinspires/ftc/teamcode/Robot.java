@@ -15,6 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeRadians;
 
 // Pedro Pathing imports
+import androidx.annotation.NonNull;
+
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
 
@@ -47,13 +49,12 @@ public class Robot { // create our global class for our robot
 
     /** only these variables should change during runtime **/
     LaunchState launchState = LaunchState.START; // set our launch state to start
-    public double desiredLaunchVelocity; // this stores our needed launch velocity, used to check if we're in range
+    public double desiredLaunchVelocity; // this stores our desired launch velocity, used to check if we're in range
     public double desiredTurretPosition; // this stores our desired turret position, in radians +/- facing directly forwards
     private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
     private double lastLaunchInterval; // stores the amount of time it took for our last launch
-
     /** end vars that change **/
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
@@ -137,7 +138,7 @@ public class Robot { // create our global class for our robot
         return inchesD * 0.0254; // convert to meters
     }
 
-    public double getGoalHeading(Pose currentPosition, Pose goalPose) { // return bot heading to point towards goal in radians
+    public double getGoalHeading(@NonNull Pose currentPosition, @NonNull Pose goalPose) { // return bot heading to point towards goal in radians
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
         double desiredHeading = Math.atan2(yDst, xDst); // need atan2 to account for negatives
@@ -145,17 +146,13 @@ public class Robot { // create our global class for our robot
         return normalizeRadians(desiredHeading - currentHeading) + currentHeading;
     }
 
-    public double getTangentialSpeed(Pose currentPosition, Pose goalPose) { // returns needed tangential speed to launch ball to the goal
-        double d = getDstFromGoal(currentPosition, goalPose);
-        double fraction = (4.9)/((d * 1.73205) - 0.83);
-        double beforeMagicNumber = Math.pow(fraction, 0.5)* 2 * d;
-        return beforeMagicNumber * Tunables.magicNumber;
-    }
-
-    public void setAutomatedLaunchVelocity(Pose currentPosition, Pose goalPose) { // given positions, use our functions to set our launch speed
-        double neededTangentialSpeed = getTangentialSpeed(currentPosition, goalPose);
-        double neededVelocity = getNeededVelocity(neededTangentialSpeed);
-        setLaunchVelocity(neededVelocity);
+    public void setAutomatedLaunchVelocity(double d) { // given positions, use our functions to set our launch speed
+        if (!isLaunching()) { // don't update if we're launching
+            double RPM = 705.41704 * Math.pow(d, 0.33109); // from Desmos data: 1-7-26
+            // R^2 = 0.9829 using power regression (with log mode)
+            RPM += Tunables.magicNumber;
+            setLaunchVelocity(RPMToTPS(RPM)); // this also updates our neededLaunchVelocity
+        }
     }
 
     public double TPSToRPM(double TPS) { return (TPS / MOTOR_TICKS_PER_REV) * 60 * Tunables.launchRatio; }
@@ -191,13 +188,10 @@ public class Robot { // create our global class for our robot
         // our actual changes to motor power are handled in calcPIDF()
     }
 
-    public double getNeededVelocity(double tangentialSpeed) { // input tangentialSpeed (in m/s) and set launch velocity to have ball shoot at that speed
-        double numerator = tangentialSpeed - 0.269926;
-        double RPM = (numerator/0.000636795);
-        return RPMToTPS(RPM); // return our TPS
-    }
+    public double getDesiredLaunchRPM() { return TPSToRPM(desiredLaunchVelocity); }
     public boolean isBallInIntake() { // return true if there is a ball reducing our measured distance
-        return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeSensorOpen;
+        if (intakeSensor.getDistance(DistanceUnit.MM) == 0) return true; // if our intake sensor isn't working
+        else return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeSensorOpen;
     }
     public boolean isBallInLowerTransfer() { // return true if there is a ball reducing our measured distance
         return lowerTransferSensor.getDistance(DistanceUnit.MM) < Tunables.lowerTransferSensorOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
@@ -232,8 +226,10 @@ public class Robot { // create our global class for our robot
                     launchStateTimer.resetTimer();
                     launchState = LaunchState.OPENING_UPPER_TRANSFER;
                     launchIntervalTimer.resetTimer(); // start measuring our time for this launch
+                    if (ballsRemaining > 1) intake.setPower(Tunables.launchingIntakePower); // hopefully allow lowerTransfer to go down
                     break;
                 case OPENING_UPPER_TRANSFER:
+                    /* because lowerTransferSensor keeps disconnecting, it helps to disable this
                     if (!isBallInLowerTransfer() // if we don't have a ball in lower transfer
                             && !isBallInIntake() // AND we don't have a ball waiting in intake
                             && launchStateTimer.getElapsedTime() >= Tunables.maxTransferDelay ) { // AND we have waited our max time for transfer to happen, we don't have any balls, let's not waste our time
@@ -242,11 +238,15 @@ public class Robot { // create our global class for our robot
                         isLaunching = false;
                         return true;
                     }
-                    if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) { // we've given it openDelay millis to open
-                        lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
-                        launchStateTimer.resetTimer();
-                        launchState = LaunchState.WAITING_FOR_EXIT;
+                    */
+                    if (ballsRemaining == 1) {
+                        if (launchStateTimer.getElapsedTime() <= Tunables.lastOpenDelay) { break; }
+                    } else {
+                        if (launchStateTimer.getElapsedTime() <= Tunables.openDelay) { break; }
                     }
+                    lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
+                    launchStateTimer.resetTimer();
+                    launchState = LaunchState.WAITING_FOR_EXIT;
                     break;
                 case WAITING_FOR_EXIT:
                     if (isBallInUpperTransfer() // wait until we detect a ball in upper transfer (ball has been launched)
@@ -257,6 +257,7 @@ public class Robot { // create our global class for our robot
                         launchStateTimer.resetTimer(); // reset our timer
                         lastLaunchInterval = launchIntervalTimer.getElapsedTime();
                         transferTimer.resetTimer(); // we are starting transfer for next ball
+                        intake.setPower(1);
                     }
                     break;
             }

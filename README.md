@@ -164,3 +164,14 @@ having sensors 1/2 on the left/right doesn't matter because we are just comparin
 - starts at 3 (all in robot)
 - decrements by 1 every ball that is launched
 - reset to 3 and return true when it hits 0
+
+# vision
+
+We are using a Limelight 3A
+
+## Pipelines
+| pipeline | allowed tag IDs | purpose                                      |
+|:---------|:----------------|:---------------------------------------------|
+| 0        | 21, 22, 23      | detect pattern                               |
+| 1        | 20              | get blue goal launch distance and turn to it |
+| 2        | 24              | get red goal launch distance and turn to it  |
