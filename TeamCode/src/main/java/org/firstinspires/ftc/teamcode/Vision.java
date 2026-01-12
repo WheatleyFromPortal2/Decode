@@ -12,7 +12,6 @@ public class Vision {
     public static Limelight3A limelight;
     double lastGoalTx, lastGoalDistance, lastGoalTa;
     boolean isBlue; // whether we are blue or red team
-    PID turnController;
     private boolean started = false;
     private Timer staleTimer;
 
@@ -25,7 +24,6 @@ public class Vision {
         if (isBlueTeam) limelight.pipelineSwitch(1);
         else limelight.pipelineSwitch(2);
 
-        turnController = new PID(Tunables.turnP, Tunables.turnI, Tunables.turnD);
         isBlue = isBlueTeam;
     }
 
@@ -61,10 +59,4 @@ public class Vision {
     public double getLastGoalTa() { return lastGoalTa; }
     public boolean isStale() { return staleTimer.getElapsedTime() >= Tunables.maxVisionStaleness; }
     public LLStatus getStatus() { return limelight.getStatus(); }
-
-    public double getGoalTurn() { // returns a double (-1)<->(1) that specifies how much Pedro should turn by to point towards the goal
-        turnController.set(Tunables.turnP, Tunables.turnI, Tunables.turnD); // update our coefficients (they may have been changed with Configurables)
-        return turnController.calc(lastGoalTx); // return our correction
-    }
-
 }
