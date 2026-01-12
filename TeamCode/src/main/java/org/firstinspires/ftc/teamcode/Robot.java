@@ -114,7 +114,7 @@ public class Robot { // create our global class for our robot
         return turretRevs * 2 * Math.PI; // convert to radians
     }
 
-    public void setTurretPosition(double radians) { // set desired turret angle
+    public void setDesiredTurretPosition(double radians) { // set desired turret angle
         desiredTurretPosition = radians;
     }
 
