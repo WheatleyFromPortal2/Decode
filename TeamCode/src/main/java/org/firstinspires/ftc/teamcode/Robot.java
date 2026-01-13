@@ -23,7 +23,7 @@ import com.pedropathing.util.Timer;
 
 public class Robot { // create our global class for our robot
     public static final int MOTOR_TICKS_PER_REV = 28; // REV Robotics 5203/4 series motors have 28ticks/revolution
-    public static final int TURRET_TICKS_PER_REV = 8192; // TODO: check this
+    public static final int TURRET_TICKS_PER_REV = 1024; // tested 1-13-26
     public static final double TURRET_ENCODER_RATIO = 5.5; // ratio from turretEncoder->turret
     //public static final double TURRET_SERVO_RATIO = 5.5 / 3; // ratio from turret1/2->turret
     public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
@@ -84,7 +84,7 @@ public class Robot { // create our global class for our robot
         launchPIDF = new PIDF(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // create our PIDF controller for our launch motors
 
         turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER); // reset our encoder
-        turretEncoder.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER); // we won't be using the motor at all
+        turretEncoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER); // we won't be using the motor at all
         turretPIDF = new PIDF(Tunables.turretP, Tunables.turretI, Tunables.turretD, Tunables.turretF); // create our PIDF controller for our turret
 
         // distance sensors
