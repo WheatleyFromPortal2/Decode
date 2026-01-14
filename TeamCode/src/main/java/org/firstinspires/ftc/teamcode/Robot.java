@@ -83,7 +83,7 @@ public class Robot { // create our global class for our robot
         launchRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
         launchPIDF = new PIDF(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // create our PIDF controller for our launch motors
 
-        turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER); // reset our encoder
+        turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER); // reset our encoder (this only seems to work when run after the OpMode is started)
         turretEncoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER); // we won't be using the motor at all
         turretPIDF = new PIDF(Tunables.turretP, Tunables.turretI, Tunables.turretD, Tunables.turretF); // create our PIDF controller for our turret
 
