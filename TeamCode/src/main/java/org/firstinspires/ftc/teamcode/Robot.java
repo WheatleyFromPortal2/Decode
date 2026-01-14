@@ -196,7 +196,12 @@ public class Robot { // create our global class for our robot
     }
 
     public double getLaunchVelocity() {
-        return (launchLeft.getVelocity() + launchRight.getVelocity()) / 2; // average our TPS from both motors (the difference should be low)
+        // account for disconnected encoders
+        if (launchLeft.getVelocity() <= 5) return launchRight.getVelocity();
+        if (launchRight.getVelocity() <= 5) return launchLeft.getVelocity();
+        else {
+            return (launchLeft.getVelocity() + launchRight.getVelocity()) / 2; // average our TPS from both motors (the difference should be low)
+        }
     }
 
     public void setLaunchVelocity(double velocity) { // velocity is in TPS
