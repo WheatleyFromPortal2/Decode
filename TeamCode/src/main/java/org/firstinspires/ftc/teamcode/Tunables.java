@@ -44,9 +44,10 @@ public class Tunables { // this should hold all of our constants
     // servo position where upper transfer allows balls to pass into launch
     public static double upperTransferOpen = 0.00; // recalibrated 1-6-25
 
-    // don't allow the hood to be set outside of these positions
-    public static double hoodMaximum = 0; // TODO: fill this in
-    public static double hoodMinimum = 0; // TODO: fill this in
+    // we don't need a hood maximum, because it will just skip the gear, causing no damage
+    // at the start of our OpMode, we should homeHood() and then "1" will become our maximum
+    public static double hoodMinimum = 0.9; // TODO: fill this in
+    public static int hoodHomingTime = 1500; // millis to wait for hood to reach maximum position
 
     // distance sensor limits (better to undershoot rather than to overshoot)
     public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
