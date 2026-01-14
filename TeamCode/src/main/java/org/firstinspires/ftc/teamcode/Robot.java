@@ -15,6 +15,8 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeRadians;
 
 // Pedro Pathing imports
+import static java.lang.Thread.sleep;
+
 import androidx.annotation.NonNull;
 
 import com.pedropathing.geometry.Pose;
@@ -50,7 +52,7 @@ public class Robot { // create our global class for our robot
     /** only these variables should change during runtime **/
     LaunchState launchState = LaunchState.START; // set our launch state to start
     public double desiredLaunchVelocity; // this stores our desired launch velocity, used to check if we're in range
-    public double desiredTurretPosition; // this stores our desired turret position, in radians +/- facing directly forwards
+    public double desiredTurretPosition; // this stores our desired turret position, in radians +/- facing directly forwards where + is clockwise
     private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
@@ -163,11 +165,21 @@ public class Robot { // create our global class for our robot
     public double RPMToTPS(double RPM) { return (RPM * MOTOR_TICKS_PER_REV / 60) / Tunables.launchRatio;}
 
     /** hardware methods **/
-    public void resetServos() { // set servos to starting state
+    public void resetLaunchServos() { // set servos to starting state
         upperTransfer.setPosition(Tunables.upperTransferClosed); // make sure balls cannot launch
         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
-        hood.setPosition((Tunables.hoodMaximum + Tunables.hoodMinimum) / 2); // go to midpoint between our hood max and min
     }
+
+    public void homeHood() { // home our hood
+        hood.setPosition(1); // run to highest position (will skip gears)
+        try {
+            sleep(Tunables.hoodHomingTime);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        hood.setPosition(Tunables.hoodMinimum);
+    }
+
     public double getIntakeCurrent() { return intake.getCurrent(CurrentUnit.AMPS); } // return intake current in amps
     public boolean isFull() {
         return ballsRemaining >= 3;
@@ -255,7 +267,7 @@ public class Robot { // create our global class for our robot
                 case WAITING_FOR_EXIT:
                     if (isBallInUpperTransfer() // wait until we detect a ball in upper transfer (ball has been launched)
                             || launchStateTimer.getElapsedTime() >= Tunables.maxPushDelay) { // or if that hasn't happened in a while, just go to the next launch
-                        resetServos(); // reset our servos
+                        resetLaunchServos(); // reset our servos
                         launchState = LaunchState.START; // get ready for next one
                         ballsRemaining -= 1; // we've launched a ball
                         launchStateTimer.resetTimer(); // reset our timer
@@ -303,13 +315,7 @@ public class Robot { // create our global class for our robot
 
     public void setHoodPosition(double pos) {
         // ensure pos is within acceptable hw range
-        if (pos > Tunables.hoodMaximum) { // input exceeds maximum hood position!
-            hood.setPosition(Tunables.hoodMaximum); // set hood to maximum position
-        } else if (pos < Tunables.hoodMinimum) { // input is beneath minimum hood position!
-            hood.setPosition(Tunables.hoodMaximum); // set hood to minimum position
-        } else {
-            hood.setPosition(pos); // only if we are within our hw-safe range, do we set hood position to pos
-        }
+        hood.setPosition(Math.max(pos, Tunables.hoodMinimum)); // just set to minimum
     }
 
     public double getHoodPosition() { return hood.getPosition(); }

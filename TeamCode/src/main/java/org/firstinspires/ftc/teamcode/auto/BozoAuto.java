@@ -310,7 +310,7 @@ public abstract class BozoAuto extends OpMode {
 
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
         robot = Robot.getInstance(hardwareMap); // create our robot class
-        robot.resetServos(); // get servos ready
+        robot.resetLaunchServos(); // get servos ready
 
         telemetryM.debug("creating follower... (this may take a while)");
         telemetryM.update(telemetry);
@@ -338,7 +338,7 @@ public abstract class BozoAuto extends OpMode {
     @Override
     public void start() {
         opModeTimer.resetTimer();
-        robot.resetServos(); // get servos ready
+        robot.resetLaunchServos(); // get servos ready
         robot.intake.setPower(1); // start intake
         robot.setLaunchVelocity(robot.RPMToTPS(Tunables.scoreRPM)); // we're just gonna keep our score RPM constant for now
         setPathState(State.START);
@@ -348,7 +348,7 @@ public abstract class BozoAuto extends OpMode {
     @Override
     public void stop() {
         Robot.switchoverPose = follower.getPose(); // try to prevent drift
-        robot.resetServos(); // return servos to starting position
+        robot.resetLaunchServos(); // return servos to starting position
     }
 
     public void sendTelemetry(boolean sendInitTime) {
