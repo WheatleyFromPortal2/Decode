@@ -1,177 +1,222 @@
 # St. Mark's FTC-A Decode Repo For Team 23381 "The Marksmen"
+
 ## ADB connect instructions
+
 if `adb devices` doesn't show any devices:
-1. connect to driver hub using wifi
-2. use `adb connect 192.168.43.1`
-3. now try `adb devices`
+1. close and reopen Android Studio
+2. connect to driver hub using wifi
+3. run `adb kill-server && adb start-server`
+4. run `adb connect 192.168.43.1`
+5. now try `adb devices`
+
+it may take a second for the control hub to show up in Android Studio
 
 ## programming conventions
+
 ### units
-- all distance units: millimeters
-- all angle units: radians
+- distance units:
+  - hardware offsets: millimeters (easy to get from Onshape)
+  - field distances: inches (used in Pedro Pathing)
+- angle units:
+  - limelight/vision: degrees
+  - everything else: radians
 - all speed units: TPS or radians/s
-  - TPS for commanding motors directly
-  - radians/s for math (bcuz it's easy for physics)
+  - internal logic: TPS
+  - human-facing: actual RPM of flywheel (accounting for ratio)
+
 ### odo distances
 - robot length (back to front) is **420mm** / **16.53543"**
 - robot width (left to right) is **400mm** / **15.74803"**
-# Hardware Map
 
-driver station config name: `parallel plate v0`
+# hardware map
+
+driver station config name: `v0 turret`
 
 ## control hub
 
 ### I²C ports/buses
-| port/bus | device                 | location                     | verbatim name          |
-|:---------|:-----------------------|------------------------------|:-----------------------|
-| 1        | Pinpoint Odo Computer  | left side under control hub  | `odo`                  |
+| port/bus  | sensor                 | location                    | verbatim name         |
+|:----------|:-----------------------|-----------------------------|:----------------------|
+| `0`       | *unused*               | *unused*                    | *unused*              |
+| `1`       | Pinpoint Odo Computer  | left side under control hub | `odo`                 |
+| `3`       | REV 2M Distance Sensor | lower transfer              | `lowerTransferSensor` |
+| `2`       | REV 2M Distance Sensor | side of turret              | `upperTransferSensor` |
 
-having sensors 1/2 on the left/right doesn't matter because we are just comparing values
-
-### USB port
+### USB ports
 
 | port    | device       | verbatim name |
 |:--------|:-------------|:--------------|
 | USB 3.0 | Limelight 3A | `limelight`   |
 
-the Limelight will show up as `Ethernet Device` under the USB devices, make sure to rename it to the verbatim name
+after scanning, the Limelight will show up as `Ethernet Device` under the USB devices, make sure to rename it to the verbatim name
+make sure to save the config with the Limelight under a new name, as scanning may delete other devices
 
 ### DC motors
 
-| motor port | verbatim name | encoder? |
-|:-----------|:--------------|:---------|
-| 0          | `frontLeft`   | ❌        |
-| 1          | `frontRight`  | ❌        |
-| 2          | `backLeft`    | ❌        |
-| 3          | `backRight`   | ❌        |
+| motor port  | motor name                | verbatim name | encoder? |
+|:------------|---------------------------|:--------------|:---------|
+| `0`         | GoBILDA 5202/3/4 series   | `frontLeft`   | ❌        |
+| `1`         | GoBILDA 5202/3/4 series   | `frontRight`  | ❌        |
+| `2`         | GoBILDA 5202/3/4 series   | `backLeft`    | ❌        |
+| `3`         | GoBILDA 5202/3/4 series   | `backRight`   | ❌        |
 
-make sure to connect every motor with the correct polarity, the reversing should be done in software
+make sure to connect every motor with the correct polarity; the reversing should is done in software
 
 ### servos
 
-| servo port | verbatim name   |
-|:-----------|:----------------|
-| 0          | `lowerTransfer` |
-| 1          | `upperTransfer` |
-| 2          | `turret1`       |
-| 3          | `turret2`       |
-| 4          | `hood`          |
-| 5          | none            |
+| servo port   | servo type                | verbatim name   |
+|:-------------|---------------------------|:----------------|
+| `0`          | Servo                     | `lowerTransfer` |
+| `1`          | Servo                     | `upperTransfer` |
+| `2`          | Continuous Rotation Servo | `turret1`       |
+| `3`          | Continuous Rotation Servo | `turret2`       |
+| `4`          | Servo                     | `hood`          |
+| `5`          | *unused*                  | *unused*        |
 
-the connection order of turret1/2 shouldn't matter, since we're just using 2 for extra power
+the connection order of turret1/2 doesn't matter, since they both face the same direction
 
 ## expansion hub
+
+### I2C ports/buses
+| port/bus | sensor                 | location       | verbatim name         |
+|:---------|:-----------------------|----------------|:----------------------|
+| 0        | REV 2M Distance Sensor | side of intake | `intakeSensor`        |
+| 1        | *unused*               | *unused*       | *unused*              |
+| 2        | *unused*               | *unused*       | *unused*              |
+| 3        | *unused*               | *unused*       | *unused*              |
+
 
 ### connection method (ports matter)
 ![expansion hub connection](doc/media/expansionHubConnection.png)
 
-### I2C ports/buses
-| port/bus | device                 | location                    | verbatim name         |
-|:---------|:-----------------------|-----------------------------|:----------------------|
-| 0        | REV 2M Distance Sensor | intake                      | `intakeSensor`        |
-| 1        | REV Color Sensor V3    | lower transfer              | `lowerTransferSensor` |
-| 2        | REV 2M Distance Sensor | left side of lower transfer | `upperTransferSensor` |
-| 3        | *unused*               | *unused*                    | *unused*              |
-
-having sensors 1/2 on the left/right doesn't matter because we are just comparing values
-
 ### DC motors
 
-| motor port | verbatim name   | encoder?   |
-|:-----------|:----------------|:-----------|
-| 0          | `intake`        | ❌          |
-| 1          | `launch`        | ✅          |
-| 2          | `turretEncoder` | ✅          |
-| 3          | none            | ❌          |
+| motor port   | verbatim name   | encoder?  |
+|:-------------|:----------------|:----------|
+| `0`          | `intake`        | ❌         |
+| `1`          | `launchLeft`    | ✅         |
+| `2`          | `launchRight`   | ✅         |
+| `3`          | `turretEncoder` | ✅         |
 
-`turret` isn't an actual motor, we are just connecting our encoder for our turret up to it
+`turretEncoder` shouldn't have a motor connected, because we are just using the encoder port
+connecting `launchLeft`/`launchRight` correctly is very important
+- you only need an encoder on one of them to function, but having both increases accuracy+reliability
 
-# Controller Map
-## Sticks
+# controller map
+
+## sticks
+
 ### left stick
-- X: move X (absolute coordinates)
-- Y: move Y (absolute coordinates)
+
+- **X**: move robot left/right
+- **Y**: move robot forwards/back
+
+the **start** button toggles between robot/field centric control
 
 ### right stick:
-- X: rotate clockwise/counterclockwise
-- Y: not used
+
+- **X**: rotate clockwise/counterclockwise
+- **Y**: *unused*
 
 ## bumpers
-- left bumper: auto turn to goal
-- right bumper: launch ball
+
+- **left bumper**: lock turret
+- **right bumper**: launch 1ball
 
 ## triggers
-- left trigger: slow mode
-- right trigger: launch power (when manually controlled)
+
+- **left trigger**: slow mode 
+- **right trigger**: *unused*
 
 ## buttons
+
 ### face buttons
-- A: toggle intake
-- B: toggle manual/automatic launch
-  - **auto**: uses odo to find out needed launch speed to reach goal
+- **A**: toggle intake
+- **B**: toggle manual/automatic launch
+  - **auto**: uses vision/odo to find out needed launch speed to reach goal
   - **manual**: sets launch speed to constant defined in Tunables.java (calibrated for shooting from crease)
-- Y: launch 3 balls
-- X: reverse intake
+    - the setpoint can be changed with the d-pad buttons
+- **Y**: launch 3 balls
+- **X**: reverse intake
 
 ### d-pad
-- up: increase launch RPM setpoint
-- down: decrease launch RPM setpoint
+- **up**: increase launch RPM setpoint
+- **down**: decrease launch RPM setpoint
+- **left**: decrease launch RPM setpoint by half
+- **right**: increase launch RPM setpoint by half
 
 ### other buttons
-- start: toggle field/robot centric
-- back: reset field centric heading
+- **start**: toggle field/robot centric
+- **back**: reset field centric heading
+  - make sure to orient the robot towards the top of the field (in between the goals)
 
 # OpModes
+
 ## TeleOp
 - `BlueTeleOp`: TeleOp for blue team
 - `RedTeleOp`: TeleOp for red team
 
 ## Auto
-### Blue Team
+
+### blue team
+
 - `BlueTriAuto`: starting by bottom triangle
 - `BlueGoalAuto`: starting by blue team goal
-### Red Team
+
+### red team
+
 - `RedTriAuto`: starting by bottom triangle
 - `RedGoalAuto`: starting by red team goal
 
-## util
+## Util
+
 - `FlywheelTuner`: tune flywheel PIDF
 - `LaunchTuner`: tune launch delays
 - `SensorTest`: test distance sensors and their trigger points
 - `ServoTest`: test servo endpoints
 - `TurnTest`: test Pedro Pathing turning behaviour
+- `TurretTuner`: test/tune turret encoder and PIDF
+- `VisionTest`: test/tune limelight
 
 # State Machines
+
 ## auto states
+
 1. START
 2. TRAVEL_TO_LAUNCH
 3. LAUNCH
 4. TRAVEL_TO_BALLS
 5. RELOAD
-6. GO_TO_END
-7. END
+6. GO_TO_CLEAR
+7. CLEAR
+8. GO_TO_END
+9. END
 
-### ball triplets remaining
-- starts at 4 (1 in robot, 3 on field)
-- decrements every launch
+### ball triplets scored
+- starts at 0
+- increments every launch
 
 ## launch states
+
 1. OPENING_UPPER_TRANSFER
 2. PUSHING_LOWER_TRANSFER
 3. WAITING_FOR_EXIT
 
 ### balls remaining
+
 - starts at 3 (all in robot)
 - decrements by 1 every ball that is launched
-- reset to 3 and return true when it hits 0
 
 # vision
 
 We are using a Limelight 3A
 
-## Pipelines
-| pipeline | allowed tag IDs | purpose                                      |
-|:---------|:----------------|:---------------------------------------------|
-| 0        | 21, 22, 23      | detect pattern                               |
-| 1        | 20              | get blue goal launch distance and turn to it |
-| 2        | 24              | get red goal launch distance and turn to it  |
+## pipelines
+
+| pipeline filename | pipeline index | allowed tag IDs | purpose                                 |
+|:------------------|----------------|:----------------|:----------------------------------------|
+| `Obelisk.vpr`     | `0`            | 21, 22, 23      | detect pattern                          |
+| `BlueTeam.vpr`    | `1`            | 20              | get blue goal april tag distance and tx |
+| `RedTeam.vpr`     | `2`            | 24              | get red goal april tag distance and tx  |
+
+pipeline files are saved in the [limelight folder](limelight/)
