@@ -173,8 +173,8 @@ the **start** button toggles between robot/field centric control
 
 - `FlywheelTuner`: tune flywheel PIDF
 - `LaunchTuner`: tune launch delays
-- `SensorTest`: test distance sensors and their trigger points
-- `ServoTest`: test servo endpoints
+- `SensorTuner`: test/tune distance sensors and their trigger points
+- `ServoTuner`: test/tune servo endpoints
 - `TurnTest`: test Pedro Pathing turning behaviour
 - `TurretTuner`: test/tune turret encoder and PIDF
 - `VisionTest`: test/tune limelight
