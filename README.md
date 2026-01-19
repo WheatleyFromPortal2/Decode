@@ -53,12 +53,12 @@ make sure to save the config with the Limelight under a new name, as scanning ma
 
 ### DC motors
 
-| motor port  | motor name                | verbatim name | encoder? |
-|:------------|---------------------------|:--------------|:---------|
-| `0`         | GoBILDA 5202/3/4 series   | `frontLeft`   | ❌        |
-| `1`         | GoBILDA 5202/3/4 series   | `frontRight`  | ❌        |
-| `2`         | GoBILDA 5202/3/4 series   | `backLeft`    | ❌        |
-| `3`         | GoBILDA 5202/3/4 series   | `backRight`   | ❌        |
+| motor port  | motor type              | verbatim name | encoder? |
+|:------------|-------------------------|:--------------|:---------|
+| `0`         | GoBILDA 5202/3/4 series | `frontLeft`   | ❌        |
+| `1`         | GoBILDA 5202/3/4 series | `frontRight`  | ❌        |
+| `2`         | GoBILDA 5202/3/4 series | `backLeft`    | ❌        |
+| `3`         | GoBILDA 5202/3/4 series | `backRight`   | ❌        |
 
 make sure to connect every motor with the correct polarity; the reversing should is done in software
 
@@ -77,7 +77,11 @@ the connection order of turret1/2 doesn't matter, since they both face the same 
 
 ## expansion hub
 
+### connection method (ports matter)
+![expansion hub connection](doc/media/expansionHubConnection.png)
+
 ### I2C ports/buses
+
 | port/bus | sensor                 | location       | verbatim name         |
 |:---------|:-----------------------|----------------|:----------------------|
 | 0        | REV 2M Distance Sensor | side of intake | `intakeSensor`        |
@@ -85,18 +89,14 @@ the connection order of turret1/2 doesn't matter, since they both face the same 
 | 2        | *unused*               | *unused*       | *unused*              |
 | 3        | *unused*               | *unused*       | *unused*              |
 
-
-### connection method (ports matter)
-![expansion hub connection](doc/media/expansionHubConnection.png)
-
 ### DC motors
 
-| motor port   | verbatim name   | encoder?  |
-|:-------------|:----------------|:----------|
-| `0`          | `intake`        | ❌         |
-| `1`          | `launchLeft`    | ✅         |
-| `2`          | `launchRight`   | ✅         |
-| `3`          | `turretEncoder` | ✅         |
+| motor port   | motor type              | verbatim name   | encoder?  |
+|:-------------|-------------------------|:----------------|:----------|
+| `0`          | GoBILDA 5202/3/4 series | `intake`        | ❌         |
+| `1`          | GoBILDA 5202/3/4 series | `launchLeft`    | ✅         |
+| `2`          | GoBILDA 5202/3/4 series | `launchRight`   | ✅         |
+| `3`          | GoBILDA 5202/3/4 series | `turretEncoder` | ✅         |
 
 `turretEncoder` shouldn't have a motor connected, because we are just using the encoder port
 connecting `launchLeft`/`launchRight` correctly is very important
@@ -153,6 +153,7 @@ the **start** button toggles between robot/field centric control
 # OpModes
 
 ## TeleOp
+- `Enable/Disable Panels`: enables/disables [Panels telemetry](http://192.168.43.1:8001/)
 - `BlueTeleOp`: TeleOp for blue team
 - `RedTeleOp`: TeleOp for red team
 
@@ -178,19 +179,19 @@ the **start** button toggles between robot/field centric control
 - `TurretTuner`: test/tune turret encoder and PIDF
 - `VisionTest`: test/tune limelight
 
-# State Machines
+# state machines
 
 ## auto states
 
-1. START
-2. TRAVEL_TO_LAUNCH
-3. LAUNCH
-4. TRAVEL_TO_BALLS
-5. RELOAD
-6. GO_TO_CLEAR
-7. CLEAR
-8. GO_TO_END
-9. END
+1. `START`
+2. `TRAVEL_TO_LAUNCH`
+3. `LAUNCH`
+4. `TRAVEL_TO_BALLS`
+5. `RELOAD`
+6. `GO_TO_CLEAR`
+7. `CLEAR`
+8. `GO_TO_END`
+9. `END`
 
 ### ball triplets scored
 - starts at 0
@@ -198,9 +199,9 @@ the **start** button toggles between robot/field centric control
 
 ## launch states
 
-1. OPENING_UPPER_TRANSFER
-2. PUSHING_LOWER_TRANSFER
-3. WAITING_FOR_EXIT
+1. `OPENING_UPPER_TRANSFER`
+2. `PUSHING_LOWER_TRANSFER`
+3. `WAITING_FOR_EXIT`
 
 ### balls remaining
 
@@ -213,10 +214,10 @@ We are using a Limelight 3A
 
 ## pipelines
 
-| pipeline filename | pipeline index | allowed tag IDs | purpose                                 |
-|:------------------|----------------|:----------------|:----------------------------------------|
-| `Obelisk.vpr`     | `0`            | 21, 22, 23      | detect pattern                          |
-| `BlueTeam.vpr`    | `1`            | 20              | get blue goal april tag distance and tx |
-| `RedTeam.vpr`     | `2`            | 24              | get red goal april tag distance and tx  |
+| filename       | index  | allowed tag IDs | purpose                                 |
+|:---------------|--------|:----------------|:----------------------------------------|
+| `Obelisk.vpr`  | `0`    | 21, 22, 23      | detect pattern                          |
+| `BlueTeam.vpr` | `1`    | 20              | get blue goal april tag distance and tx |
+| `RedTeam.vpr`  | `2`    | 24              | get red goal april tag distance and tx  |
 
 pipeline files are saved in the [limelight folder](limelight/)
