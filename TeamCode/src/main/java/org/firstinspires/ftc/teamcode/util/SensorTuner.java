@@ -13,7 +13,7 @@ import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
 @TeleOp(name="SensorTest", group="Util")
-public class SensorTest extends LinearOpMode {
+public class SensorTuner extends LinearOpMode {
     @Override
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap); // create our robot class

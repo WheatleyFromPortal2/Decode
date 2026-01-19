@@ -26,7 +26,7 @@ public class TurretTuner extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
-            robot.calcPIDF();
+            telemetryM.addData("turret1 power", robot.turret1.getPower());
 
             if (gamepad1.dpadLeftWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(-90));
             if (gamepad1.dpadUpWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(0));
@@ -34,6 +34,7 @@ public class TurretTuner extends LinearOpMode {
             if (gamepad1.dpadDownWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(180));
 
             telemetryM.addData("turret ticks", robot.turretEncoder.getCurrentPosition());
+            telemetryM.addData("desired turret position", robot.getDesiredTurretPosition());
             telemetryM.addData("turret position", robot.getTurretPosition());
             telemetryM.addData("turret position (degrees)", Math.toDegrees(robot.getTurretPosition()));
             telemetryM.addData("turret1", robot.turret1.getPower());
