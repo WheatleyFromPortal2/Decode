@@ -96,6 +96,9 @@ public abstract class BozoTeleOp extends OpMode {
                 robot.launchBalls(3); // launch 3 balls
             }
         }
+
+        if (gamepad1.leftBumperWasReleased()) { robot.setDesiredTurretPosition(0); } // lock turret
+
         if (gamepad1.rightBumperWasReleased()) {
             follower.holdPoint(follower.getPose()); // hold our pose while we're launching
             //automatedDrive = true; i don't this is necessary
