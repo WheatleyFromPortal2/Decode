@@ -2,7 +2,10 @@
 
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
 // hardware imports
+import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -15,12 +18,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeRadians;
 
 // Pedro Pathing imports
-import static java.lang.Thread.sleep;
-
-import androidx.annotation.NonNull;
-
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.util.Range;
 
 
 public class Robot { // create our global class for our robot
@@ -59,6 +59,11 @@ public class Robot { // create our global class for our robot
     private double lastLaunchInterval; // stores the amount of time it took for our last launch
     /** end vars that change **/
 
+    /** for testing **/
+    public double bestTarget;
+    public double bestDist;
+    public double candidate;
+
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
         // DC motors (all are DcMotorEx for current monitoring)
         intake = hw.get(DcMotorEx.class, "intake"); // intake motor
@@ -81,13 +86,14 @@ public class Robot { // create our global class for our robot
 
         launchLeft.setDirection(DcMotorEx.Direction.REVERSE);
         launchLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
-        launchRight.setDirection(DcMotorEx.Direction.FORWARD); // our turret motors rotate the flywheel opposite of each other
+        launchRight.setDirection(DcMotorEx.Direction.REVERSE);
         launchRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
         launchPIDF = new PIDF(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // create our PIDF controller for our launch motors
 
         turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER); // reset our encoder (this only seems to work when run after the OpMode is started)
         turretEncoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER); // we won't be using the motor at all
-        turretPIDF = new PIDF(Tunables.turretP, Tunables.turretI, Tunables.turretD, Tunables.turretF); // create our PIDF controller for our turret
+        // don't use F for the turret; F bases off of our target, which has no relation to the amount of power needed
+        turretPIDF = new PIDF(Tunables.turretP, Tunables.turretI, Tunables.turretD, 0); // create our PIDF controller for our turret
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
@@ -117,39 +123,84 @@ public class Robot { // create our global class for our robot
     }
 
     public void setDesiredTurretPosition(double radians) { // set desired turret angle
+        //desiredTurretPosition = Math.atan2(Math.sin(radians), Math.cos(radians)); // wrap the angle to +/-pi
         desiredTurretPosition = radians;
     }
 
+    public double getDesiredTurretPosition() {
+        return desiredTurretPosition;
+    }
+
+    private void calcTurretPIDFError(double desired) {
+    }
+
+    public void rotateTurret(double degrees) { // rotate our turret using degree tx from limelight
+        double radianOffset = Math.toRadians(degrees);
+        double newTurretPosition = getTurretPosition() + radianOffset;
+        setDesiredTurretPosition(newTurretPosition); // should auto convert to unit circle
+    }
+
     public void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
+        double launchCorrection; // power (from 0-1) to apply to motors
         // update all PIDF coefficients in controllers
         launchPIDF.updateTerms(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
-        turretPIDF.updateTerms(Tunables.turretP, Tunables.turretI, Tunables.turretD, Tunables.launchF);
+        // don't use F for the turret; F bases off of our target, which has no relation to the amount of power needed
+        turretPIDF.updateTerms(Tunables.turretP, Tunables.turretI, Tunables.turretD, 0);
 
         // calc launch PIDF
         // we don't need to negate values from launchLeft, because we have already set its direction to reversed
         double launchTPS = getLaunchVelocity();
-        double launchCorrection = launchPIDF.calc(desiredLaunchVelocity, launchTPS); // use PIDF to calculate needed correction`
-        launchLeft.setVelocity(launchCorrection); // apply correction
-        launchRight.setVelocity(launchCorrection); // apply correction
+        if (TPSToRPM(desiredLaunchVelocity - launchTPS) > Tunables.launchMaxPowerThreshold) {
+            launchCorrection = 1; // if our RPM diff is really larger, ignore PIDF and just go full power
+        } else {
+            launchCorrection = launchPIDF.calc(desiredLaunchVelocity, launchTPS); // use PIDF to calculate needed correction
+            launchCorrection = Range.clip(launchCorrection, 0.0, 1.0); // clamp motor output to always be positive and from 0-1
+        }
+        launchLeft.setPower(launchCorrection); // apply correction
+        launchRight.setPower(launchCorrection); // apply correction
 
         // calc turret PIDF
-        double turretCorrection = turretPIDF.calc(desiredTurretPosition, getTurretPosition());
-        // turret1/2 should be operating in the same direction
-        turret1.setPower(turretCorrection);
-        turret2.setPower(turretCorrection);
+        bestTarget = 0; // if we can't find a good one, don't compute a change
+        bestDist = Double.POSITIVE_INFINITY;
+
+        double current = getTurretPosition();
+        /*
+        for (int k = -2; k <= 2; k++) {
+            candidate = desiredTurretPosition + k * 2 * Math.PI;
+            if (candidate < -Tunables.maxTurretRotation || candidate > Tunables.maxTurretRotation) continue;
+
+            double dist = Math.abs(candidate - current);
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestTarget = candidate;
+            }
+        }
+
+        double turretCorrection = turretPIDF.calc(bestTarget, getTurretPosition());
+         */
+        double turretCorrection = turretPIDF.calc(desiredTurretPosition, current);
+        if (turretCorrection > 0) turretCorrection += Tunables.turretBasePower;
+        else if (turretCorrection < 0) turretCorrection -= Tunables.turretBasePower;
+
+        turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
+        turret1.setPower(turretCorrection); // turret1/2 should be operating in the same direction
+        turret2.setPower(turretCorrection); // turret1/2 should be operating in the same direction
+    }
+
+    public void zeroTurret() { // zero turret (set current position to forwards)
+        turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
+        turretEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
     public double getDstFromGoal(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
-        double inchesD = currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
-        return inchesD * 0.0254; // convert to meters
+        return currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
     }
 
     public double getGoalHeading(@NonNull Pose currentPosition, @NonNull Pose goalPose) { // return bot heading to point towards goal in radians
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
         double desiredHeading = Math.atan2(yDst, xDst); // need atan2 to account for negatives
-        double currentHeading = normalizeRadians(currentPosition.getHeading());
-        return normalizeRadians(desiredHeading - currentHeading) + currentHeading;
+        return normalizeRadians(desiredHeading);
     }
 
     public void setAutomatedLaunchVelocity(double d) { // given positions, use our functions to set our launch speed
@@ -168,16 +219,6 @@ public class Robot { // create our global class for our robot
     public void resetLaunchServos() { // set servos to starting state
         upperTransfer.setPosition(Tunables.upperTransferClosed); // make sure balls cannot launch
         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
-    }
-
-    public void homeHood() { // home our hood
-        hood.setPosition(1); // run to highest position (will skip gears)
-        try {
-            sleep(Tunables.hoodHomingTime);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
-        hood.setPosition(Tunables.hoodMinimum);
     }
 
     public double getIntakeCurrent() { return intake.getCurrent(CurrentUnit.AMPS); } // return intake current in amps
@@ -215,9 +256,11 @@ public class Robot { // create our global class for our robot
         else return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeSensorOpen;
     }
     public boolean isBallInLowerTransfer() { // return true if there is a ball reducing our measured distance
-        return lowerTransferSensor.getDistance(DistanceUnit.MM) < Tunables.lowerTransferSensorOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
+        if (lowerTransferSensor.getDistance(DistanceUnit.MM) == 0) return true; // if our lower transfer sensor isn't working
+        else return lowerTransferSensor.getDistance(DistanceUnit.MM) < Tunables.lowerTransferSensorOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
     }
     public boolean isBallInUpperTransfer() { // return true if there is a ball reducing our measured distance
+        // we want to return false when the sensor has disconnected, so our launch state machine can default to the static wait time
         return upperTransferSensor.getDistance(DistanceUnit.MM) < Tunables.upperTransferSensorOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
     }
 
@@ -319,8 +362,11 @@ public class Robot { // create our global class for our robot
     public boolean isLaunching() { return isLaunching; }
 
     public void setHoodPosition(double pos) {
+        if (pos < 0) return; // don't allow negative positions
+        // set hood position relative to our minimum, so it is easy to recalibrate
+        double newHoodPosition = Tunables.hoodMinimum + pos;
         // ensure pos is within acceptable hw range
-        hood.setPosition(Math.max(pos, Tunables.hoodMinimum)); // just set to minimum
+        hood.setPosition(Math.min(newHoodPosition, Tunables.hoodMaximum)); // don't allow our hood to be set higher than our max position
     }
 
     public double getHoodPosition() { return hood.getPosition(); }

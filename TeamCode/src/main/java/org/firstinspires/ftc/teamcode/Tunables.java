@@ -27,26 +27,37 @@ public class Tunables { // this should hold all of our constants
     public static double launchP = 0;
     public static double launchI = 0;
     public static double launchD = 0;
-    public static double launchF = 0;
+    public static double launchF = 13.2;
+    // a quick way to get the F value if you're using the SDK's built-in PIDF controller is to find the ticks/sec your motor goes at 0.0 power in RUN_WITHOUT_ENCODERS mode. That's your motor's max speed. Since most flywheels should have a speed roughly directly proportional to raw power (that is, the y-intercept or kStatic is ~0), you can just invert the max ticks/sec to get your kVelocity. Now, you just need to scale that value to the SDK's PIDF by multiplying by 32767 (2^15-1). I don't know why that is, and it's not well-documented. So let's say you have a 6000 RPM (nominal) goBILDA motor. Its actual max RPM is closer to 5400. Since it's 28 ticks per revolution, that's 2520 ticks/sec. Your empirically discovered max speed will probably be a little less. Mine was 2496. So that's 32767/2496 = F ~= 13.2
+    // might want to increase I term to account for flywheel staying lower than target
+    public static double launchMaxPowerThreshold = 1000; // if RPM diff is greater than this, bypass PIDF and go full power
 
     // TODO: tune these
     // turret PIDF coefficients
     public static double turretP = 0;
+    // 0.25 works pretty well for 2servos
+    // 0.6 works well for 1servo
     public static double turretI = 0;
     public static double turretD = 0;
-    public static double turretF = 0;
+    public static double turretBasePower = 0.05; // minimum power for turret servos to engage (may be PWM)
+    // 0.20 works well for 1servo
+
+    public static double reverseFactor = 0.1;
+
+    public static double maxTurretRotation = Math.PI; // max amount turret should turn right/left in radians
 
     // servo open/close points (don't find these with the backplate on!)
-    public static double lowerTransferLowerLimit = 0.00; // recalibrated 1-6-25
-    public static double lowerTransferUpperLimit = 0.30; // recalibrated 1-6-25
+    public static double lowerTransferLowerLimit = 0.6871; // recalibrated 1-16-25
+    public static double lowerTransferUpperLimit = 0.89; // recalibrated 1-16-25
     // servo position where upper transfer prevents balls from passing into launch
-    public static double upperTransferClosed = 0.38; // recalibrated 1-6-25
+    public static double upperTransferClosed = 0.38; // recalibrated 1-16-25
     // servo position where upper transfer allows balls to pass into launch
-    public static double upperTransferOpen = 0.00; // recalibrated 1-6-25
+    public static double upperTransferOpen = 0.3463; // recalibrated 1-16-25
 
     // we don't need a hood maximum, because it will just skip the gear, causing no damage
     // at the start of our OpMode, we should homeHood() and then "1" will become our maximum
-    public static double hoodMinimum = 0.9; // TODO: fill this in
+    public static double hoodMinimum = 0.34; // calibrated 1-17-26
+    public static double hoodMaximum = 0.54; // calibrated 1-17-26
     public static int hoodHomingTime = 1500; // millis to wait for hood to reach maximum position
 
     // distance sensor limits (better to undershoot rather than to overshoot)
