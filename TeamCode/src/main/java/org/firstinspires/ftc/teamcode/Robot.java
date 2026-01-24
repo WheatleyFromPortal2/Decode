@@ -28,7 +28,6 @@ public class Robot { // create our global class for our robot
     public static final int TURRET_TICKS_PER_REV = 1024; // tested 1-13-26
     public static final double TURRET_ENCODER_RATIO = 5.5; // ratio from turretEncoder->turret
     //public static final double TURRET_SERVO_RATIO = 5.5 / 3; // ratio from turret1/2->turret
-    public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
     public DcMotorEx intake, launchLeft, launchRight, turretEncoder; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer; // servos
     private Servo hood; // we only want to modify hood through setHoodPosition(pos), to ensure we don't set it out of bounds
@@ -361,6 +360,7 @@ public class Robot { // create our global class for our robot
         wasBallInIntake = ballInIntake; // update our reading at the end
     }
 
+    public void setBallsRemaining(int balls) { ballsRemaining = balls; }
     public int getBallsRemaining() { return ballsRemaining; }
     public double getLastLaunchInterval() { return lastLaunchInterval; }
     public boolean isLaunching() { return isLaunching; }

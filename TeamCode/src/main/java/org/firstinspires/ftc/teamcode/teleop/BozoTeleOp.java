@@ -6,6 +6,7 @@ package org.firstinspires.ftc.teamcode.teleop;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
+import org.firstinspires.ftc.teamcode.HandoffState;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
@@ -48,10 +49,11 @@ public abstract class BozoTeleOp extends OpMode {
         vision = new Vision(hardwareMap, isBlueTeam());
         vision.start();
         follower = Constants.createFollower(hardwareMap);
-        if (Robot.switchoverPose == null) follower.setStartingPose(new Pose());
-        else { // hopefully this works
-            follower.setPose(Robot.switchoverPose);
-        }
+
+        follower.setPose(HandoffState.pose);
+        robot.setBallsRemaining(HandoffState.ballsRemaining);
+        robot.zeroTurret(); // assume turret has been brought to zero position at the end of auto
+
         goalPose = getGoalPose();
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();

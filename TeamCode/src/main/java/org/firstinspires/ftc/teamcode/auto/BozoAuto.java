@@ -15,6 +15,8 @@ import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+
+import org.firstinspires.ftc.teamcode.HandoffState;
 import org.firstinspires.ftc.teamcode.Tunables;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
@@ -265,13 +267,14 @@ public abstract class BozoAuto extends OpMode {
                 }
                 break;
             case GO_TO_END: // travels to the end
+                robot.setDesiredTurretPosition(0); // lock turret in middle
                 if(!follower.isBusy()) {
                     setPathState(State.END);
                 }
                 break;
             case END:
                 robot.intake.setPower(0); // turn off intake
-                Robot.switchoverPose = follower.getPose(); // try to prevent drift
+                updateHandoff();
                 follower.deactivateAllPIDFs(); // stop the follower
                 requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
                 break;
@@ -291,7 +294,7 @@ public abstract class BozoAuto extends OpMode {
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
 
-        Robot.switchoverPose = follower.getPose(); // get our switchover pose ready for TeleOp (this may drift if we stop the OpMode mid-motion)
+        updateHandoff();
 
         autonomousPathUpdate(); // update our state machine and run its actions
 
@@ -347,7 +350,7 @@ public abstract class BozoAuto extends OpMode {
     // everything else should automatically disable, but we should probably reset our servos just in case
     @Override
     public void stop() {
-        Robot.switchoverPose = follower.getPose(); // try to prevent drift
+        updateHandoff(); // update our hand off when we stop
         robot.resetLaunchServos(); // return servos to starting position
     }
 
@@ -369,5 +372,10 @@ public abstract class BozoAuto extends OpMode {
         telemetryM.debug("heading", follower.getPose().getHeading());
         telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
         telemetryM.update(telemetry); // update telemetry
+    }
+
+    public void updateHandoff() {
+        HandoffState.pose = follower.getPose();
+        HandoffState.ballsRemaining = robot.getBallsRemaining();
     }
 }
