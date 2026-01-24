@@ -35,12 +35,20 @@ driver station config name: `v0 turret`
 ## control hub
 
 ### I²C ports/buses
-| port/bus  | sensor                 | location                    | verbatim name         |
+| port/bus  | device type            | location                    | verbatim name         |
 |:----------|:-----------------------|-----------------------------|:----------------------|
 | `0`       | *unused*               | *unused*                    | *unused*              |
 | `1`       | Pinpoint Odo Computer  | left side under control hub | `odo`                 |
-| `3`       | REV 2M Distance Sensor | lower transfer              | `lowerTransferSensor` |
-| `2`       | REV 2M Distance Sensor | side of turret              | `upperTransferSensor` |
+| `2`       | REV 2M Distance Sensor | lower transfer              | `lowerTransferSensor` |
+| `3`       | *unused*               | *unused*                    | *unused*              |
+
+### digital ports
+| port  | device type    | location       | verbatim name         |
+|:------|:---------------|----------------|:----------------------|
+| `0`   | *unused*       | *unused*       | *unused*              |
+| `1`   | Digital Device | side of turret | `upperTransferSensor` |
+
+the cable for upper transfer plugs into the `0/1` digital port, but the sensor must be configured as using `port 1`
 
 ### USB ports
 
@@ -82,7 +90,7 @@ the connection order of turret1/2 doesn't matter, since they both face the same 
 
 ### I2C ports/buses
 
-| port/bus | sensor                 | location       | verbatim name         |
+| port/bus | device type            | location       | verbatim name         |
 |:---------|:-----------------------|----------------|:----------------------|
 | 0        | REV 2M Distance Sensor | side of intake | `intakeSensor`        |
 | 1        | *unused*               | *unused*       | *unused*              |

@@ -6,6 +6,7 @@ import androidx.annotation.NonNull;
 
 // hardware imports
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -32,7 +33,8 @@ public class Robot { // create our global class for our robot
     public Servo lowerTransfer, upperTransfer; // servos
     private Servo hood; // we only want to modify hood through setHoodPosition(pos), to ensure we don't set it out of bounds
     public CRServo turret1, turret2; // continuous servos
-    public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
+    public Rev2mDistanceSensor intakeSensor, lowerTransferSensor; // all of our distance sensors for detecting balls
+    public DigitalChannel upperTransferSensor;
     private PIDF turretSinglePIDF, turretDoublePIDF, launchPIDF;
 
     private final Timer launchStateTimer, // tracks time since we started our last launch state
@@ -98,7 +100,8 @@ public class Robot { // create our global class for our robot
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
         lowerTransferSensor = hw.get(Rev2mDistanceSensor.class, "lowerTransferSensor");
-        upperTransferSensor = hw.get(Rev2mDistanceSensor.class, "upperTransferSensor");
+        upperTransferSensor = hw.get(DigitalChannel.class, "upperTransferSensor");
+        upperTransferSensor.setMode(DigitalChannel.Mode.INPUT);
 
         // timers
         launchStateTimer = new Timer(); // set up timer for the launch state machine
@@ -263,8 +266,8 @@ public class Robot { // create our global class for our robot
         else return lowerTransferSensor.getDistance(DistanceUnit.MM) < Tunables.lowerTransferSensorOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
     }
     public boolean isBallInUpperTransfer() { // return true if there is a ball reducing our measured distance
-        // we want to return false when the sensor has disconnected, so our launch state machine can default to the static wait time
-        return upperTransferSensor.getDistance(DistanceUnit.MM) < Tunables.upperTransferSensorOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
+        return !upperTransferSensor.getState(); // invert
+        // if this sensor disconnects, it reports true (which is inverted to false), so the launch state machine will just fallback to the fixed delay
     }
 
     /** ball launching methods **/

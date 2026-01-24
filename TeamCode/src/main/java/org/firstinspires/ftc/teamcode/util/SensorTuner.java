@@ -28,13 +28,11 @@ public class SensorTuner extends LinearOpMode {
             telemetryM.debug("---sensor values---");
             telemetryM.addData("intakeSensor", robot.intakeSensor.getDistance(DistanceUnit.MM));
             telemetryM.addData("lowerTransferSensor", robot.lowerTransferSensor.getDistance(DistanceUnit.MM));
-            telemetryM.addData("upperTransferSensor", robot.upperTransferSensor.getDistance(DistanceUnit.MM));
 
             telemetryM.addLine(""); // spacing
             telemetryM.debug("---sensor endpoints---");
             telemetryM.addData("intakeSensorOpen", Tunables.intakeSensorOpen);
             telemetryM.addData("lowerTransferSensorOpen", Tunables.lowerTransferSensorOpen);
-            telemetryM.addData("upperTransferSensorOpen", Tunables.upperTransferSensorOpen);
 
             telemetryM.addLine(""); // spacing
             telemetryM.debug("---function outputs---");
