@@ -187,6 +187,7 @@ public class Robot { // create our global class for our robot
             turretCorrection = turretSinglePIDF.calc(desiredTurretPosition, current);
             turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
             turret1.setPower(turretCorrection); // maybe switch between which servo is used for single correction in the future?
+            turret2.setPower(0); // make sure they aren't fighting each other
         } else {
             // double servo control
             turretCorrection = turretDoublePIDF.calc(desiredTurretPosition, current);
