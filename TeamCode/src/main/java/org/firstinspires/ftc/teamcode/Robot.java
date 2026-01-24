@@ -185,15 +185,17 @@ public class Robot { // create our global class for our robot
         if (Math.abs(desiredTurretPosition - current) < Tunables.turretSingleMargin) {
             // single servo control
             turretCorrection = turretSinglePIDF.calc(desiredTurretPosition, current);
+            turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
+            turret1.setPower(turretCorrection); // maybe switch between which servo is used for single correction in the future?
         } else {
             // double servo control
             turretCorrection = turretDoublePIDF.calc(desiredTurretPosition, current);
+            turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
+            turret1.setPower(turretCorrection); // turret1/2 should be operating in the same direction
+            turret2.setPower(turretCorrection); // turret1/2 should be operating in the same direction
         }
 
 
-        turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
-        turret1.setPower(turretCorrection); // turret1/2 should be operating in the same direction
-        turret2.setPower(turretCorrection); // turret1/2 should be operating in the same direction
     }
 
     public void zeroTurret() { // zero turret (set current position to forwards)
