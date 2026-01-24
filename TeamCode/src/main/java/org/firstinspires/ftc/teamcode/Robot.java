@@ -29,7 +29,6 @@ public class Robot { // create our global class for our robot
     public static final double TURRET_ENCODER_RATIO = 5.5; // ratio from turretEncoder->turret
     //public static final double TURRET_SERVO_RATIO = 5.5 / 3; // ratio from turret1/2->turret
     public static Pose switchoverPose; // this must be initialized by the auto and is used to persist our current position from auto->TeleOp
-    private static Robot instance; // this stores our current instance of Robot, so we can transfer it from auto->TeleOp
     public DcMotorEx intake, launchLeft, launchRight, turretEncoder; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer; // servos
     private Servo hood; // we only want to modify hood through setHoodPosition(pos), to ensure we don't set it out of bounds
@@ -110,13 +109,6 @@ public class Robot { // create our global class for our robot
         transferTimer = new Timer();
     }
 
-    public static Robot getInstance(HardwareMap hw) { // this allows us to preserve the Robot instance from auto->teleop
-        if (instance == null) { // we don't already have an instance
-            instance = new Robot(hw); // create a new instance
-        }
-        return instance;
-    }
-
     public double getTurretPosition() { // return our current turret angle in radians +/- from facing forwards
         int ticks = turretEncoder.getCurrentPosition();
         double encoderRevs = (double) ticks / TURRET_TICKS_PER_REV;
@@ -126,7 +118,7 @@ public class Robot { // create our global class for our robot
 
     public void setDesiredTurretPosition(double radians) { // set desired turret angle
         //desiredTurretPosition = Math.atan2(Math.sin(radians), Math.cos(radians)); // wrap the angle to +/-pi
-        desiredTurretPosition = radians;
+        desiredTurretPosition = normalizeRadians(radians);
     }
 
     public double getDesiredTurretPosition() {

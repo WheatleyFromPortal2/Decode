@@ -309,7 +309,7 @@ public abstract class BozoAuto extends OpMode {
         opModeTimer.resetTimer();
 
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
-        robot = Robot.getInstance(hardwareMap); // create our robot class
+        robot = new Robot(hardwareMap);
         robot.resetLaunchServos(); // get servos ready
 
         telemetryM.debug("creating follower... (this may take a while)");

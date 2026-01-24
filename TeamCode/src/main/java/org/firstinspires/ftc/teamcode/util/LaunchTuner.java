@@ -18,7 +18,7 @@ public class LaunchTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Robot robot = Robot.getInstance(hardwareMap);
+        Robot robot = new Robot(hardwareMap);
 
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
 

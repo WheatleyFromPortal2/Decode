@@ -16,7 +16,7 @@ public class TurretTuner extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Robot robot = Robot.getInstance(hardwareMap);
+        Robot robot = new Robot(hardwareMap);
 
         // reset turretEncoder
         robot.turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);

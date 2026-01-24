@@ -44,7 +44,7 @@ public abstract class BozoTeleOp extends OpMode {
         loopTimer = new Timer();
         loopTimer.resetTimer();
 
-        robot = Robot.getInstance(hardwareMap); // get our robot instance (hopefully preserved from auto)
+        robot = new Robot(hardwareMap);
         vision = new Vision(hardwareMap, isBlueTeam());
         vision.start();
         follower = Constants.createFollower(hardwareMap);

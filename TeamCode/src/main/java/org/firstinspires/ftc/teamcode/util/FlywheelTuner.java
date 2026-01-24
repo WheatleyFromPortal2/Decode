@@ -16,6 +16,7 @@ public class FlywheelTuner extends LinearOpMode {
     @Override
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap); // create our robot class
+
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
         boolean isGradualControl = true; // if we're using the right trigger to control speed or just doing full power
 
