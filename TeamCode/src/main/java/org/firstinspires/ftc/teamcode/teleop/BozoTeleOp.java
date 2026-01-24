@@ -116,8 +116,8 @@ public abstract class BozoTeleOp extends OpMode {
 
         if (gamepad1.dpadUpWasReleased()) launchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
         if (gamepad1.dpadDownWasReleased()) launchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
-        if (gamepad1.dpadLeftWasReleased()) launchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM) / 2; // increment by half of adjustRPM (in TPS)
-        if (gamepad1.dpadRightWasReleased()) launchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM) / 2; // decrement by half of adjustRPM (in TPS)
+        if (gamepad1.dpadLeftWasReleased()) launchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM) / 2; // decrement by half of adjustRPM (in TPS)
+        if (gamepad1.dpadRightWasReleased()) launchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM) / 2; // increment by half of adjustRPM (in TPS)
 
         if (!automatedDrive) {
             double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
@@ -211,7 +211,7 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.debug("TeleOp drive?: " + follower.isTeleopDrive());
         telemetryM.debug("automated launch?: " + automatedLaunch);
         telemetryM.debug("follower busy?: " + follower.isBusy());
-        telemetryM.debug("desired launch RPM: " + robot.TPSToRPM(robot.desiredLaunchVelocity)); // make sure to convert from TPS->RPM
+        telemetryM.debug("desired launch RPM: " + robot.getDesiredLaunchRPM()); // make sure to convert from TPS->RPM
         telemetryM.debug("desired launch RPM offset: " + robot.TPSToRPM(launchVelocityOffset)); // make sure to convert from TPS->RPM
         // we're using addData for these because we want to be able to graph them
         telemetryM.addData("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
