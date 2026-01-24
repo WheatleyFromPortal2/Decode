@@ -42,7 +42,7 @@ public class Tunables { // this should hold all of our constants
 
     // servo open/close points (don't find these with the backplate on!)
     public static double lowerTransferLowerLimit = 0.6871; // recalibrated 1-16-25
-    public static double lowerTransferUpperLimit = 0.89; // recalibrated 1-16-25
+    public static double lowerTransferUpperLimit = 0.92; // recalibrated 1-23-25
     // servo position where upper transfer prevents balls from passing into launch
     public static double upperTransferClosed = 0.38; // recalibrated 1-16-25
     // servo position where upper transfer allows balls to pass into launch
