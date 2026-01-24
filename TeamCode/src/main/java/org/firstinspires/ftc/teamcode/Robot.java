@@ -35,7 +35,7 @@ public class Robot { // create our global class for our robot
     private Servo hood; // we only want to modify hood through setHoodPosition(pos), to ensure we don't set it out of bounds
     public CRServo turret1, turret2; // continuous servos
     public Rev2mDistanceSensor intakeSensor, lowerTransferSensor, upperTransferSensor; // all of our distance sensors for detecting balls
-    private PIDF turretPIDF, launchPIDF;
+    private PIDF turretSinglePIDF, turretDoublePIDF, launchPIDF;
 
     private final Timer launchStateTimer, // tracks time since we started our last launch state
             intakeTimer, // measures time since last intake measurement
@@ -63,6 +63,7 @@ public class Robot { // create our global class for our robot
     public double bestTarget;
     public double bestDist;
     public double candidate;
+    public double launchCorrection; // power to apply to launch motors
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
         // DC motors (all are DcMotorEx for current monitoring)
@@ -86,14 +87,15 @@ public class Robot { // create our global class for our robot
 
         launchLeft.setDirection(DcMotorEx.Direction.REVERSE);
         launchLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
-        launchRight.setDirection(DcMotorEx.Direction.REVERSE);
+        launchRight.setDirection(DcMotorEx.Direction.FORWARD);
         launchRight.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
         launchPIDF = new PIDF(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF); // create our PIDF controller for our launch motors
 
         turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER); // reset our encoder (this only seems to work when run after the OpMode is started)
         turretEncoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER); // we won't be using the motor at all
         // don't use F for the turret; F bases off of our target, which has no relation to the amount of power needed
-        turretPIDF = new PIDF(Tunables.turretP, Tunables.turretI, Tunables.turretD, 0); // create our PIDF controller for our turret
+        turretSinglePIDF = new PIDF(Tunables.turretSingleP, Tunables.turretSingleI, Tunables.turretSingleD, 0); // create our PIDF controller for 1servos for our turret
+        turretDoublePIDF = new PIDF(Tunables.turretDoubleP, Tunables.turretDoubleI, Tunables.turretDoubleD, 0); // create our PIDF controller for 2servos for our turret
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
@@ -141,11 +143,11 @@ public class Robot { // create our global class for our robot
     }
 
     public void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
-        double launchCorrection; // power (from 0-1) to apply to motors
         // update all PIDF coefficients in controllers
         launchPIDF.updateTerms(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
         // don't use F for the turret; F bases off of our target, which has no relation to the amount of power needed
-        turretPIDF.updateTerms(Tunables.turretP, Tunables.turretI, Tunables.turretD, 0);
+        turretSinglePIDF.updateTerms(Tunables.turretSingleP, Tunables.turretSingleI, Tunables.turretSingleD, 0);
+        turretDoublePIDF.updateTerms(Tunables.turretDoubleP, Tunables.turretDoubleI, Tunables.turretDoubleD, 0);
 
         // calc launch PIDF
         // we don't need to negate values from launchLeft, because we have already set its direction to reversed
@@ -154,7 +156,7 @@ public class Robot { // create our global class for our robot
             launchCorrection = 1; // if our RPM diff is really larger, ignore PIDF and just go full power
         } else {
             launchCorrection = launchPIDF.calc(desiredLaunchVelocity, launchTPS); // use PIDF to calculate needed correction
-            launchCorrection = Range.clip(launchCorrection, 0.0, 1.0); // clamp motor output to always be positive and from 0-1
+            launchCorrection = Range.clip(launchCorrection, -0.05, 1.0); // clamp motor output
         }
         launchLeft.setPower(launchCorrection); // apply correction
         launchRight.setPower(launchCorrection); // apply correction
@@ -178,9 +180,16 @@ public class Robot { // create our global class for our robot
 
         double turretCorrection = turretPIDF.calc(bestTarget, getTurretPosition());
          */
-        double turretCorrection = turretPIDF.calc(desiredTurretPosition, current);
-        if (turretCorrection > 0) turretCorrection += Tunables.turretBasePower;
-        else if (turretCorrection < 0) turretCorrection -= Tunables.turretBasePower;
+        double turretCorrection;
+
+        if (Math.abs(desiredTurretPosition - current) < Tunables.turretSingleMargin) {
+            // single servo control
+            turretCorrection = turretSinglePIDF.calc(desiredTurretPosition, current);
+        } else {
+            // double servo control
+            turretCorrection = turretDoublePIDF.calc(desiredTurretPosition, current);
+        }
+
 
         turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
         turret1.setPower(turretCorrection); // turret1/2 should be operating in the same direction

@@ -45,8 +45,9 @@ public class FlywheelTuner extends LinearOpMode {
             }
             telemetryM.debug("PIDF: " + Tunables.launchP + ", " + Tunables.launchI + ", " + Tunables.launchD + ", " + Tunables.launchF);
             telemetryM.debug("launchRatio: " + Tunables.launchRatio);
+            telemetryM.addData("launchCorrection", robot.launchCorrection);
             telemetryM.addData("actualRPM", robot.getLaunchRPM());
-            telemetryM.addData("desiredTPS", robot.RPMToTPS(launchRPM));
+            telemetryM.addData("desiredTPS", robot.RPMToTPS(robot.getDesiredLaunchRPM()));
             telemetryM.addData("leftLaunchTPS", robot.launchLeft.getVelocity());
             telemetryM.addData("rightLaunchTPS", robot.launchRight.getVelocity());
             telemetryM.addData("rawLaunchRPM", robot.getLaunchRPM());
