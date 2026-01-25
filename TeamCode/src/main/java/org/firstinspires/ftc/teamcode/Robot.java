@@ -296,7 +296,8 @@ public class Robot { // create our global class for our robot
                     launchStateTimer.resetTimer();
                     launchState = LaunchState.OPENING_UPPER_TRANSFER;
                     launchIntervalTimer.resetTimer(); // start measuring our time for this launch
-                    if (ballsRemaining > 1) intake.setPower(Tunables.launchingIntakePower); // hopefully allow lowerTransfer to go down
+                    //if (ballsRemaining > 1) intake.setPower(Tunables.launchingIntakePower); // hopefully allow lowerTransfer to go down
+                    intake.setPower(Tunables.launchingIntakePower);
                     break;
                 case OPENING_UPPER_TRANSFER:
                     /* because lowerTransferSensor keeps disconnecting, it helps to disable this
