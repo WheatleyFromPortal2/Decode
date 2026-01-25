@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode;
 import androidx.annotation.NonNull;
 
 // hardware imports
+import com.qualcomm.hardware.lynx.LynxModule;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
@@ -16,6 +17,8 @@ import com.qualcomm.robotcore.hardware.CRServo;
 // unit imports
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
+
 import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.normalizeRadians;
 
 // Pedro Pathing imports
@@ -29,6 +32,9 @@ public class Robot { // create our global class for our robot
     public static final int TURRET_TICKS_PER_REV = 1024; // tested 1-13-26
     public static final double TURRET_ENCODER_RATIO = 5.5; // ratio from turretEncoder->turret
     //public static final double TURRET_SERVO_RATIO = 5.5 / 3; // ratio from turret1/2->turret
+
+    public LynxModule controlHub;
+    public LynxModule expansionHub;
     public DcMotorEx intake, launchLeft, launchRight, turretEncoder; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer; // servos
     private Servo hood; // we only want to modify hood through setHoodPosition(pos), to ensure we don't set it out of bounds
@@ -66,6 +72,9 @@ public class Robot { // create our global class for our robot
     public double launchCorrection; // power to apply to launch motors
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
+        controlHub = hw.get(LynxModule.class, "Control Hub");
+        expansionHub = hw.get(LynxModule.class, "Expansion Hub 2"); // I believe this starts at 2
+
         // DC motors (all are DcMotorEx for current monitoring)
         intake = hw.get(DcMotorEx.class, "intake"); // intake motor
         launchLeft = hw.get(DcMotorEx.class, "launchLeft"); // left launch motor, connected with a 1:1 ratio
@@ -109,6 +118,14 @@ public class Robot { // create our global class for our robot
         intakeOvercurrentTimer = new Timer();
         launchIntervalTimer = new Timer();
         transferTimer = new Timer();
+    }
+
+    public double getSystemCurrent() { // return total system current (control + expansion hub) in amps
+        return controlHub.getCurrent(CurrentUnit.AMPS) + expansionHub.getCurrent(CurrentUnit.AMPS);
+    }
+
+    public double getSystemVoltage() { // return system current in volts
+        return (controlHub.getInputVoltage(VoltageUnit.VOLTS) + expansionHub.getInputVoltage(VoltageUnit.VOLTS)) / 2; // average values for more accuracy
     }
 
     public double getTurretPosition() { // return our current turret angle in radians +/- from facing forwards
