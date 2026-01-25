@@ -309,7 +309,6 @@ public abstract class BozoAuto extends OpMode {
         loopTimer.resetTimer();
         stateTimer = new Timer();
         opModeTimer = new Timer();
-        opModeTimer.resetTimer();
 
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
         robot = new Robot(hardwareMap);
@@ -358,19 +357,30 @@ public abstract class BozoAuto extends OpMode {
         // sendInitTime = true; is only for init()
         if (sendInitTime) telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
 
-        // Feedback to Driver Hub for debugging
+        // warnings!
         if (Math.abs(robot.getDesiredLaunchRPM() - robot.getLaunchRPM()) > 100) telemetryM.debug("WARNING: LAUNCH OUT OF 100RPM RANGE");
+
+        // state
         telemetryM.debug("path state: " + state);
         telemetryM.debug("maxBallTriplets: " + maxBallTriplets);
-        telemetryM.addData("is follower busy", follower.isBusy());
-        telemetryM.addData("ballsRemaining", robot.getBallsRemaining());
         telemetryM.addData("ballTripletsScored", ballTripletsScored);
+        telemetryM.debug("is follower busy?: " + follower.isBusy());
+
+        // launch system
         telemetryM.addData("desiredLaunchRPM", robot.getDesiredLaunchRPM());
         telemetryM.addData("launch RPM", robot.getLaunchRPM());
-        telemetryM.debug("x", follower.getPose().getX());
-        telemetryM.debug("y", follower.getPose().getY());
-        telemetryM.debug("heading", follower.getPose().getHeading());
+        telemetryM.addData("ballsRemaining", robot.getBallsRemaining());
+        telemetryM.debug("is launch within margin?: " + robot.isLaunchWithinMargin());
+
+        // odo
+        telemetryM.addData("x", follower.getPose().getX());
+        telemetryM.addData("y", follower.getPose().getY());
+        telemetryM.addData("heading", follower.getPose().getHeading());
+
+        // timing
+        telemetryM.debug("OpMode time (seconds): " + opModeTimer.getElapsedTimeSeconds());
         telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
+
         telemetryM.update(telemetry); // update telemetry
     }
 
