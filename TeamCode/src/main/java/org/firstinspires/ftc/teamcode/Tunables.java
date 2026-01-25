@@ -90,7 +90,6 @@ public class Tunables { // this should hold all of our constants
 
     /** TeleOp tunables (used in BozoTeleOp.java) **/
 
-    public static boolean isCalibrationMode = false; // whether out teleop should allow manual control for calibration
     public static double turnRateMultiplier = 0.75; // always have our turns 75% speed
     public static int adjustRPM = 50; // driver increments/decrements by adjustRPM
     public static double initialLaunchRPM = 2350; // 2400 is a little too much
