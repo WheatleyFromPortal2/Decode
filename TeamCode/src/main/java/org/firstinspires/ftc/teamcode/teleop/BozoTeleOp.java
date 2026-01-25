@@ -30,14 +30,15 @@ public abstract class BozoTeleOp extends OpMode {
     private Vision vision;
     private Pose goalPose; // this will be set by the specific OpMode
     private Timer loopTimer; // measures the speed of our loop
-    private boolean automatedDrive = false; // whether our drive is manually controlled or following a path
-    private boolean automatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
+    private boolean isAutomatedDrive = false; // whether our drive is manually controlled or following a path
+    private boolean isAutomatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
     private boolean isIntakePowered = true; // start with intake powered
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
-    double launchVelocity; // target launch velocity in TPS
-    double launchVelocityOffset = 0;
+    private double manualLaunchVelocity; // target launch velocity in TPS
+    private double manualLaunchVelocityOffset = 0;
+    private boolean isHoodLocked = false; // whether we want to change our
 
     @Override
     public void init() {
@@ -57,7 +58,7 @@ public abstract class BozoTeleOp extends OpMode {
         goalPose = getGoalPose();
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        launchVelocity = robot.RPMToTPS(Tunables.initialLaunchRPM); // convert from RPM->TPS, starting point
+        manualLaunchVelocity = robot.RPMToTPS(Tunables.initialManualLaunchRPM); // convert from RPM->TPS, starting point
         telemetryM.debug("init time: " + loopTimer.getElapsedTime()); // tell how long our init tool
         telemetryM.update(telemetry);
     }
@@ -86,7 +87,7 @@ public abstract class BozoTeleOp extends OpMode {
             isIntakePowered = !isIntakePowered;
         }
         if (gamepad1.bWasReleased()) { // toggle automated launch
-            automatedLaunch = !automatedLaunch;
+            isAutomatedLaunch = !isAutomatedLaunch;
         }
         if (gamepad1.yWasReleased()) {
             if (robot.isLaunching()) { // if we release y while we're launching, it will cancel
@@ -94,16 +95,22 @@ public abstract class BozoTeleOp extends OpMode {
                 follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
             } else { // if we're not already launching
                 follower.holdPoint(follower.getPose()); // hold our pose while we're launching
-                //automatedDrive = true; i don't this is necessary
+                //isAutomatedDrive = true; i don't this is necessary
                 robot.launchBalls(3); // launch 3 balls
             }
         }
 
-        if (gamepad1.leftBumperWasReleased()) { robot.setDesiredTurretPosition(0); } // lock turret
+        if (gamepad1.leftBumperWasReleased()) {
+            if (!isAutomatedLaunch) {
+                isHoodLocked = !isHoodLocked; // toggle whether our hood is locked
+            } else { // in normal operation mode
+                robot.setDesiredTurretPosition(0); // lock turret
+            }
+        }
 
         if (gamepad1.rightBumperWasReleased()) {
             follower.holdPoint(follower.getPose()); // hold our pose while we're launching
-            //automatedDrive = true; i don't this is necessary
+            //isAutomatedDrive = true; i don't this is necessary
             robot.launchBalls(1);
         }
         if (gamepad1.startWasReleased()) { // if we press the start button, swap between robot and field centric
@@ -116,12 +123,12 @@ public abstract class BozoTeleOp extends OpMode {
             follower.setPose(headingPose); // see if this works
         }
 
-        if (gamepad1.dpadUpWasReleased()) launchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
-        if (gamepad1.dpadDownWasReleased()) launchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
-        if (gamepad1.dpadLeftWasReleased()) launchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM) / 2; // decrement by half of adjustRPM (in TPS)
-        if (gamepad1.dpadRightWasReleased()) launchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM) / 2; // increment by half of adjustRPM (in TPS)
+        if (gamepad1.dpadUpWasReleased()) manualLaunchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
+        if (gamepad1.dpadDownWasReleased()) manualLaunchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
+        if (gamepad1.dpadLeftWasReleased()) manualLaunchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM) / 2; // decrement by half of adjustRPM (in TPS)
+        if (gamepad1.dpadRightWasReleased()) manualLaunchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM) / 2; // increment by half of adjustRPM (in TPS)
 
-        if (!automatedDrive) {
+        if (!isAutomatedDrive) {
             double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
             // slow mode is built in using slowModeMultiplier controlled by left trigger
             if (isRobotCentric) { // we are controlling relative to the robot
@@ -143,34 +150,31 @@ public abstract class BozoTeleOp extends OpMode {
                         false // true = robot centric; false = field centric
                 );
             }
-
-            // only run teleOpLaunchPrep() if we are not in automated drive
-            if (gamepad1.leftBumperWasReleased()) {
-                teleOpLaunchPrep();
-            }
-            //if (gamepad1.leftBumperWasReleased()) teleOpLaunchPrep(); // turn to goal if we're not in automated drive
         } else { // we're in automated drive
             if (gamepad1.leftBumperWasReleased() // if the user presses the left bumper again, cancel
                     || !follower.isBusy()) { // if the follower is done, cancel
                 follower.startTeleOpDrive();
-                automatedDrive = false;
+                isAutomatedDrive = false;
             }
         }
 
-        if (automatedLaunch) {
+        if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
             if (vision.isStale()) { // if it has been a while since our last vision reading
                 //robot.setAutomatedLaunchVelocity(follower.getPose().distanceFrom(getGoalPose())); // get goal distance using odo
                 //robot.setLaunchVelocity(robot.RPMToTPS(3000));
             } else {
-                robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance() + launchVelocityOffset); // get goal distance using vision
+                robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance()); // get goal distance using vision
+                robot.setAutomatedHoodPosition(vision.getLastGoalDistance()); // get goal distance using vision
             }
-        } else { // set our launch velocity manually based off the right trigger
-            robot.setLaunchVelocity(launchVelocity + launchVelocityOffset); // set our launch velocity to our desired launch velocity
-            /*
-            double launchTPS = ((gamepad1.right_trigger) * (2800)); // calculates max motor speed and multiplies it by the float of the right trigger
-            if (launchTPS == 0)
-                robot.launchOff(); // if right trigger isn't pressed, don't even use PIDF
-            else robot.setLaunchVelocity(launchTPS); // set our launch power manually */
+        } else { // set our launch velocity and hood angle manually
+            robot.setLaunchVelocity(manualLaunchVelocity + manualLaunchVelocityOffset); // set our launch velocity to our desired launch velocity with our offset
+
+            if (!isHoodLocked) { // only if we don't have our hood position locked
+                // set our hood position manually using right stick y by mapping it between our hood min/max
+                double hoodRange = Tunables.hoodMaximum - Tunables.hoodMinimum;
+                double manualHoodPos = Tunables.hoodMinimum + hoodRange * gamepad1.left_stick_y; // multiply increase from min by left stick y value
+                robot.setHoodPosition(manualHoodPos);
+            }
         }
 
         // intake control
@@ -201,6 +205,7 @@ public abstract class BozoTeleOp extends OpMode {
         // all telemetry with a question mark (?) indicates a boolean
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         if (robot.isFull()) telemetryM.addLine("WARNING: INTAKE FULL!!!"); // alert driver intake is over current
+        telemetryM.addData("hood position", robot.getHoodPosition());
         telemetryM.addData("lastGoalDistance", vision.getLastGoalDistance());
         telemetryM.addData("d", follower.getPose().distanceFrom(getGoalPose()));
         telemetryM.debug("vision stale?: " + vision.isStale());
@@ -209,12 +214,12 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
         telemetryM.debug("current heading: " + follower.getHeading());
         telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
-        telemetryM.debug("automated drive?: " + automatedDrive);
+        telemetryM.debug("automated drive?: " + isAutomatedDrive);
         telemetryM.debug("TeleOp drive?: " + follower.isTeleopDrive());
-        telemetryM.debug("automated launch?: " + automatedLaunch);
+        telemetryM.debug("automated launch?: " + isAutomatedLaunch);
         telemetryM.debug("follower busy?: " + follower.isBusy());
         telemetryM.debug("desired launch RPM: " + robot.getDesiredLaunchRPM()); // make sure to convert from TPS->RPM
-        telemetryM.debug("desired launch RPM offset: " + robot.TPSToRPM(launchVelocityOffset)); // make sure to convert from TPS->RPM
+        telemetryM.debug("desired launch RPM offset: " + robot.TPSToRPM(manualLaunchVelocityOffset)); // make sure to convert from TPS->RPM
         // we're using addData for these because we want to be able to graph them
         telemetryM.addData("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
         telemetryM.addData("launch current", robot.getLaunchCurrent()); // display launch current
@@ -225,20 +230,5 @@ public abstract class BozoTeleOp extends OpMode {
         telemetryM.debug("goalPose y: " + goalPose.getY());
         telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
         telemetryM.update(telemetry); // update telemetry (don't know why we need to pass in 'telemetry' object)
-    }
-
-    public void teleOpLaunchPrep() { // start spinning up and following the turn path
-        if (vision.isStale()) return; // if our vision data is stale, don't try to turn to goal
-
-        double tx = vision.getLastGoalTx();
-
-        if (tx >= 0) {
-            follower.turnDegrees(tx, false);
-        } else {
-            follower.turnDegrees(-tx, true);
-        }
-
-        automatedDrive = true; // we're driving automatically now
-        automatedLaunch = true; // make sure our launch is automated while we're turning to the goal
     }
 }
