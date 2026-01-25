@@ -203,32 +203,54 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         // all telemetry with a question mark (?) indicates a boolean
+        // use .debug() for values not to be graphed and to save space
+        // use .addData() for values to be graphed on Panels
+
+        // warnings!
         if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
         if (robot.isFull()) telemetryM.addLine("WARNING: INTAKE FULL!!!"); // alert driver intake is over current
-        telemetryM.addData("hood position", robot.getHoodPosition());
-        telemetryM.addData("lastGoalDistance", vision.getLastGoalDistance());
-        telemetryM.addData("d", follower.getPose().distanceFrom(getGoalPose()));
+
+        // launch system
+        if (isAutomatedLaunch) {
+            telemetryM.addLine("launch is in AUTOMATED control");
+        } else {
+            telemetryM.addLine("launch is in MANUAL control");
+            telemetryM.debug("desired launch RPM offset: " + robot.TPSToRPM(manualLaunchVelocityOffset)); // make sure to convert from TPS->RPM
+        }
+        telemetryM.debug("desired launch RPM: " + robot.getDesiredLaunchRPM()); // make sure to convert from TPS->RPM
+        telemetryM.addData("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
+        telemetryM.addData("hood pos", robot.getHoodPosition());
+        telemetryM.addData("turret pos", robot.getTurretPosition());
+        telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
+        telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin());
+
+        // vision & distances
+        telemetryM.addData("last vision goal dst", vision.getLastGoalDistance());
+        telemetryM.addData("odo goal dst", follower.getPose().distanceFrom(getGoalPose()));
         telemetryM.debug("vision stale?: " + vision.isStale());
         telemetryM.debug("lastTx: " + vision.getLastGoalTx());
-        telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
-        telemetryM.debug("target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
-        telemetryM.debug("current heading: " + follower.getHeading());
-        telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin()); // hopefully the bool should automatically be serialized
+
+        // state
         telemetryM.debug("automated drive?: " + isAutomatedDrive);
         telemetryM.debug("TeleOp drive?: " + follower.isTeleopDrive());
-        telemetryM.debug("automated launch?: " + isAutomatedLaunch);
         telemetryM.debug("follower busy?: " + follower.isBusy());
-        telemetryM.debug("desired launch RPM: " + robot.getDesiredLaunchRPM()); // make sure to convert from TPS->RPM
-        telemetryM.debug("desired launch RPM offset: " + robot.TPSToRPM(manualLaunchVelocityOffset)); // make sure to convert from TPS->RPM
-        // we're using addData for these because we want to be able to graph them
-        telemetryM.addData("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
-        telemetryM.addData("launch current", robot.getLaunchCurrent()); // display launch current
+
+        // current monitoring
+        telemetryM.addData("launch current", robot.getLaunchCurrent()); // display combined launch current
         telemetryM.addData("intake current", robot.getIntakeCurrent()); // display intake current
+        telemetryM.addData("system current", robot.getSystemCurrent()); // display total system current
+
+        // odo
+        telemetryM.debug("current heading: " + follower.getHeading());
+        telemetryM.debug("odo goal target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
         telemetryM.debug("x: " + follower.getPose().getX());
         telemetryM.debug("y: " + follower.getPose().getY());
-        telemetryM.debug("goalPose x: " + goalPose.getX());
-        telemetryM.debug("goalPose y: " + goalPose.getY());
+        //telemetryM.debug("goalPose x: " + goalPose.getX());
+        //telemetryM.debug("goalPose y: " + goalPose.getY());
+
+        // timing
         telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
+
         telemetryM.update(telemetry); // update telemetry (don't know why we need to pass in 'telemetry' object)
     }
 }
