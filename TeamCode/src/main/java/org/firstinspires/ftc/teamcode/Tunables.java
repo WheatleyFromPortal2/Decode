@@ -25,18 +25,17 @@ public class Tunables { // this should hold all of our constants
 
     // TODO: tune these
     // turret PIDF coefficients
-    public static double turretDoubleP = 0.45;
+    public static double turretDoubleP = 0.4; // recalibrated 1-25-26
     // 0.25 works pretty well for 2servos
     // 0.6 works well for 1servo
     public static double turretDoubleI = 0;
-    public static double turretDoubleD = 0.04;
+    public static double turretDoubleD = 0.03; // recalibrated 1-25-26
 
     public static double turretSingleMargin = Math.toRadians(10); // margin for us control using just one servo, because two has too much power
     public static double turretSingleP = 4;
     public static double turretSingleI = 0;
+    // I = 2 works well but is super slow
     public static double turretSingleD = 0.05;
-
-    public static double reverseFactor = 0.1;
 
     public static double maxTurretRotation = Math.PI; // max amount turret should turn right/left in radians
 
