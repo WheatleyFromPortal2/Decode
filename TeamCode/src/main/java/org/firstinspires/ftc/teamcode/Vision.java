@@ -21,14 +21,15 @@ public class Vision {
 
         staleTimer = new Timer();
 
-        if (isBlueTeam) limelight.pipelineSwitch(1);
-        else limelight.pipelineSwitch(2);
-
         isBlue = isBlueTeam;
     }
 
     public void start() {
         limelight.start();
+
+        if (isBlue) limelight.pipelineSwitch(1);
+        else limelight.pipelineSwitch(2);
+
         started = true;
     }
 
