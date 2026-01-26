@@ -147,10 +147,14 @@ public class Robot { // create our global class for our robot
     private void calcTurretPIDFError(double desired) {
     }
 
-    public void rotateTurret(double degrees) { // rotate our turret using degree tx from limelight
-        double radianOffset = Math.toRadians(degrees);
-        double newTurretPosition = getTurretPosition() + radianOffset;
-        setDesiredTurretPosition(newTurretPosition); // should auto convert to unit circle
+    public void applyLimelightTurretOffset(double degrees) { // rotate our turret using degree tx from limelight
+        if (Math.abs(desiredTurretPosition - getTurretPosition()) > Math.toRadians(5)) {
+            // don't update
+        } else {
+            double radianOffset = Math.toRadians(degrees) / 3;
+            double newTurretPosition = getTurretPosition() + radianOffset;
+            setDesiredTurretPosition(newTurretPosition); // should auto convert to unit circle
+        }
     }
 
     public void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
