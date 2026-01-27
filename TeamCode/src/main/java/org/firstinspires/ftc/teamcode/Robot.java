@@ -103,9 +103,6 @@ public class Robot { // create our global class for our robot
 
         turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER); // reset our encoder (this only seems to work when run after the OpMode is started)
         turretEncoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER); // we won't be using the motor at all
-        // don't use F for the turret; F bases off of our target, which has no relation to the amount of power needed
-        turretSinglePIDF = new PIDF(Tunables.turretSingleP, Tunables.turretSingleI, Tunables.turretSingleD, 0); // create our PIDF controller for 1servos for our turret
-        turretDoublePIDF = new PIDF(Tunables.turretDoubleP, Tunables.turretDoubleI, Tunables.turretDoubleD, 0); // create our PIDF controller for 2servos for our turret
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
@@ -152,9 +149,6 @@ public class Robot { // create our global class for our robot
         return desiredTurretPosition;
     }
 
-    private void calcTurretPIDFError(double desired) {
-    }
-
     public void applyLimelightTurretOffset(double degrees) { // rotate our turret using degree tx from limelight
         if (Math.abs(desiredTurretPosition - getTurretPosition()) > Tunables.visionMaxTurnApply) {
             // don't update
@@ -168,9 +162,6 @@ public class Robot { // create our global class for our robot
     public void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
         // update all PIDF coefficients in controllers
         launchPIDF.updateTerms(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
-        // don't use F for the turret; F bases off of our target, which has no relation to the amount of power needed
-        turretSinglePIDF.updateTerms(Tunables.turretSingleP, Tunables.turretSingleI, Tunables.turretSingleD, 0);
-        turretDoublePIDF.updateTerms(Tunables.turretDoubleP, Tunables.turretDoubleI, Tunables.turretDoubleD, 0);
 
         // calc launch PIDF
         // we don't need to negate values from launchLeft, because we have already set its direction to reversed
@@ -185,49 +176,47 @@ public class Robot { // create our global class for our robot
         launchRight.setPower(launchCorrection); // apply correction
 
         // calc turret PIDF
-        bestTarget = 0; // if we can't find a good one, don't compute a change
-        bestDist = Double.POSITIVE_INFINITY;
+        double currentPos = getTurretPosition();
+        double currentVel = getTurretSpeed();
 
-        double current = getTurretPosition();
-        /*
-        for (int k = -2; k <= 2; k++) {
-            candidate = desiredTurretPosition + k * 2 * Math.PI;
-            if (candidate < -Tunables.maxTurretRotation || candidate > Tunables.maxTurretRotation) continue;
-
-            double dist = Math.abs(candidate - current);
-            if (dist < bestDist) {
-                bestDist = dist;
-                bestTarget = candidate;
-            }
-        }
-
-        double turretCorrection = turretPIDF.calc(bestTarget, getTurretPosition());
-         */
-        double turretCorrection;
-        if (Math.abs(desiredTurretPosition - current) < Tunables.turretAccuracy) {
+        if (Math.abs(desiredTurretPosition - currentPos) < Tunables.turretAccuracy && currentVel < Tunables.turretAccuracy) {
             turret1.setPower(0);
             turret2.setPower(0);
-        } else if (Math.abs(desiredTurretPosition - current) < Tunables.turretSingleMargin) {
-            // single servo control
-            turretCorrection = turretSinglePIDF.calc(desiredTurretPosition, current);
-            // apply min power
-            if (turretCorrection < 0) {
-                turretCorrection -= Tunables.turretMinPower;
-            } else if (turretCorrection > 0) {
-                turretCorrection += Tunables.turretMinPower;
-            }
-            turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
-            turret1.setPower(turretCorrection); // maybe switch between which servo is used for single correction in the future?
-            turret2.setPower(0); // make sure they aren't fighting each other
         } else {
-            // double servo control
-            turretCorrection = turretDoublePIDF.calc(desiredTurretPosition, current);
+            double error = desiredTurretPosition - currentPos;
+            double desiredVel = Range.clip(
+                    error * Tunables.turretKPosToVel,
+                    -Tunables.turretMaxVel,
+                    Tunables.turretMaxVel
+            );
+            double velError = desiredVel - currentVel;
+
+             double frictionComp = 0;
+
+             /*
+            if (desiredVel < 0) {
+                frictionComp = -Tunables.turretNegKS;
+            } else {
+                frictionComp = Tunables.turretPosKS;
+            }
+              */
+
+            double turretCorrection =
+                    frictionComp // compensate for minimum power of motors
+                  + Tunables.turretKV * desiredVel // apply velocity coefficient
+                  + Tunables.turretKD * (velError); // apply dampening
+
+            if (turretCorrection > 0 && turretCorrection < Tunables.turretPosKS) {
+                turretCorrection = Tunables.turretPosKS;
+            } else if (turretCorrection < 0 && turretCorrection > -Tunables.turretNegKS) {
+                turretCorrection = -Tunables.turretNegKS;
+            }
+
             turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
-            turret1.setPower(turretCorrection); // turret1/2 should be operating in the same direction
-            turret2.setPower(turretCorrection); // turret1/2 should be operating in the same direction
+
+            turret1.setPower(turretCorrection); // maybe switch between which servo is used for single correction in the future?
+            turret2.setPower(turretCorrection); // make sure they aren't fighting each other
         }
-
-
     }
 
     public void zeroTurret() { // zero turret (set current position to forwards)
