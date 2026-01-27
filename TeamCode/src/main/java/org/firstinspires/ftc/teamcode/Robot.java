@@ -196,10 +196,18 @@ public class Robot { // create our global class for our robot
         double turretCorrection = turretPIDF.calc(bestTarget, getTurretPosition());
          */
         double turretCorrection;
-
-        if (Math.abs(desiredTurretPosition - current) < Tunables.turretSingleMargin) {
+        if (Math.abs(desiredTurretPosition - current) < Tunables.turretAccuracy) {
+            turret1.setPower(0);
+            turret2.setPower(0);
+        } else if (Math.abs(desiredTurretPosition - current) < Tunables.turretSingleMargin) {
             // single servo control
             turretCorrection = turretSinglePIDF.calc(desiredTurretPosition, current);
+            // apply min power
+            if (turretCorrection < 0) {
+                turretCorrection -= Tunables.turretMinPower;
+            } else if (turretCorrection > 0) {
+                turretCorrection += Tunables.turretMinPower;
+            }
             turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
             turret1.setPower(turretCorrection); // maybe switch between which servo is used for single correction in the future?
             turret2.setPower(0); // make sure they aren't fighting each other
