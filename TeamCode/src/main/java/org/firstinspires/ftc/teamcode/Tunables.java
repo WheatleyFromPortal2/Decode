@@ -38,6 +38,8 @@ public class Tunables { // this should hold all of our constants
     public static double turretSingleD = 0;
     public static double turretMinPower = 0.15;
     public static double turretAccuracy = Math.toRadians(1);
+    public static double visionTurnReduction = 3; // amount to divide vision turn by
+    public static double visionMaxTurnApply = 10;
 
     public static double maxTurretRotation = Math.PI; // max amount turret should turn right/left in radians
 

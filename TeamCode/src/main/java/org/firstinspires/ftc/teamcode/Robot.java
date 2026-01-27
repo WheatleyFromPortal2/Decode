@@ -148,10 +148,10 @@ public class Robot { // create our global class for our robot
     }
 
     public void applyLimelightTurretOffset(double degrees) { // rotate our turret using degree tx from limelight
-        if (Math.abs(desiredTurretPosition - getTurretPosition()) > Math.toRadians(5)) {
+        if (Math.abs(desiredTurretPosition - getTurretPosition()) > Tunables.visionMaxTurnApply) {
             // don't update
         } else {
-            double radianOffset = Math.toRadians(degrees) / 3;
+            double radianOffset = Math.toRadians(degrees) / Tunables.visionTurnReduction;
             double newTurretPosition = getTurretPosition() + radianOffset;
             setDesiredTurretPosition(newTurretPosition); // should auto convert to unit circle
         }
