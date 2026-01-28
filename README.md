@@ -207,9 +207,12 @@ the **start** button toggles between robot/field centric control
 
 ## launch states
 
-1. `OPENING_UPPER_TRANSFER`
-2. `PUSHING_LOWER_TRANSFER`
-3. `WAITING_FOR_EXIT`
+1. `START`
+2. `OPENING_UPPER_TRANSFER`
+3. `RAISE_LOWER_TRANSFER`
+4. `WAITING_FOR_SENSOR_HIT`
+5. `WAITING_FOR_EXIT`
+6. `WAITING_FOR_TRANSFER`
 
 ### balls remaining
 
