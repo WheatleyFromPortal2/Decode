@@ -37,18 +37,14 @@ public class Tunables { // this should hold all of our constants
     // I = 2 works well but is super slow
     public static double turretSingleD = 0.05;
 
-    public static double maxTurretRotation = Math.PI; // max amount turret should turn right/left in radians
-
     // servo open/close points (don't find these with the backplate on!)
     public static double lowerTransferLowerLimit = 0.6871; // recalibrated 1-16-25
-    public static double lowerTransferUpperLimit = 0.92; // recalibrated 1-23-25
+    public static double lowerTransferUpperLimit = 0.87; // recalibrated 1-27-26
     // servo position where upper transfer prevents balls from passing into launch
-    public static double upperTransferClosed = 0.38; // recalibrated 1-16-25
+    public static double upperTransferClosed = 0.00; // recalibrated 1-27-26
     // servo position where upper transfer allows balls to pass into launch
-    public static double upperTransferOpen = 0.3463; // recalibrated 1-16-25
+    public static double upperTransferOpen = 0.28; // recalibrated 1-16-25
 
-    // we don't need a hood maximum, because it will just skip the gear, causing no damage
-    // at the start of our OpMode, we should homeHood() and then "1" will become our maximum
     public static double hoodMinimum = 0.32; // calibrated 1-22-26
     public static double hoodMaximum = 0.54; // calibrated 1-22-26
     public static int hoodHomingTime = 1500; // millis to wait for hood to reach maximum position
