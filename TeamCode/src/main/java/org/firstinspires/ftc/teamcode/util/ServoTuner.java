@@ -44,10 +44,14 @@ public class ServoTuner extends LinearOpMode {
             }
 
             telemetryM.debug("testing transfer servos?: "  + testingTransferServos);
+            telemetryM.addLine("toggle testingTransferServos with X");
             telemetryM.addData("lowerTransfer:", robot.lowerTransfer.getPosition());
             telemetryM.addData("upperTransfer:", robot.upperTransfer.getPosition());
             telemetryM.addData("hood has been set to minimum:", Tunables.hoodMinimum);
             telemetryM.addLine("you may adjust the hoodMinimum with Panels");
+            telemetryM.addLine("set hood to minimum by pressing Y");
+            telemetryM.addLine("control lowerTransfer with left stick Y");
+            telemetryM.addLine("control upperTransfer with right stick Y");
 
             telemetryM.update(telemetry);
             idle();
