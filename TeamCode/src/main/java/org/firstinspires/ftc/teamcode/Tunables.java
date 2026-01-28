@@ -32,10 +32,10 @@ public class Tunables { // this should hold all of our constants
     public static double turretDoubleD = 0.03; // recalibrated 1-25-26
 
     public static double turretSingleMargin = Math.toRadians(10); // margin for us control using just one servo, because two has too much power
-    public static double turretSingleP = 4;
+    public static double turretSingleP = 2.5; // recalibrated 1-27-26
     public static double turretSingleI = 0;
     // I = 2 works well but is super slow
-    public static double turretSingleD = 0.05;
+    public static double turretSingleD = 0.1; // recalibrated 1-27-26
 
     // servo open/close points (don't find these with the backplate on!)
     public static double lowerTransferLowerLimit = 0.666; // recalibrated 1-27-26
