@@ -12,7 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
-@TeleOp(name="SensorTest", group="Util")
+@TeleOp(name="SensorTuner", group="Util")
 public class SensorTuner extends LinearOpMode {
     @Override
     public void runOpMode() {

@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
-@TeleOp(name="ServoTest", group="Util")
+@TeleOp(name="ServoTuner", group="Util")
 public class ServoTuner extends LinearOpMode {
 
     @Override

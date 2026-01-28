@@ -44,8 +44,6 @@ public class Robot { // create our global class for our robot
     private PIDF turretSinglePIDF, turretDoublePIDF, launchPIDF;
 
     private final Timer launchStateTimer, // tracks time since we started our last launch state
-            intakeTimer, // measures time since last intake measurement
-            intakeOvercurrentTimer, // measures time intake has been overcurrent
             launchIntervalTimer; // this timer measures the time between individual launches
 
     private enum LaunchState { // these are the possible states our launch state machine can be in
@@ -116,8 +114,6 @@ public class Robot { // create our global class for our robot
 
         // timers
         launchStateTimer = new Timer(); // set up timer for the launch state machine
-        intakeTimer = new Timer(); // set up timer to measure balls in intake
-        intakeOvercurrentTimer = new Timer();
         launchIntervalTimer = new Timer();
     }
 
@@ -306,6 +302,7 @@ public class Robot { // create our global class for our robot
         ballsRemaining = balls;
         isLaunching = true; // we are launching now
         launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
+        launchIntervalTimer.resetTimer();
         launchState = LaunchState.START; // reset our state machine to the start
     }
 
@@ -324,7 +321,6 @@ public class Robot { // create our global class for our robot
                 case START:
                     launchStateTimer.resetTimer();
                     launchState = LaunchState.OPENING_UPPER_TRANSFER;
-                    launchIntervalTimer.resetTimer(); // start measuring our time for this launch
                     //if (ballsRemaining > 1) intake.setPower(Tunables.launchingIntakePower); // hopefully allow lowerTransfer to go down
                     if (upperTransfer.getPosition() != Tunables.upperTransferOpen) {
                         upperTransfer.setPosition(Tunables.upperTransferOpen);
@@ -355,9 +351,11 @@ public class Robot { // create our global class for our robot
                 case WAITING_FOR_EXIT:
                     if (launchStateTimer.getElapsedTime() >= Tunables.extraPushDelay) {
                         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit);
-                        lastLaunchInterval = launchIntervalTimer.getElapsedTime();
                         ballsRemaining -= 1; // we've launched a ball
-                        if (ballsRemaining == 0) { launchState = LaunchState.START; } // we're done with launching
+                        if (ballsRemaining == 0) { // we're done with launching
+                            launchState = LaunchState.START;
+                            lastLaunchInterval = launchIntervalTimer.getElapsedTimeSeconds();
+                        }
                         else {
                             intake.setPower(1); // allow lower transfer to go back down
                             launchState = LaunchState.WAITING_FOR_TRANSFER;

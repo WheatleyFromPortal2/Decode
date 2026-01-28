@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
-@TeleOp(name="LaunchDelay", group="Util")
+@TeleOp(name="LaunchTuner", group="Util")
 public class LaunchTuner extends LinearOpMode {
     private boolean intakeOn = true;
 
@@ -24,12 +24,15 @@ public class LaunchTuner extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
+            robot.updateLaunch();
             robot.calcPIDF();
             robot.setLaunchVelocity(robot.RPMToTPS(2400)); // RPM doesn't really matter
 
             if (gamepad1.aWasReleased()) intakeOn = !intakeOn; // toggle intake
-            if (intakeOn) robot.intake.setPower(1);
-            else robot.intake.setPower(0);
+            if (!robot.isLaunching()) {
+                if (intakeOn) robot.intake.setPower(1);
+                else robot.intake.setPower(0);
+            }
 
             if (gamepad1.rightBumperWasReleased()) robot.launchBalls(1); // launch 1 ball
             if (gamepad1.yWasReleased()) robot.launchBalls(3); // launch 3 balls
@@ -55,8 +58,8 @@ public class LaunchTuner extends LinearOpMode {
             telemetryM.addData("desired launch RPM", robot.getDesiredLaunchRPM());
             telemetryM.addData("launch RPM", robot.getLaunchRPM());
 
-            telemetryM.addData("launching?: ", robot.updateLaunch()); // update what's happening in our launch and send it to driver
-            telemetryM.update();
+            telemetryM.addData("launching?: ", robot.isLaunching()); // update what's happening in our launch and send it to driver
+            telemetryM.update(telemetry);
             idle();
         }
     }
