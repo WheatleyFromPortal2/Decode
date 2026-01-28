@@ -54,7 +54,9 @@ public class Tunables { // this should hold all of our constants
 
     // delays
     public static int openDelay = 50; // time to wait for upperTransfer to open (in millis)
-    public static int transferDelay = 200; // time to wait for ball to enter lower transfer
+    public static int transferDelay = 85; // time to wait for ball to enter lower transfer
+    public static int lastTransferDelay = 150; // time to wait for last ball to enter lower transfer
+    public static int extraPushDelay = 20; // extra time to wait for exit after ball triggers upperTransferSensor
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this

@@ -52,12 +52,13 @@ public class Robot { // create our global class for our robot
         START,
         OPENING_UPPER_TRANSFER,
         RAISE_LOWER_TRANSFER,
+        WAITING_FOR_SENSOR_HIT,
         WAITING_FOR_EXIT,
         WAITING_FOR_TRANSFER
     }
 
     /** only these variables should change during runtime **/
-    LaunchState launchState = LaunchState.START; // set our launch state to start
+    public static LaunchState launchState = LaunchState.START; // set our launch state to start
     public double desiredLaunchVelocity; // this stores our desired launch velocity, used to check if we're in range
     public double desiredTurretPosition; // this stores our desired turret position, in radians +/- facing directly forwards where + is clockwise
     private boolean isLaunching = false; // since we are now using ballsRemaining to see how many balls we have, we need this to track when we actually want to launch
@@ -330,11 +331,17 @@ public class Robot { // create our global class for our robot
                     lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
                     intake.setPower(0);
                     launchStateTimer.resetTimer();
-                    launchState = LaunchState.WAITING_FOR_EXIT;
+                    launchState = LaunchState.WAITING_FOR_SENSOR_HIT;
                     break;
-                case WAITING_FOR_EXIT:
+                case WAITING_FOR_SENSOR_HIT:
                     if (isBallInUpperTransfer() // wait until we detect a ball in upper transfer (ball has been launched)
                             || launchStateTimer.getElapsedTime() >= Tunables.maxPushDelay) { // or if that hasn't happened in a while, just go to the next launch
+                        launchStateTimer.resetTimer();
+                        launchState = LaunchState.WAITING_FOR_EXIT;
+                    }
+                    break;
+                case WAITING_FOR_EXIT:
+                    if (launchStateTimer.getElapsedTime() >= Tunables.extraPushDelay) {
                         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit);
                         lastLaunchInterval = launchIntervalTimer.getElapsedTime();
                         ballsRemaining -= 1; // we've launched a ball
@@ -347,10 +354,17 @@ public class Robot { // create our global class for our robot
                     }
                     break;
                 case WAITING_FOR_TRANSFER:
-                    if (launchStateTimer.getElapsedTime() >= Tunables.transferDelay) {
-                        launchStateTimer.resetTimer();
-                        launchState = LaunchState.START;
+                    if (ballsRemaining == 1) {
+                        if (launchStateTimer.getElapsedTime() < Tunables.lastTransferDelay) {
+                            break;
+                        }
+                    } else {
+                        if (launchStateTimer.getElapsedTime() < Tunables.transferDelay) {
+                            break;
+                        }
                     }
+                    launchStateTimer.resetTimer();
+                    launchState = LaunchState.START;
                     break;
             }
         }
