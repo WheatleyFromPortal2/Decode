@@ -17,6 +17,8 @@ public class AutoConfig {
     releasePose,
     endPose;
 
+    double scoreTurretPos;
+
     public AutoConfig(
           Pose goalPose,
           Pose scorePose,
@@ -28,7 +30,8 @@ public class AutoConfig {
           Pose pickup3StartPose,
           Pose pickup3EndPose,
           Pose releasePose,
-          Pose endPose
+          Pose endPose,
+          double scoreTurretPos
                         ) {
         this.goalPose = goalPose;
         this.scorePose = scorePose;
@@ -41,5 +44,6 @@ public class AutoConfig {
         this.pickup3EndPose = pickup3EndPose;
         this.releasePose = releasePose;
         this.endPose = endPose;
+        this.scoreTurretPos = scoreTurretPos;
     }
 }

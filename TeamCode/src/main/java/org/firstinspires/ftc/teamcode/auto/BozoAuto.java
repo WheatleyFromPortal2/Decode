@@ -293,6 +293,7 @@ public abstract class BozoAuto extends OpMode {
         loopTimer.resetTimer();
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
+        robot.calcPIDF();
 
         updateHandoff();
 
@@ -313,6 +314,8 @@ public abstract class BozoAuto extends OpMode {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
         robot = new Robot(hardwareMap);
         robot.resetLaunchServos(); // get servos ready
+        robot.setDesiredTurretPosition(config.scoreTurretPos); // we will just always keep our turret in score position
+        robot.setHoodPosition(Tunables.scoreHoodPos); // we will just always keep our hood in the same position
 
         telemetryM.debug("creating follower... (this may take a while)");
         telemetryM.update(telemetry);
