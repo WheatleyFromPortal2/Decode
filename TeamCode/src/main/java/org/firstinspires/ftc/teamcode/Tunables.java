@@ -24,14 +24,19 @@ public class Tunables { // this should hold all of our constants
     public static double launchMaxPowerThreshold = 1000; // if RPM diff is greater than this, bypass PIDF and go full power
 
     // TODO: tune these
-    // turret controller coefficients
-    public static double turretMaxVel = 3;
-    public static double turretKPosToVel = 1;
-    public static double turretNegKS = 0.074;
-    public static double turretPosKS = 0.045;
-    public static double turretKV = 0.03;
-    public static double turretKD = 0.02;
+    // turret PIDF coefficients
+    public static double turretDoubleP = 0.4; // recalibrated 1-25-26
+    // 0.25 works pretty well for 2servos
+    // 0.6 works well for 1servo
+    public static double turretDoubleI = 0;
+    public static double turretDoubleD = 0.03; // recalibrated 1-25-26
 
+    public static double turretSingleMargin = Math.toRadians(10); // margin for us control using just one servo, because two has too much power
+    public static double turretSingleP = 0.5;
+    public static double turretSingleI = 0;
+    // I = 2 works well but is super slow
+    public static double turretSingleD = 0;
+    public static double turretMinPower = 0.15;
     public static double turretAccuracy = Math.toRadians(1);
     public static double visionTurnReduction = 3; // amount to divide vision turn by
     public static double visionMaxTurnApply = 10;
