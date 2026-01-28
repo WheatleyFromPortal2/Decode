@@ -70,7 +70,6 @@ public class Robot { // create our global class for our robot
     public double bestDist;
     public double candidate;
     public double launchCorrection; // power to apply to launch motors
-    private double lastTurretPos = 0;
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
         controlHub = hw.get(LynxModule.class, "Control Hub");
@@ -129,18 +128,11 @@ public class Robot { // create our global class for our robot
         return (controlHub.getInputVoltage(VoltageUnit.VOLTS) + expansionHub.getInputVoltage(VoltageUnit.VOLTS)) / 2; // average values for more accuracy
     }
 
-    private double turretTicksToRadians(double ticks) {
-        double encoderRevs = ticks / TURRET_TICKS_PER_REV;
+    public double getTurretPosition() { // return our current turret angle in radians +/- from facing forwards
+        int ticks = turretEncoder.getCurrentPosition();
+        double encoderRevs = (double) ticks / TURRET_TICKS_PER_REV;
         double turretRevs = encoderRevs / TURRET_ENCODER_RATIO;
         return turretRevs * 2 * Math.PI; // convert to radians
-    }
-
-    public double getTurretPosition() { // return our current turret angle in radians +/- from facing forwards
-        return turretTicksToRadians(turretEncoder.getCurrentPosition());
-    }
-
-    public double getTurretSpeed() { // get turret speed in radians/s
-        return turretTicksToRadians(turretEncoder.getVelocity());
     }
 
     public void setDesiredTurretPosition(double radians) { // set desired turret angle

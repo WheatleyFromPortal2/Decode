@@ -45,7 +45,6 @@ public class TurretTuner extends LinearOpMode {
             telemetryM.addData("desired turret position", robot.getDesiredTurretPosition());
             telemetryM.addData("turret position", robot.getTurretPosition());
             telemetryM.addData("turret position (degrees)", Math.toDegrees(robot.getTurretPosition()));
-            telemetryM.addData("turret speed", robot.getTurretSpeed());
             telemetryM.addData("turret1 power", robot.turret1.getPower());
             telemetryM.addData("turret2 power", robot.turret2.getPower());
             telemetryM.addData("bestTarget", robot.bestTarget);
