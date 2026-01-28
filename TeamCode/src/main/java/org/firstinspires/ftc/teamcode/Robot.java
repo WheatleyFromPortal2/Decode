@@ -53,7 +53,6 @@ public class Robot { // create our global class for our robot
         OPENING_UPPER_TRANSFER,
         RAISE_LOWER_TRANSFER,
         WAITING_FOR_EXIT,
-        WAITING_FOR_LOWER_TRANSFER,
         WAITING_FOR_TRANSFER
     }
 
@@ -341,16 +340,10 @@ public class Robot { // create our global class for our robot
                         ballsRemaining -= 1; // we've launched a ball
                         if (ballsRemaining == 0) { launchState = LaunchState.START; } // we're done with launching
                         else {
-                            launchState = LaunchState.WAITING_FOR_LOWER_TRANSFER;
+                            intake.setPower(1); // allow lower transfer to go back down
+                            launchState = LaunchState.WAITING_FOR_TRANSFER;
                         }
                         launchStateTimer.resetTimer(); // reset our timer
-                    }
-                    break;
-                case WAITING_FOR_LOWER_TRANSFER:
-                    if (launchStateTimer.getElapsedTime() >= Tunables.lowerTransferLowerDelay) {
-                        intake.setPower(1);
-                        launchStateTimer.resetTimer();
-                        launchState = LaunchState.WAITING_FOR_TRANSFER;
                     }
                     break;
                 case WAITING_FOR_TRANSFER:
