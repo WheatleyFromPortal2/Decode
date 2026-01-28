@@ -129,11 +129,14 @@ public class Robot { // create our global class for our robot
         return (controlHub.getInputVoltage(VoltageUnit.VOLTS) + expansionHub.getInputVoltage(VoltageUnit.VOLTS)) / 2; // average values for more accuracy
     }
 
-    public double getTurretPosition() { // return our current turret angle in radians +/- from facing forwards
-        int ticks = turretEncoder.getCurrentPosition();
-        double encoderRevs = (double) ticks / TURRET_TICKS_PER_REV;
+    private double turretTicksToRadians(double ticks) {
+        double encoderRevs = ticks / TURRET_TICKS_PER_REV;
         double turretRevs = encoderRevs / TURRET_ENCODER_RATIO;
         return turretRevs * 2 * Math.PI; // convert to radians
+    }
+
+    public double getTurretPosition() { // return our current turret angle in radians +/- from facing forwards
+        return turretTicksToRadians(turretEncoder.getCurrentPosition());
     }
 
     public void setDesiredTurretPosition(double radians) { // set desired turret angle
@@ -141,17 +144,21 @@ public class Robot { // create our global class for our robot
         desiredTurretPosition = normalizeRadians(radians);
     }
 
+    public double getTurretVelocity() { // get turret speed in radians/s
+        return turretTicksToRadians(turretEncoder.getVelocity());
+    }
+
     public double getDesiredTurretPosition() {
         return desiredTurretPosition;
     }
 
-    private void calcTurretPIDFError(double desired) {
-    }
-
-    public void rotateTurret(double degrees) { // rotate our turret using degree tx from limelight
-        double radianOffset = Math.toRadians(degrees);
-        double newTurretPosition = getTurretPosition() + radianOffset;
-        setDesiredTurretPosition(newTurretPosition); // should auto convert to unit circle
+    public void applyTxToTurret(double degrees, boolean isVisionStale) { // rotate our turret using degree tx from limelight
+        if (!isVisionStale && Math.abs(getTurretVelocity()) <= Tunables.turretMaxVelocityForVision) {
+            double radianOffset = Math.toRadians(degrees);
+            radianOffset /= Tunables.turretTxReduction;
+            double newTurretPosition = getTurretPosition() + radianOffset;
+            setDesiredTurretPosition(newTurretPosition); // should auto convert to unit circle
+        }
     }
 
     public void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
@@ -197,12 +204,18 @@ public class Robot { // create our global class for our robot
         if (Math.abs(desiredTurretPosition - current) < Tunables.turretSingleMargin) {
             // single servo control
             turretCorrection = turretSinglePIDF.calc(desiredTurretPosition, current);
+            if (desiredTurretPosition - current < 0) {
+                turretCorrection -= Tunables.turretSingleNegMinPower;
+            } else {
+                turretCorrection += Tunables.turretSinglePosMinPower;
+            }
             turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
             turret1.setPower(turretCorrection); // maybe switch between which servo is used for single correction in the future?
             turret2.setPower(0); // make sure they aren't fighting each other
         } else {
             // double servo control
             turretCorrection = turretDoublePIDF.calc(desiredTurretPosition, current);
+            turretCorrection += Tunables.turretDoubleMinPower * Math.signum(desiredTurretPosition - current);
             turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
             turret1.setPower(turretCorrection); // turret1/2 should be operating in the same direction
             turret2.setPower(turretCorrection); // turret1/2 should be operating in the same direction
@@ -383,10 +396,9 @@ public class Robot { // create our global class for our robot
 
     public double getHoodPosition() { return hood.getPosition(); }
 
-    public double setAutomatedHoodPosition(double d) {
+    public void setAutomatedHoodPosition(double d) {
         // TODO: fill this in with data from Desmos
         double neededHoodPosition = 0.5;
         hood.setPosition(neededHoodPosition);
-        return neededHoodPosition;
     }
 }

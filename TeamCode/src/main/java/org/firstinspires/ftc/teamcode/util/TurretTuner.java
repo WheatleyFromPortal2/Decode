@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
+import org.firstinspires.ftc.teamcode.Vision;
 
 @TeleOp(name="TurretTuner", group="Util")
 public class TurretTuner extends LinearOpMode {
@@ -17,32 +18,33 @@ public class TurretTuner extends LinearOpMode {
     @Override
     public void runOpMode() {
         Robot robot = new Robot(hardwareMap);
+        Vision vision = new Vision(hardwareMap, true);
 
         // reset turretEncoder
         robot.turretEncoder.setMode(DcMotorEx.RunMode.STOP_AND_RESET_ENCODER);
         robot.turretEncoder.setMode(DcMotorEx.RunMode.RUN_USING_ENCODER);
 
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
+        vision.start();
 
         waitForStart();
         while (opModeIsActive()) {
             robot.calcPIDF();
+            vision.update();
+            robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale());
 
             if (gamepad1.dpadLeftWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(-90));
             if (gamepad1.dpadUpWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(0));
             if (gamepad1.dpadRightWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(90));
             if (gamepad1.dpadDownWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(180));
 
+            telemetryM.addData("lastGoalTx", vision.getLastGoalTx());
             telemetryM.addData("turret error (deg)", Math.toDegrees(robot.getDesiredTurretPosition() - robot.getTurretPosition()));
-            telemetryM.addData("turret ticks", robot.turretEncoder.getCurrentPosition());
             telemetryM.addData("desired turret position", robot.getDesiredTurretPosition());
             telemetryM.addData("turret position", robot.getTurretPosition());
-            telemetryM.addData("turret position (degrees)", Math.toDegrees(robot.getTurretPosition()));
+            telemetryM.addData("turret velocity", robot.getTurretVelocity());
             telemetryM.addData("turret1 power", robot.turret1.getPower());
             telemetryM.addData("turret2 power", robot.turret2.getPower());
-            telemetryM.addData("bestTarget", robot.bestTarget);
-            telemetryM.addData("bestDist", robot.bestDist);
-            telemetryM.addData("candidate", robot.candidate);
 
             telemetryM.update(telemetry);
             idle();

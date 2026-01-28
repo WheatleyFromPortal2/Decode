@@ -25,17 +25,21 @@ public class Tunables { // this should hold all of our constants
 
     // TODO: tune these
     // turret PIDF coefficients
-    public static double turretDoubleP = 0.4; // recalibrated 1-25-26
-    // 0.25 works pretty well for 2servos
-    // 0.6 works well for 1servo
-    public static double turretDoubleI = 0;
-    public static double turretDoubleD = 0.03; // recalibrated 1-25-26
+    public static double turretDoubleMinPower = 0.07;
+    public static double turretDoubleP = 0.1; // recalibrated 1-28-26
+    // don't use I, if there is a steady error because of the dead zone for a while, it will crazily overshoot the next time
+    public static double turretDoubleI = 0.0; // recalibrated 1-28-26 - don't use I ^
+    public static double turretDoubleD = 0.02; // recalibrated 1-28-26
 
     public static double turretSingleMargin = Math.toRadians(10); // margin for us control using just one servo, because two has too much power
-    public static double turretSingleP = 2.5; // recalibrated 1-27-26
-    public static double turretSingleI = 0;
+    public static double turretSinglePosMinPower = 0.04;
+    public static double turretSingleNegMinPower = 0.07; // recalibrated 1-28-26
+    public static double turretSingleP = 0.3; // recalibrated 1-28-26
+    public static double turretSingleI = 0.3; // recalibrated 1-28-26
     // I = 2 works well but is super slow
-    public static double turretSingleD = 0.1; // recalibrated 1-27-26
+    public static double turretSingleD = 0.04; // recalibrated 1-28-26
+    public static double turretTxReduction = 1; // amount to divide turret tx by before applying to new desired turret position
+    public static double turretMaxVelocityForVision = Math.toRadians(10); // max amount of error to apply vision offset
 
     // servo open/close points (don't find these with the backplate on!)
     public static double lowerTransferLowerLimit = 0.666; // recalibrated 1-27-26
