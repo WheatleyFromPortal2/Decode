@@ -38,7 +38,7 @@ public class Tunables { // this should hold all of our constants
     public static double turretSingleD = 0.05;
 
     // servo open/close points (don't find these with the backplate on!)
-    public static double lowerTransferLowerLimit = 0.6871; // recalibrated 1-16-25
+    public static double lowerTransferLowerLimit = 0.666; // recalibrated 1-27-26
     public static double lowerTransferUpperLimit = 0.87; // recalibrated 1-27-26
     // servo position where upper transfer prevents balls from passing into launch
     public static double upperTransferClosed = 0.00; // recalibrated 1-27-26
@@ -47,7 +47,6 @@ public class Tunables { // this should hold all of our constants
 
     public static double hoodMinimum = 0.32; // calibrated 1-22-26
     public static double hoodMaximum = 0.54; // calibrated 1-22-26
-    public static int hoodHomingTime = 1500; // millis to wait for hood to reach maximum position
 
     // distance sensor limits (better to undershoot rather than to overshoot)
     public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
@@ -55,8 +54,8 @@ public class Tunables { // this should hold all of our constants
 
     // delays
     public static int openDelay = 150; // time to wait for upperTransfer to open (in millis)
-    public static int lastOpenDelay = 350;
-    public static int maxTransferDelay = 200; // maximum time to wait for ball to enter lower transfer
+    public static int transferDelay = 200; // time to wait for ball to enter lower transfer
+    public static int lowerTransferLowerDelay = 300; // time to wait for lower transfer to lower
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this

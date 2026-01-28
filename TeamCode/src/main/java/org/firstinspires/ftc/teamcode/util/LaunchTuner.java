@@ -40,8 +40,8 @@ public class LaunchTuner extends LinearOpMode {
             if (gamepad1.dpadRightWasReleased()) Tunables.maxPushDelay += manualChangeAmount; // increment pushDelay
             if (gamepad1.dpadLeftWasReleased()) Tunables.maxPushDelay -= manualChangeAmount; // decrement pushDelay
 
-            if (gamepad1.xWasReleased()) Tunables.maxTransferDelay += manualChangeAmount; // increment interLaunchWait
-            if (gamepad1.bWasReleased()) Tunables.maxTransferDelay -= manualChangeAmount; // decrement interLaunchWait
+            if (gamepad1.xWasReleased()) Tunables.transferDelay += manualChangeAmount; // increment interLaunchWait
+            if (gamepad1.bWasReleased()) Tunables.transferDelay -= manualChangeAmount; // decrement interLaunchWait
 
 
             telemetryM.addLine("use d-pad up/down to modify openDelay (upper transfer opening)");
@@ -49,7 +49,7 @@ public class LaunchTuner extends LinearOpMode {
             telemetryM.addLine("use X/B to modify interLaunchWait (time between ball launches for macro)");
 
             telemetryM.addData("openDelay (millis)", Tunables.openDelay);
-            telemetryM.addData("maxTransferDelay (millis)", Tunables.maxTransferDelay);
+            telemetryM.addData("transferDelay (millis)", Tunables.transferDelay);
             telemetryM.addData("maxPushDelay (millis)", Tunables.maxPushDelay);
             telemetryM.addData("last launch interval", robot.getLastLaunchInterval());
             telemetryM.addData("desired launch RPM", robot.getDesiredLaunchRPM());
