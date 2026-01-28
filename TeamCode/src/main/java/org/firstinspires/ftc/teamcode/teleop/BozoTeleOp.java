@@ -38,7 +38,7 @@ public abstract class BozoTeleOp extends OpMode {
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
     private double manualLaunchVelocity; // target launch velocity in TPS
     private double manualLaunchVelocityOffset = 0;
-    private boolean isHoodLocked = false; // whether we want to change our
+    private boolean isHoodLocked = true; // whether we want to change our hood with our right stick y
 
     @Override
     public void init() {
@@ -54,6 +54,7 @@ public abstract class BozoTeleOp extends OpMode {
         follower.setPose(HandoffState.pose);
         robot.setBallsRemaining(HandoffState.ballsRemaining);
         robot.zeroTurret(); // assume turret has been brought to zero position at the end of auto
+        robot.setLaunchVelocity(robot.RPMToTPS(Tunables.initialManualLaunchRPM)); // warm up launch
 
         goalPose = getGoalPose();
         follower.update();
@@ -172,7 +173,8 @@ public abstract class BozoTeleOp extends OpMode {
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
                 double hoodRange = Tunables.hoodMaximum - Tunables.hoodMinimum;
-                double manualHoodPos = Tunables.hoodMinimum + hoodRange * gamepad1.left_stick_y; // multiply increase from min by left stick y value
+                double stickValue = (-gamepad1.right_stick_y + 1) / 2; // reverse stick and map from (-1)<->(1) to (0)<->(1)
+                double manualHoodPos = hoodRange * stickValue; // multiply increase from min by right stick y value
                 robot.setHoodPosition(manualHoodPos);
             }
         }
@@ -220,6 +222,7 @@ public abstract class BozoTeleOp extends OpMode {
         } else {
             telemetryM.addLine("launch is in MANUAL control");
             telemetryM.debug("desired launch RPM offset: " + robot.TPSToRPM(manualLaunchVelocityOffset)); // make sure to convert from TPS->RPM
+            telemetryM.debug("hood locked?: " + isHoodLocked);
         }
         telemetryM.debug("desired launch RPM: " + robot.getDesiredLaunchRPM()); // make sure to convert from TPS->RPM
         telemetryM.addData("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min

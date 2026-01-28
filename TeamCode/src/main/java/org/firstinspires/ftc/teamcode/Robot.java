@@ -303,9 +303,8 @@ public class Robot { // create our global class for our robot
     }
 
     public boolean updateLaunch() { // outputs true/false whether we are done with launching
-        if (ballsRemaining == 0) {
-            isLaunching = false;
-            resetLaunchServos();
+        if (ballsRemaining == 0 || getLaunchRPM() < 1000) { // if we are done with balls or our launch isn't running fast enought
+            cancelLaunch();
             return true; // we're done with launching balls
         } else if (isLaunching) { // balls remaining > 0 && we are launching
             switch (launchState) {
@@ -314,7 +313,6 @@ public class Robot { // create our global class for our robot
                     launchState = LaunchState.OPENING_UPPER_TRANSFER;
                     launchIntervalTimer.resetTimer(); // start measuring our time for this launch
                     //if (ballsRemaining > 1) intake.setPower(Tunables.launchingIntakePower); // hopefully allow lowerTransfer to go down
-                    intake.setPower(Tunables.launchingIntakePower);
                     if (upperTransfer.getPosition() != Tunables.upperTransferOpen) {
                         upperTransfer.setPosition(Tunables.upperTransferOpen);
                         launchState = LaunchState.OPENING_UPPER_TRANSFER;
@@ -329,7 +327,8 @@ public class Robot { // create our global class for our robot
                     break;
                 case RAISE_LOWER_TRANSFER:
                     lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
-                    intake.setPower(0);
+                    if (ballsRemaining > 1) { intake.setPower(Tunables.launchingIntakePower); }
+                    else { intake.setPower(1); }
                     launchStateTimer.resetTimer();
                     launchState = LaunchState.WAITING_FOR_SENSOR_HIT;
                     break;
@@ -376,12 +375,10 @@ public class Robot { // create our global class for our robot
     public double getLastLaunchInterval() { return lastLaunchInterval; }
     public boolean isLaunching() { return isLaunching; }
 
-    public void setHoodPosition(double pos) {
-        if (pos < 0) return; // don't allow negative positions
-        // set hood position relative to our minimum, so it is easy to recalibrate
-        double newHoodPosition = Tunables.hoodMinimum + pos;
-        // ensure pos is within acceptable hw range
-        hood.setPosition(Math.min(newHoodPosition, Tunables.hoodMaximum)); // don't allow our hood to be set higher than our max position
+    public void setHoodPosition(double pos) { // set our hood position relative to minimum
+        // we want to set relative to minimum in case we have to recalibrate our hood servo
+        double desiredPos = Tunables.hoodMinimum + pos;
+        hood.setPosition(Range.clip(desiredPos, Tunables.hoodMinimum, Tunables.hoodMaximum)); // force hood to stay inside of limits
     }
 
     public double getHoodPosition() { return hood.getPosition(); }
