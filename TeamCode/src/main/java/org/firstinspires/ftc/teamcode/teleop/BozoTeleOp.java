@@ -161,8 +161,13 @@ public abstract class BozoTeleOp extends OpMode {
 
         if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
             if (vision.isStale()) { // if it has been a while since our last vision reading
-                //robot.setAutomatedLaunchVelocity(follower.getPose().distanceFrom(getGoalPose())); // get goal distance using odo
-                //robot.setLaunchVelocity(robot.RPMToTPS(3000));
+                double neededHoodPos = robot.getGoalHeading(follower.getPose(), getGoalPose());
+
+                robot.setDesiredTurretPosition(neededHoodPos - robot.getHoodPosition());
+
+                double goalDst = robot.getDst(follower.getPose(), getGoalPose()); // get goal distance using odo
+                robot.setAutomatedLaunchVelocity(goalDst);
+                robot.setAutomatedHoodPosition(goalDst);
             } else {
                 robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance()); // get goal distance using vision
                 robot.setAutomatedHoodPosition(vision.getLastGoalDistance()); // get goal distance using vision

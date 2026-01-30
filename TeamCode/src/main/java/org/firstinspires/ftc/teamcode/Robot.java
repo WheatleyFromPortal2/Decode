@@ -225,7 +225,7 @@ public class Robot { // create our global class for our robot
         turretEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public double getDstFromGoal(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
+    public double getDst(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
         return currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
     }
 

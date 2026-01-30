@@ -353,6 +353,7 @@ public abstract class BozoAuto extends OpMode {
     @Override
     public void stop() {
         updateHandoff(); // update our hand off when we stop
+        // doesn't really work because stopping OpMode disables servo power
         robot.resetLaunchServos(); // return servos to starting position
     }
 
