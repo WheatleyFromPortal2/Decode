@@ -314,8 +314,6 @@ public abstract class BozoAuto extends OpMode {
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
         robot = new Robot(hardwareMap);
         robot.resetLaunchServos(); // get servos ready
-        robot.setDesiredTurretPosition(config.scoreTurretPos); // we will just always keep our turret in score position
-        robot.setHoodPosition(Tunables.scoreHoodPos); // we will just always keep our hood in the same position
 
         telemetryM.debug("creating follower... (this may take a while)");
         telemetryM.update(telemetry);
@@ -327,6 +325,8 @@ public abstract class BozoAuto extends OpMode {
         telemetryM.update(telemetry);
 
         buildPaths(); // this will create our paths from our predefined variables
+        robot.setDesiredTurretPosition(config.scoreTurretPos); // we will just always keep our turret in score position
+        robot.setHoodPosition(Tunables.scoreHoodPos); // we will just always keep our hood in the same position
 
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
 
