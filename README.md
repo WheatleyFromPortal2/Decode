@@ -124,11 +124,12 @@ the **start** button toggles between robot/field centric control
 ### right stick:
 
 - **X**: rotate clockwise/counterclockwise
-- **Y**: *unused*
+- **Y**: adjust hood in **manual** mode
+  - don't forget to unlock hood with **left bumper**
 
 ## bumpers
 
-- **left bumper**: lock turret
+- **left bumper**: lock/unlock hood/turret
 - **right bumper**: launch 1ball
 
 ## triggers
@@ -143,7 +144,8 @@ the **start** button toggles between robot/field centric control
 - **B**: toggle manual/automatic launch
   - **auto**: uses vision/odo to find out needed launch speed to reach goal
   - **manual**: sets launch speed to constant defined in Tunables.java (calibrated for shooting from crease)
-    - the setpoint can be changed with the d-pad buttons
+    - the RPM setpoint can be changed with the d-pad buttons
+    - the hood position can be adjusted by unlocking hood (**left bumper**) and moving **right stick Y**
 - **Y**: launch 3 balls
 - **X**: reverse intake
 
