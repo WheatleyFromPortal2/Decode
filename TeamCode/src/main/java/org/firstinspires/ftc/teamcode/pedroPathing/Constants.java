@@ -1,5 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
+import com.pedropathing.control.FilteredPIDFCoefficients;
 import com.pedropathing.control.PIDFCoefficients;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.follower.FollowerConstants;
@@ -14,8 +15,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
+    public static PIDFCoefficients translationalPIDF = new PIDFCoefficients(0.3, 0, 0.01, 0.05);
+    public static FilteredPIDFCoefficients drivePIDF = new FilteredPIDFCoefficients(0.09, 0, 0.0001, 0.1, 0.6);
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(10.8); // mass in kilograms
+            .mass(12);
+            //.translationalPIDFCoefficients(translationalPIDF)
+            //.drivePIDFCoefficients(drivePIDF);
+
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
             .leftFrontMotorName("frontLeft")
@@ -38,16 +44,12 @@ public class Constants {
             .strafeEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED); // flipped for turret bot
 
     public static PathConstraints pathConstraints = new PathConstraints(0.99, 100, 1, 1);
-    public static PIDFCoefficients translationalPIDF = new PIDFCoefficients(0.5, 0, 0.03, 0.05);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
-        Follower follower = new FollowerBuilder(followerConstants, hardwareMap)
+        return new FollowerBuilder(followerConstants, hardwareMap)
                 .pinpointLocalizer(localizerConstants)
                 .pathConstraints(pathConstraints)
                 .mecanumDrivetrain(driveConstants)
                 .build();
-        follower.setTranslationalPIDFCoefficients(translationalPIDF);
-
-        return follower;
     }
 }
