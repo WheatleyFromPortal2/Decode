@@ -393,7 +393,7 @@ public class Robot { // create our global class for our robot
         hood.setPosition(Range.clip(desiredPos, Tunables.hoodMinimum, Tunables.hoodMaximum)); // force hood to stay inside of limits
     }
 
-    public double getHoodPosition() { return hood.getPosition(); }
+    public double getHoodPosition() { return hood.getPosition() - Tunables.hoodMinimum; }
 
     public void setAutomatedHoodPosition(double d) {
         // TODO: fill this in with data from Desmos

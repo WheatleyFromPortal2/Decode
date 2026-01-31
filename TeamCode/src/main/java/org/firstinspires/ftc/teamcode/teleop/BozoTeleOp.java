@@ -169,13 +169,13 @@ public abstract class BozoTeleOp extends OpMode {
                 robot.setAutomatedLaunchVelocity(goalDst);
                 robot.setAutomatedHoodPosition(goalDst);
             } else {
-                robot.setDesiredTurretPosition(0); // lock turret
                 robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance()); // get goal distance using vision
                 robot.setAutomatedHoodPosition(vision.getLastGoalDistance()); // get goal distance using vision
                 robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale()); // should auto know if vision is stale but whatever
             }
         } else { // set our launch velocity and hood angle manually
             robot.setLaunchVelocity(manualLaunchVelocity + manualLaunchVelocityOffset); // set our launch velocity to our desired launch velocity with our offset
+            robot.setDesiredTurretPosition(0); // lock turret
 
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
