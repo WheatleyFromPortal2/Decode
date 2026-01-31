@@ -126,7 +126,7 @@ public class Robot { // create our global class for our robot
     }
 
     private double turretTicksToRadians(double ticks) {
-        double encoderRevs = ticks / TURRET_TICKS_PER_REV;
+        double encoderRevs = -ticks / TURRET_TICKS_PER_REV; // negate ticks because positive is ccw for radians 🤦
         double turretRevs = encoderRevs / TURRET_ENCODER_RATIO;
         return turretRevs * 2 * Math.PI; // convert to radians
     }
@@ -206,15 +206,15 @@ public class Robot { // create our global class for our robot
                 turretCorrection += Tunables.turretSinglePosMinPower;
             }
             turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
-            turret1.setPower(turretCorrection); // maybe switch between which servo is used for single correction in the future?
+            turret1.setPower(-turretCorrection); // maybe switch between which servo is used for single correction in the future?
             turret2.setPower(0); // make sure they aren't fighting each other
         } else {
             // double servo control
             turretCorrection = turretDoublePIDF.calc(desiredTurretPosition, current);
             turretCorrection += Tunables.turretDoubleMinPower * Math.signum(desiredTurretPosition - current);
             turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
-            turret1.setPower(turretCorrection); // turret1/2 should be operating in the same direction
-            turret2.setPower(turretCorrection); // turret1/2 should be operating in the same direction
+            turret1.setPower(-turretCorrection); // turret1/2 should be operating in the same direction
+            turret2.setPower(-turretCorrection); // turret1/2 should be operating in the same direction
         }
 
 
@@ -225,15 +225,14 @@ public class Robot { // create our global class for our robot
         turretEncoder.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
     }
 
-    public double getDst(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
-        return currentPosition.distanceFrom(goalPose); // use poses to find our distance easily :)
+    public double getGoalDst(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
+        return currentPosition.distanceFrom(goalPose) + Tunables.goalOffset; // use poses to find our distance easily :)
     }
 
-    public double getGoalHeading(@NonNull Pose currentPosition, @NonNull Pose goalPose) { // return bot heading to point towards goal in radians
+    public double getTurretGoalHeading(@NonNull Pose currentPosition, @NonNull Pose goalPose) { // return turret heading to point towards goal in radians
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
-        double desiredHeading = Math.atan2(yDst, xDst); // need atan2 to account for negatives
-        return normalizeRadians(desiredHeading);
+        return Math.atan2(yDst, xDst);
     }
 
     public void setAutomatedLaunchVelocity(double d) { // given positions, use our functions to set our launch speed
