@@ -232,7 +232,9 @@ public class Robot { // create our global class for our robot
     public double getTurretGoalHeading(@NonNull Pose currentPosition, @NonNull Pose goalPose) { // return turret heading to point towards goal in radians
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
-        return Math.atan2(yDst, xDst);
+        double desiredAbsoluteHeading = Math.atan2(yDst, xDst);
+        return desiredAbsoluteHeading - currentPosition.getHeading();
+        //return desiredAbsoluteHeading - currentPosition.getHeading();
     }
 
     public void setAutomatedLaunchVelocity(double d) { // given positions, use our functions to set our launch speed

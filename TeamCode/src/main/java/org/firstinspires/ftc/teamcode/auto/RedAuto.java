@@ -20,7 +20,7 @@ public abstract class RedAuto extends BozoAuto { // these positions override the
                 new Pose(124, 47, Math.toRadians(0)), // pickup3EndPose
                 new Pose(120, 73, Math.toRadians(30)), // releasePose
                 new Pose(104, 65, Math.toRadians(270)), // endPose
-                0.928514559173916 // scoreTurretPos
+                -0.928514559173916 // scoreTurretPos
         );
     }
 }

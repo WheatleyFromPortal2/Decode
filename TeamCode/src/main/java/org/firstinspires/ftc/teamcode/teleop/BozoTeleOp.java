@@ -105,7 +105,7 @@ public abstract class BozoTeleOp extends OpMode {
             if (!isAutomatedLaunch) {
                 isHoodLocked = !isHoodLocked; // toggle whether our hood is locked
             } else { // in normal operation mode
-                robot.setDesiredTurretPosition(0); // lock turret
+                //robot.setDesiredTurretPosition(0); // lock turret
             }
         }
 
@@ -161,14 +161,15 @@ public abstract class BozoTeleOp extends OpMode {
 
         if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
             if (vision.isStale()) { // if it has been a while since our last vision reading
-                double neededHoodPos = robot.getGoalHeading(follower.getPose(), getGoalPose());
+                double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
 
-                robot.setDesiredTurretPosition(neededHoodPos - robot.getHoodPosition());
+                robot.setDesiredTurretPosition(robot.getTurretGoalHeading(follower.getPose(), getGoalPose()));
 
-                double goalDst = robot.getDst(follower.getPose(), getGoalPose()); // get goal distance using odo
+                double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
                 robot.setAutomatedLaunchVelocity(goalDst);
                 robot.setAutomatedHoodPosition(goalDst);
             } else {
+                robot.setDesiredTurretPosition(0); // lock turret
                 robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance()); // get goal distance using vision
                 robot.setAutomatedHoodPosition(vision.getLastGoalDistance()); // get goal distance using vision
                 robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale()); // should auto know if vision is stale but whatever
@@ -255,7 +256,7 @@ public abstract class BozoTeleOp extends OpMode {
 
         // odo
         telemetryM.debug("current heading: " + follower.getHeading());
-        telemetryM.debug("odo goal target heading: " + robot.getGoalHeading(follower.getPose(), getGoalPose()));
+        telemetryM.debug("odo goal target heading (deg): " + Math.toDegrees(robot.getTurretGoalHeading(follower.getPose(), getGoalPose())));
         telemetryM.debug("x: " + follower.getPose().getX());
         telemetryM.debug("y: " + follower.getPose().getY());
         //telemetryM.debug("goalPose x: " + goalPose.getX());
