@@ -18,7 +18,7 @@ public class Constants {
     public static PIDFCoefficients translationalPIDF = new PIDFCoefficients(0.3, 0, 0.01, 0.05);
     public static FilteredPIDFCoefficients drivePIDF = new FilteredPIDFCoefficients(0.09, 0, 0.0001, 0.1, 0.6);
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(12);
+            .mass(13.29);
             //.translationalPIDFCoefficients(translationalPIDF)
             //.drivePIDFCoefficients(drivePIDF);
 
