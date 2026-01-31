@@ -13,6 +13,6 @@ public class BlueTeleOp extends BozoTeleOp {
     @Override
     public Pose getGoalPose() {
         // because the buildConfig() function is protected, we cannot call it here - possibly replace separate variables
-        return new Pose (12, 138); // taken from BlueAuto.java
+        return new Pose (0, 144); // taken from BlueAuto.java
     }
 }
