@@ -40,20 +40,24 @@ public class LaunchTuner extends LinearOpMode {
             if (gamepad1.dpadUpWasReleased()) Tunables.openDelay += manualChangeAmount; // increment openDelay
             if (gamepad1.dpadDownWasReleased()) Tunables.openDelay -= manualChangeAmount; // decrement openDelay
 
-            if (gamepad1.dpadRightWasReleased()) Tunables.maxPushDelay += manualChangeAmount; // increment pushDelay
-            if (gamepad1.dpadLeftWasReleased()) Tunables.maxPushDelay -= manualChangeAmount; // decrement pushDelay
+            if (gamepad1.dpadRightWasReleased()) Tunables.extraPushDelay += manualChangeAmount; // increment pushDelay
+            if (gamepad1.dpadLeftWasReleased()) Tunables.extraPushDelay -= manualChangeAmount; // decrement pushDelay
 
             if (gamepad1.xWasReleased()) Tunables.transferDelay += manualChangeAmount; // increment interLaunchWait
             if (gamepad1.bWasReleased()) Tunables.transferDelay -= manualChangeAmount; // decrement interLaunchWait
 
+            if (gamepad1.backWasReleased()) Tunables.lastTransferDelay -= manualChangeAmount;
+            if (gamepad1.startWasReleased()) Tunables.lastTransferDelay += manualChangeAmount;
 
             telemetryM.addLine("use d-pad up/down to modify openDelay (upper transfer opening)");
-            telemetryM.addLine("use d-pad left/right to modify pushDelay (lower transfer pushing");
-            telemetryM.addLine("use X/B to modify interLaunchWait (time between ball launches for macro)");
+            telemetryM.addLine("use d-pad left/right to modify extraPushDelay (lower transfer pushing");
+            telemetryM.addLine("use X/B to modify transferDelay (time waiting for transfer)");
+            telemetryM.addLine("use back/start to modify lastTransferDelay");
 
             telemetryM.addData("openDelay (millis)", Tunables.openDelay);
-            telemetryM.addData("transferDelay (millis)", Tunables.transferDelay);
-            telemetryM.addData("maxPushDelay (millis)", Tunables.maxPushDelay);
+            telemetryM.addData("transferDelay (millis)", Tunables.extraPushDelay);
+            telemetryM.addData("maxPushDelay (millis)", Tunables.transferDelay);
+            telemetryM.addData("lastTransferDelay (millis)", Tunables.lastTransferDelay);
             telemetryM.addData("last launch interval", robot.getLastLaunchInterval());
             telemetryM.addData("desired launch RPM", robot.getDesiredLaunchRPM());
             telemetryM.addData("launch RPM", robot.getLaunchRPM());

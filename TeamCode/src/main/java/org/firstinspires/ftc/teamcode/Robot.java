@@ -12,7 +12,6 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.hardware.CRServo;
 
 // unit imports
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
@@ -32,15 +31,16 @@ public class Robot { // create our global class for our robot
     public static final int TURRET_TICKS_PER_REV = 1024; // tested 1-13-26
     public static final double TURRET_ENCODER_RATIO = 5.5; // ratio from turretEncoder->turret
     //public static final double TURRET_SERVO_RATIO = 5.5 / 3; // ratio from turret1/2->turret
+    public static final double TURRET_SERVO_MAX_RANGE = 1.3962634015954636; // max range that the turret can go left or right from center
 
     public LynxModule controlHub;
     public LynxModule expansionHub;
     public DcMotorEx intake, launchLeft, launchRight, turretEncoder; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer; // servos
     private Servo hood; // we only want to modify hood through setHoodPosition(pos), to ensure we don't set it out of bounds
-    public CRServo turret1, turret2; // continuous servos
-    public Rev2mDistanceSensor intakeSensor, lowerTransferSensor; // all of our distance sensors for detecting balls
-    public DigitalChannel upperTransferSensor;
+    public Servo turret1, turret2; // continuous servos
+    public Rev2mDistanceSensor intakeSensor; // all of our distance sensors for detecting balls
+    public DigitalChannel upperTransferSensor, lowerTransferSensor;
     private PIDF turretSinglePIDF, turretDoublePIDF, launchPIDF;
 
     private final Timer launchStateTimer, // tracks time since we started our last launch state
@@ -86,9 +86,9 @@ public class Robot { // create our global class for our robot
         upperTransfer = hw.get(Servo.class, "upperTransfer");
         hood = hw.get(Servo.class, "hood");
 
-        // continuous servos
-        turret1 = hw.get(CRServo.class, "turret1");
-        turret2 = hw.get(CRServo.class, "turret2");
+        // turret servos
+        turret1 = hw.get(Servo.class, "turret1");
+        turret2 = hw.get(Servo.class, "turret2");
 
         intake.setDirection(DcMotorEx.Direction.FORWARD);
         intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
@@ -108,8 +108,9 @@ public class Robot { // create our global class for our robot
 
         // distance sensors
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
-        lowerTransferSensor = hw.get(Rev2mDistanceSensor.class, "lowerTransferSensor");
+        lowerTransferSensor = hw.get(DigitalChannel.class, "lowerTransferSensor");
         upperTransferSensor = hw.get(DigitalChannel.class, "upperTransferSensor");
+        lowerTransferSensor.setMode(DigitalChannel.Mode.INPUT);
         upperTransferSensor.setMode(DigitalChannel.Mode.INPUT);
 
         // timers
@@ -133,6 +134,7 @@ public class Robot { // create our global class for our robot
 
     public double getTurretPosition() { // return our current turret angle in radians +/- from facing forwards
         return turretTicksToRadians(turretEncoder.getCurrentPosition());
+        //return -(turret1.getPosition() - 0.5) * 2 * TURRET_SERVO_MAX_RANGE;
     }
 
     public void setDesiredTurretPosition(double radians) { // set desired turret angle
@@ -152,7 +154,8 @@ public class Robot { // create our global class for our robot
         if (!isVisionStale && Math.abs(getTurretVelocity()) <= Tunables.turretMaxVelocityForVision) {
             double radianOffset = Math.toRadians(degrees);
             radianOffset /= Tunables.turretTxReduction;
-            double newTurretPosition = getTurretPosition() + radianOffset;
+            //double newTurretPosition = getTurretPosition() - radianOffset;
+            double newTurretPosition = desiredTurretPosition - radianOffset;
             setDesiredTurretPosition(newTurretPosition); // should auto convert to unit circle
         }
     }
@@ -161,8 +164,8 @@ public class Robot { // create our global class for our robot
         // update all PIDF coefficients in controllers
         launchPIDF.updateTerms(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
         // don't use F for the turret; F bases off of our target, which has no relation to the amount of power needed
-        turretSinglePIDF.updateTerms(Tunables.turretSingleP, Tunables.turretSingleI, Tunables.turretSingleD, 0);
-        turretDoublePIDF.updateTerms(Tunables.turretDoubleP, Tunables.turretDoubleI, Tunables.turretDoubleD, 0);
+        //turretSinglePIDF.updateTerms(Tunables.turretSingleP, Tunables.turretSingleI, Tunables.turretSingleD, 0);
+        //turretDoublePIDF.updateTerms(Tunables.turretDoubleP, Tunables.turretDoubleI, Tunables.turretDoubleD, 0);
 
         // calc launch PIDF
         // we don't need to negate values from launchLeft, because we have already set its direction to reversed
@@ -177,47 +180,11 @@ public class Robot { // create our global class for our robot
         launchRight.setPower(launchCorrection); // apply correction
 
         // calc turret PIDF
-        bestTarget = 0; // if we can't find a good one, don't compute a change
-        bestDist = Double.POSITIVE_INFINITY;
+        double turretServoPos = ((-desiredTurretPosition - Tunables.turretOffset) / (TURRET_SERVO_MAX_RANGE * 2)) + 0.5;
 
-        double current = getTurretPosition();
-        /*
-        for (int k = -2; k <= 2; k++) {
-            candidate = desiredTurretPosition + k * 2 * Math.PI;
-            if (candidate < -Tunables.maxTurretRotation || candidate > Tunables.maxTurretRotation) continue;
-
-            double dist = Math.abs(candidate - current);
-            if (dist < bestDist) {
-                bestDist = dist;
-                bestTarget = candidate;
-            }
-        }
-
-        double turretCorrection = turretPIDF.calc(bestTarget, getTurretPosition());
-         */
-        double turretCorrection;
-
-        if (Math.abs(desiredTurretPosition - current) < Tunables.turretSingleMargin) {
-            // single servo control
-            turretCorrection = turretSinglePIDF.calc(desiredTurretPosition, current);
-            if (desiredTurretPosition - current < 0) {
-                turretCorrection -= Tunables.turretSingleNegMinPower;
-            } else {
-                turretCorrection += Tunables.turretSinglePosMinPower;
-            }
-            turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
-            turret1.setPower(-turretCorrection); // maybe switch between which servo is used for single correction in the future?
-            turret2.setPower(0); // make sure they aren't fighting each other
-        } else {
-            // double servo control
-            turretCorrection = turretDoublePIDF.calc(desiredTurretPosition, current);
-            turretCorrection += Tunables.turretDoubleMinPower * Math.signum(desiredTurretPosition - current);
-            turretCorrection = Range.clip(turretCorrection, -1.0, 1.0); // clip PIDF correction
-            turret1.setPower(-turretCorrection); // turret1/2 should be operating in the same direction
-            turret2.setPower(-turretCorrection); // turret1/2 should be operating in the same direction
-        }
-
-
+        turretServoPos = Range.clip(turretServoPos, 0.0, 1.0);
+        turret1.setPosition(turretServoPos);
+        turret2.setPosition(turretServoPos);
     }
 
     public void zeroTurret() { // zero turret (set current position to forwards)
@@ -237,13 +204,35 @@ public class Robot { // create our global class for our robot
         //return desiredAbsoluteHeading - currentPosition.getHeading();
     }
 
-    public void setAutomatedLaunchVelocity(double d) { // given positions, use our functions to set our launch speed
+    public void setAutomatedLaunch(double d) { // given positions, use our functions to set our launch speed and hood position
         if (!isLaunching()) { // don't update if we're launching
-            double RPM = 705.41704 * Math.pow(d, 0.33109); // from Desmos data: 1-7-26
-            // R^2 = 0.9829 using power regression (with log mode)
-            RPM += Tunables.magicNumber;
+            double RPM = 0;
+            double hoodPos = 0;
+            if (d < Tunables.farZoneDataStart) { // use close zone data
+                RPM = 978.45054 *  Math.pow(d, 0.229791);
+                // from Desmos data: 1-30-26
+                // R^2 = 0.9594 using power regression
+
+                hoodPos = 0.00000298476 * Math.pow(d, 3) - 0.000600124 * Math.pow(d, 2) + 0.0402257 * d - 0.730382;
+                // from Desmos data: 1-30-26
+                // R^2 = 0.5918 using cubic regression
+            } else { // use far zone data
+                RPM = 568.30191 * Math.pow(d, 0.355137);
+                // from Desmos data: 1-30-26
+                // R^2 = 0.9802 using power regression (log mode = false)
+
+                hoodPos = -0.0000207811 * Math.pow(d, 2) + 0.00490454 * d - 0.0681405;
+                // from Desmos data: 1-30-26
+                // R^2 = 0.9678 using quadratic regression
+            }
+
+            RPM += Tunables.autoRPMOffset;
             setLaunchVelocity(RPMToTPS(RPM)); // this also updates our neededLaunchVelocity
+            setHoodPosition(hoodPos);
         }
+    }
+
+    public void setAutomatedHoodPosition(double d) {
     }
 
     public double TPSToRPM(double TPS) { return (TPS / MOTOR_TICKS_PER_REV) * 60 * Tunables.launchRatio; }
@@ -290,8 +279,8 @@ public class Robot { // create our global class for our robot
         else return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeSensorOpen;
     }
     public boolean isBallInLowerTransfer() { // return true if there is a ball reducing our measured distance
-        if (lowerTransferSensor.getDistance(DistanceUnit.MM) == 0) return true; // if our lower transfer sensor isn't working
-        else return lowerTransferSensor.getDistance(DistanceUnit.MM) < Tunables.lowerTransferSensorOpen; // a hole in the ball could be allowing a sensor to report a false negative, so we need to check both
+        return !lowerTransferSensor.getState(); // invert
+        // if this sensor disconnects, it reports true (which is inverted to false), so the launch state machine will just fallback to the fixed delay
     }
     public boolean isBallInUpperTransfer() { // return true if there is a ball reducing our measured distance
         return !upperTransferSensor.getState(); // invert
@@ -300,7 +289,8 @@ public class Robot { // create our global class for our robot
 
     /** ball launching methods **/
     public void launchBalls(int balls) { // sets to launch this many balls
-        ballsRemaining = balls;
+        ballsRemaining += balls;
+        if (ballsRemaining > 3) ballsRemaining = 3;
         isLaunching = true; // we are launching now
         launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
         launchIntervalTimer.resetTimer();
@@ -370,7 +360,7 @@ public class Robot { // create our global class for our robot
                             break;
                         }
                     } else {
-                        if (launchStateTimer.getElapsedTime() < Tunables.transferDelay) {
+                        if (launchStateTimer.getElapsedTime() < Tunables.transferDelay && !isBallInLowerTransfer()) {
                             break;
                         }
                     }
@@ -394,10 +384,4 @@ public class Robot { // create our global class for our robot
     }
 
     public double getHoodPosition() { return hood.getPosition() - Tunables.hoodMinimum; }
-
-    public void setAutomatedHoodPosition(double d) {
-        // TODO: fill this in with data from Desmos
-        double neededHoodPosition = 0.5;
-        hood.setPosition(neededHoodPosition);
-    }
 }

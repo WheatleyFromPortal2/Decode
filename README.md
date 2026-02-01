@@ -35,6 +35,7 @@ driver station config name: `v0 turret`
 ## control hub
 
 ### I²C ports/buses
+
 | port/bus  | device type            | location                    | verbatim name         |
 |:----------|:-----------------------|-----------------------------|:----------------------|
 | `0`       | *unused*               | *unused*                    | *unused*              |
@@ -43,10 +44,13 @@ driver station config name: `v0 turret`
 | `3`       | *unused*               | *unused*                    | *unused*              |
 
 ### digital ports
-| port  | device type    | location       | verbatim name         |
-|:------|:---------------|----------------|:----------------------|
-| `0`   | *unused*       | *unused*       | *unused*              |
-| `1`   | Digital Device | side of turret | `upperTransferSensor` |
+
+| port  | device type    | location               | verbatim name         |
+|:------|:---------------|------------------------|:----------------------|
+| `0`   | *unused*       | *unused*               | *unused*              |
+| `1`   | Digital Device | side of turret         | `upperTransferSensor` |
+| `2`   | *unused*       | *unused*               | *unused*              |
+| `3`   | Digital Device | side of lower transfer | `lowerTransferSensor` |
 
 the cable for upper transfer plugs into the `0/1` digital port, but the sensor must be configured as using `port 1`
 
@@ -74,11 +78,11 @@ make sure to connect every motor with the correct polarity; the reversing should
 
 | servo port   | servo type                | verbatim name   |
 |:-------------|---------------------------|:----------------|
-| `0`          | Servo                     | `lowerTransfer` |
-| `1`          | Servo                     | `upperTransfer` |
-| `2`          | Continuous Rotation Servo | `turret1`       |
-| `3`          | Continuous Rotation Servo | `turret2`       |
-| `4`          | Servo                     | `hood`          |
+| `0`          | Full Range Servo          | `hood`          |
+| `1`          | *unused*                  | *unused*        |
+| `2`          | *unused*                  | *unused*        |
+| `3`          | *unused*                  | *unused*        |
+| `4`          | *unused*                  | *unused*        |
 | `5`          | *unused*                  | *unused*        |
 
 the connection order of turret1/2 doesn't matter, since they both face the same direction
@@ -109,6 +113,23 @@ the connection order of turret1/2 doesn't matter, since they both face the same 
 `turretEncoder` shouldn't have a motor connected, because we are just using the encoder port
 connecting `launchLeft`/`launchRight` correctly is very important
 - you only need an encoder on one of them to function, but having both increases accuracy+reliability
+
+## servo hub
+
+### connection method (ports matter)
+![servo hub connection](doc/media/servoHubConnection.png)
+
+### servos
+
+| servo port   | servo type | verbatim name   |
+|:-------------|------------|:----------------|
+| `0`          | Servo      | `lowerTransfer` |
+| `1`          | Servo      | `upperTransfer` |
+| `2`          | Servo      | `turret1`       |
+| `3`          | Servo      | `turret2`       |
+| `4`          | *unused*   | *unused*        |
+| `5`          | *unused*   | *unused*        |
+
 
 # controller map
 

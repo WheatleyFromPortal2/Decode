@@ -33,18 +33,18 @@ public class TurretTuner extends LinearOpMode {
             vision.update();
             robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale());
 
-            if (gamepad1.dpadLeftWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(-90));
+            if (gamepad1.dpadLeftWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(-45));
             if (gamepad1.dpadUpWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(0));
-            if (gamepad1.dpadRightWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(90));
-            if (gamepad1.dpadDownWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(180));
+            if (gamepad1.dpadRightWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(45));
+            //if (gamepad1.dpadDownWasReleased()) robot.setDesiredTurretPosition(Math.toRadians(180));
 
             telemetryM.addData("lastGoalTx", vision.getLastGoalTx());
             telemetryM.addData("turret error (deg)", Math.toDegrees(robot.getDesiredTurretPosition() - robot.getTurretPosition()));
             telemetryM.addData("desired turret position", robot.getDesiredTurretPosition());
             telemetryM.addData("turret position", robot.getTurretPosition());
             telemetryM.addData("turret velocity", robot.getTurretVelocity());
-            telemetryM.addData("turret1 power", robot.turret1.getPower());
-            telemetryM.addData("turret2 power", robot.turret2.getPower());
+            telemetryM.addData("turret1 pos", robot.turret1.getPosition());
+            telemetryM.addData("turret2 pos", robot.turret2.getPosition());
 
             telemetryM.update(telemetry);
             idle();

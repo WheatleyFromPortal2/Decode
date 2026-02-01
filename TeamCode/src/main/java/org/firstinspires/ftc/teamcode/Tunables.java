@@ -12,14 +12,15 @@ public class Tunables { // this should hold all of our constants
     public static double launchRatio = 1; // both of our launch motors are 1:1
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
     public static double intakeOvercurrent = 6; // amount of amps that we think means a stalled intake
-    public static double magicNumber = -50; // add this many RPMs to auto rpm
+    public static double autoRPMOffset = 0; // add this many RPMs to auto rpm
+    public static double turretOffset = 0;
 
     // TODO: tune these
     // launch PIDF coefficients
     // updated 1-23-26
     public static double launchP = 0.012;
     public static double launchI = 0;
-    public static double launchD = 0;
+    public static double launchD = 0.0001;
     public static double launchF = 0.0005;
     public static double launchMaxPowerThreshold = 1000; // if RPM diff is greater than this, bypass PIDF and go full power
 
@@ -38,7 +39,7 @@ public class Tunables { // this should hold all of our constants
     public static double turretSingleI = 0.3; // recalibrated 1-28-26
     // I = 2 works well but is super slow
     public static double turretSingleD = 0.04; // recalibrated 1-28-26
-    public static double turretTxReduction = 1; // amount to divide turret tx by before applying to new desired turret position
+    public static double turretTxReduction = 6; // amount to divide turret tx by before applying to new desired turret position
     public static double turretMaxVelocityForVision = Math.toRadians(10); // max amount of error to apply vision offset
 
     // servo open/close points (don't find these with the backplate on!)
@@ -96,6 +97,8 @@ public class Tunables { // this should hold all of our constants
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
     public static boolean holdEnd = true; // whether to hold end while shooting
     public static double launchTurnMargin = Math.toRadians(5); // margin we want to get our turn to for launch
+    public static double maxTurretLockMillis = 500;
+    public static double farZoneDataStart = 95; // if d > this, use far zone data
 
     /** Auto tunables (used in BozoAuto.java) **/
 
@@ -113,6 +116,6 @@ public class Tunables { // this should hold all of our constants
     public static double turnI = 0;
     public static double turnD = 0;
 
-    public static long maxVisionStaleness = 20; // amount of millis without a reading where vision becomes stale
+    public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
     public static double goalOffset = -30; // TODO:
 }

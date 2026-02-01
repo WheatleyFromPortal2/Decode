@@ -163,19 +163,16 @@ public abstract class BozoTeleOp extends OpMode {
             if (vision.isStale()) { // if it has been a while since our last vision reading
                 double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
 
-                robot.setDesiredTurretPosition(robot.getTurretGoalHeading(follower.getPose(), getGoalPose()));
-
                 double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
-                robot.setAutomatedLaunchVelocity(goalDst);
+                robot.setAutomatedLaunch(goalDst);
                 robot.setAutomatedHoodPosition(goalDst);
             } else {
-                robot.setAutomatedLaunchVelocity(vision.getLastGoalDistance()); // get goal distance using vision
+                robot.setAutomatedLaunch(vision.getLastGoalDistance()); // get goal distance using vision
                 robot.setAutomatedHoodPosition(vision.getLastGoalDistance()); // get goal distance using vision
-                robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale()); // should auto know if vision is stale but whatever
             }
         } else { // set our launch velocity and hood angle manually
             robot.setLaunchVelocity(manualLaunchVelocity + manualLaunchVelocityOffset); // set our launch velocity to our desired launch velocity with our offset
-            robot.setDesiredTurretPosition(0); // lock turret
+            //robot.setDesiredTurretPosition(0); // lock turret
 
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
@@ -184,6 +181,14 @@ public abstract class BozoTeleOp extends OpMode {
                 double manualHoodPos = hoodRange * stickValue; // multiply increase from min by right stick y value
                 robot.setHoodPosition(manualHoodPos);
             }
+        }
+
+        if (vision.getStaleness() >= Tunables.maxTurretLockMillis) {
+            // turret not locked on
+            robot.setDesiredTurretPosition(robot.getTurretGoalHeading(follower.getPose(), getGoalPose()));
+        } else {
+            // turret locked on
+            robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale()); // should auto know if vision is stale but whatever
         }
 
         // intake control

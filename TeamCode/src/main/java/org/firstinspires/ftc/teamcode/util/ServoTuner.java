@@ -31,6 +31,7 @@ public class ServoTuner extends LinearOpMode {
         while (opModeIsActive()) {
             double lowerTransferAmount = (gamepad1.left_stick_y + 1) / 2; // map from (-1)<->(1) to (0)<->(1)
             double upperTransferAmount = (gamepad1.right_stick_y + 1) / 2; // map from (-1)<->(1) to (0)<->(1)
+            double turretAmount = (gamepad1.right_stick_x + 1) / 2; // map from (-1)<->(1) to (0)<->(1)
 
             if (gamepad1.xWasReleased()) testingTransferServos = !testingTransferServos;
             if (gamepad1.yWasReleased()) robot.setHoodPosition(0); // force going to minimum
@@ -41,8 +42,11 @@ public class ServoTuner extends LinearOpMode {
             } else { // set to default positions to avoid breaking servos when not testing them
                 robot.lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit);
                 robot.upperTransfer.setPosition(Tunables.upperTransferOpen);
+                robot.turret1.setPosition(turretAmount);
+                robot.turret2.setPosition(turretAmount);
             }
 
+            telemetryM.addData("turret pos", robot.getTurretPosition());
             telemetryM.debug("testing transfer servos?: "  + testingTransferServos);
             telemetryM.addLine("toggle testingTransferServos with X");
             telemetryM.addData("lowerTransfer:", robot.lowerTransfer.getPosition());

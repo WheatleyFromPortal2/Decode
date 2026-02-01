@@ -109,24 +109,25 @@ public abstract class BozoAuto extends OpMode {
 
         // this path goes from the end of the 2nd set of balls to our score position
         scorePickup2 = follower.pathBuilder() // extra 2 lines to prevent hitting anything
-                .addPath(new BezierCurve(config.pickup2EndPose, config.pickup2StartPose, config.scorePose)) // test if this works
-                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
+                .addPath(new BezierLine(config.releasePose, config.scorePose)) // test if this works
+                .setLinearHeadingInterpolation(config.releasePose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
                 .build();
 
         // this path gets our balls from clear from our scorePose
         getClear = follower.pathBuilder()
-                .addPath(new BezierCurve(config.scorePose, config.pickup2StartPose)) // to prevent coming in at a weird angle, we first go to our pickup2StartPose
+                .addPath(new BezierLine(config.pickup2EndPose, config.releasePose)) // to prevent coming in at a weird angle, we first go to our pickup2StartPose
                 // we want to rotate to the correct heading before we even get close to the release
-                .setLinearHeadingInterpolation(config.scorePose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime)
-                .addPath(new BezierLine(config.pickup2StartPose, config.releasePose))
-                .setConstantHeadingInterpolation(config.releasePose.getHeading()) // while making the last travel to release, we just want to keep the same heading
+                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime)
+                //.addPath(new BezierLine(config.pickup2StartPose, config.releasePose))
+                //.setConstantHeadingInterpolation(config.releasePose.getHeading()) // while making the last travel to release, we just want to keep the same heading
                 .build();
 
         // this path goes from the release position to the scoring position
+        /*
         scoreClear = follower.pathBuilder()
                 .addPath(new BezierCurve(config.releasePose, config.pickup2StartPose, config.scorePose)) // use the pickup2StartPose so it backs out more directly
                 .setLinearHeadingInterpolation(config.releasePose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
-                .build();
+                .build(); */
 
         // this path goes from the score point to the beginning of the 3rd set of balls
         startPickup3 = follower.pathBuilder()
@@ -244,7 +245,8 @@ public abstract class BozoAuto extends OpMode {
                             follower.followPath(scorePickup1, true); // hold end to prevent other robots from moving us
                             break;
                         case 2:
-                            follower.followPath(scorePickup2, true);
+                            //follower.followPath(scorePickup2, true);
+                            follower.followPath(getClear, true);
                             break;
                         // case 3: clearing (done in LAUNCH)
                         case 4:
@@ -262,7 +264,7 @@ public abstract class BozoAuto extends OpMode {
                 break;
             case CLEAR:
                 if (stateTimer.getElapsedTime() >= Tunables.clearTime) { // we have waited long enough at clear
-                    follower.followPath(scoreClear);
+                    follower.followPath(scorePickup2);
                     setPathState(State.TRAVEL_TO_LAUNCH);
                 }
                 break;
