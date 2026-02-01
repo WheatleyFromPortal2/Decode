@@ -15,12 +15,12 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 public class Constants {
-    public static PIDFCoefficients translationalPIDF = new PIDFCoefficients(0.3, 0, 0.01, 0.05);
-    public static FilteredPIDFCoefficients drivePIDF = new FilteredPIDFCoefficients(0.09, 0, 0.0001, 0.1, 0.6);
+    public static PIDFCoefficients translationalPIDF = new PIDFCoefficients(0.1, 0, 0.006, 0.11);
+    public static FilteredPIDFCoefficients drivePIDF = new FilteredPIDFCoefficients(0.07, 0, 0.001, 0.6, 0.06);
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(13.29);
-            //.translationalPIDFCoefficients(translationalPIDF)
-            //.drivePIDFCoefficients(drivePIDF);
+            .mass(13.29)
+            .translationalPIDFCoefficients(translationalPIDF)
+            .drivePIDFCoefficients(drivePIDF);
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
