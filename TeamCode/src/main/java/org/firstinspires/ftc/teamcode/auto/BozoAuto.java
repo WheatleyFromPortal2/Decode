@@ -115,11 +115,11 @@ public abstract class BozoAuto extends OpMode {
 
         // this path gets our balls from clear from our scorePose
         getClear = follower.pathBuilder()
-                .addPath(new BezierLine(config.pickup2EndPose, config.releasePose)) // to prevent coming in at a weird angle, we first go to our pickup2StartPose
+                .addPath(new BezierLine(config.pickup2EndPose, config.pickup2StartPose)) // to prevent coming in at a weird angle, we first go to our pickup2StartPose
                 // we want to rotate to the correct heading before we even get close to the release
-                .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime)
-                //.addPath(new BezierLine(config.pickup2StartPose, config.releasePose))
-                //.setConstantHeadingInterpolation(config.releasePose.getHeading()) // while making the last travel to release, we just want to keep the same heading
+                .setConstantHeadingInterpolation(config.pickup2EndPose.getHeading())
+                .addPath(new BezierLine(config.pickup2StartPose, config.releasePose))
+                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime) // while making the last travel to release, we just want to keep the same heading
                 .build();
 
         // this path goes from the release position to the scoring position
@@ -204,11 +204,6 @@ public abstract class BozoAuto extends OpMode {
                                 setPathState(State.TRAVEL_TO_BALLS); // now we reload
                                 break;
                             case 3:
-                                robot.intake.setPower(1); // enable intake to grab balls
-                                follower.followPath(getClear, true);
-                                setPathState(State.GO_TO_CLEAR);
-                                break;
-                            case 4:
                                 follower.followPath(startPickup3);
                                 setPathState(State.TRAVEL_TO_BALLS); // now we reload
                                 break;
@@ -229,7 +224,7 @@ public abstract class BozoAuto extends OpMode {
                             follower.followPath(grabPickup2);
                             break;
                         // case 3: clearing (done in LAUNCH)
-                        case 4:
+                        case 3:
                             follower.followPath(grabPickup3);
                             break;
                         default: // if we have another amount of ball triplets scored, then crash the program and report the error
@@ -243,19 +238,21 @@ public abstract class BozoAuto extends OpMode {
                     switch (ballTripletsScored) { // this should always be between 3 and 0
                         case 1:
                             follower.followPath(scorePickup1, true); // hold end to prevent other robots from moving us
+                            setPathState(State.TRAVEL_TO_LAUNCH);
                             break;
                         case 2:
                             //follower.followPath(scorePickup2, true);
                             follower.followPath(getClear, true);
+                            setPathState(State.GO_TO_CLEAR);
                             break;
                         // case 3: clearing (done in LAUNCH)
                         case 4:
                             follower.followPath(scorePickup3, true);
+                            setPathState(State.TRAVEL_TO_LAUNCH);
                             break;
                         default: // if we have another amount of ball triplets scored, then crash the program and report the error
                             throw new IllegalStateException("[RELOAD] invalid amount of ballTripletsScored: " + ballTripletsScored);
                     }
-                    setPathState(State.TRAVEL_TO_LAUNCH);
                 }
             case GO_TO_CLEAR:
                 if (!follower.isBusy()) {

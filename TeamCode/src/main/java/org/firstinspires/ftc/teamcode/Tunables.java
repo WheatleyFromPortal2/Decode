@@ -66,7 +66,7 @@ public class Tunables { // this should hold all of our constants
 
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
     public static int intakeOvercurrentDelay = 250; // if intake has been overcurrent for more than this many millis, we consider it full
-    public static double launchingIntakePower = 0.1; // just enough power to keep balls in, without moving them
+    public static double launchingIntakePower = 0; // just enough power to keep balls in, without moving them
 
     // rumble effects
     private static int delay1 = 200; // ms delay for 1ball
