@@ -246,7 +246,7 @@ public abstract class BozoAuto extends OpMode {
                             setPathState(State.GO_TO_CLEAR);
                             break;
                         // case 3: clearing (done in LAUNCH)
-                        case 4:
+                        case 3:
                             follower.followPath(scorePickup3, true);
                             setPathState(State.TRAVEL_TO_LAUNCH);
                             break;
