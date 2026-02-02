@@ -53,6 +53,7 @@ driver station config name: `v2 real`
 | `3`   | Digital Device | side of lower transfer | `lowerTransferSensor` |
 
 the cable for upper transfer plugs into the `0/1` digital port, but the sensor must be configured as using `port 1`
+
 the cable for lower transfer plugs into the `2/3` digital port, but the sensor must be configured as using `port 3`
 
 ### USB ports
@@ -62,7 +63,9 @@ the cable for lower transfer plugs into the `2/3` digital port, but the sensor m
 | USB 3.0 | Limelight 3A | `limelight`   |
 
 ensure Limelight is plugged into `USB 3.0`, not `USB 2.0`
+
 after scanning, the Limelight will show up as `Ethernet Device` under the USB devices, make sure to rename it to the verbatim name
+
 make sure to save the config with the Limelight under a new name, as scanning may delete other devices
 
 ### DC motors
@@ -111,6 +114,7 @@ make sure to connect every motor with the correct polarity; the reversing should
 | `3`          | GoBILDA 5202/3/4 series | `turretEncoder` | ✅         |
 
 `turretEncoder` shouldn't have a motor connected, because we are just using the encoder port
+
 connecting `launchLeft`/`launchRight` correctly is very important
 - you only need an encoder on one of them to function, but having both increases accuracy+reliability
 
