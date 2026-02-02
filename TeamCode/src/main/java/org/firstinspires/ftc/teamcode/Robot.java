@@ -327,8 +327,7 @@ public class Robot { // create our global class for our robot
                     break;
                 case RAISE_LOWER_TRANSFER:
                     lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
-                    if (ballsRemaining > 1) { intake.setPower(Tunables.launchingIntakePower); }
-                    else { intake.setPower(1); }
+                    intake.setPower(Tunables.launchingIntakePower);
                     launchStateTimer.resetTimer();
                     launchState = LaunchState.WAITING_FOR_SENSOR_HIT;
                     break;
