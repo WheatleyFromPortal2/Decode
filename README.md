@@ -30,7 +30,7 @@ it may take a second for the control hub to show up in Android Studio
 
 # hardware map
 
-driver station config name: `v0 turret`
+driver station config name: `v2 real`
 
 ## control hub
 
@@ -40,7 +40,7 @@ driver station config name: `v0 turret`
 |:----------|:-----------------------|-----------------------------|:----------------------|
 | `0`       | *unused*               | *unused*                    | *unused*              |
 | `1`       | Pinpoint Odo Computer  | left side under control hub | `odo`                 |
-| `2`       | REV 2M Distance Sensor | lower transfer              | `lowerTransferSensor` |
+| `2`       | *unused*               | *unused*                    | *unused*              |
 | `3`       | *unused*               | *unused*                    | *unused*              |
 
 ### digital ports
@@ -53,6 +53,7 @@ driver station config name: `v0 turret`
 | `3`   | Digital Device | side of lower transfer | `lowerTransferSensor` |
 
 the cable for upper transfer plugs into the `0/1` digital port, but the sensor must be configured as using `port 1`
+the cable for lower transfer plugs into the `2/3` digital port, but the sensor must be configured as using `port 3`
 
 ### USB ports
 
@@ -60,6 +61,7 @@ the cable for upper transfer plugs into the `0/1` digital port, but the sensor m
 |:--------|:-------------|:--------------|
 | USB 3.0 | Limelight 3A | `limelight`   |
 
+ensure Limelight is plugged into `USB 3.0`, not `USB 2.0`
 after scanning, the Limelight will show up as `Ethernet Device` under the USB devices, make sure to rename it to the verbatim name
 make sure to save the config with the Limelight under a new name, as scanning may delete other devices
 
@@ -84,8 +86,6 @@ make sure to connect every motor with the correct polarity; the reversing should
 | `3`          | *unused*                  | *unused*        |
 | `4`          | *unused*                  | *unused*        |
 | `5`          | *unused*                  | *unused*        |
-
-the connection order of turret1/2 doesn't matter, since they both face the same direction
 
 ## expansion hub
 
@@ -130,6 +130,7 @@ connecting `launchLeft`/`launchRight` correctly is very important
 | `4`          | *unused*   | *unused*        |
 | `5`          | *unused*   | *unused*        |
 
+the connection order of turret1/2 doesn't matter, since they both face the same direction
 
 # controller map
 
@@ -255,3 +256,10 @@ We are using a Limelight 3A
 | `2_RedTeam.vpr`  | `2`    | 24              | get red goal april tag distance and tx  |
 
 pipeline files are saved in the [limelight folder](limelight/)
+
+# telemetry
+
+- Panels: [192.168.43.1:8001](http://192.168.43.1:8001)
+- robot controller: [192.168.43.1:8080](http://192.168.43.1:8080/)
+- Limelight video stream: [192.168.43.1:5801](http://192.168.43.1:5801/)
+- Limelight control: [192.168.43.1:5800](http://192.168.43.1:5800/)
