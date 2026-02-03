@@ -42,7 +42,7 @@ public class Vision {
             throw new RuntimeException("make sure to call vision.start()!");
         }
         LLResult result = limelight.getLatestResult();
-        if (result != null && result.isValid()) { // if our result is good
+        if (result != null && result.isValid() && !Double.isNaN(result.getTa())) { // if our result is good
             staleTimer.resetTimer(); // reset our staleness timer
 
             lastGoalTx = result.getTx();

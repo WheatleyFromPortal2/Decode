@@ -205,7 +205,7 @@ public class Robot { // create our global class for our robot
     }
 
     public void setAutomatedLaunch(double d) { // given positions, use our functions to set our launch speed and hood position
-        if (!isLaunching()) { // don't update if we're launching
+        if (!isLaunching()) { // don't update if we're launching or if
             double RPM = 0;
             double hoodPos = 0;
             if (d < Tunables.farZoneDataStart) { // use close zone data
@@ -269,8 +269,10 @@ public class Robot { // create our global class for our robot
     }
 
     public void setLaunchVelocity(double velocity) { // velocity is in TPS
-        desiredLaunchVelocity = velocity; // update our desired launch velocity
-        // our actual changes to motor power are handled in calcPIDF()
+        if (!Double.isNaN(velocity)) { // make sure velocity is a number
+            desiredLaunchVelocity = velocity; // update our desired launch velocity
+            // our actual changes to motor power are handled in calcPIDF()
+        }
     }
 
     public double getDesiredLaunchRPM() { return TPSToRPM(desiredLaunchVelocity); }
