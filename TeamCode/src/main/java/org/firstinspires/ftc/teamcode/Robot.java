@@ -289,12 +289,16 @@ public class Robot { // create our global class for our robot
 
     /** ball launching methods **/
     public void launchBalls(int balls) { // sets to launch this many balls
-        ballsRemaining += balls;
-        if (ballsRemaining > 3) ballsRemaining = 3;
-        isLaunching = true; // we are launching now
-        launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
-        launchIntervalTimer.resetTimer();
-        launchState = LaunchState.START; // reset our state machine to the start
+        if (isBallInLowerTransfer()) {
+            ballsRemaining += balls;
+            if (ballsRemaining > 3) ballsRemaining = 3;
+            isLaunching = true; // we are launching now
+            launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
+            launchIntervalTimer.resetTimer();
+            launchState = LaunchState.START; // reset our state machine to the start
+        } else {
+            ballsRemaining = 0;
+        }
     }
 
     public void cancelLaunch() { // set servos to default position, this could break if activated at the right time
@@ -355,7 +359,7 @@ public class Robot { // create our global class for our robot
                     break;
                 case WAITING_FOR_TRANSFER:
                     if (ballsRemaining == 1) {
-                        if (launchStateTimer.getElapsedTime() < Tunables.lastTransferDelay) {
+                        if (launchStateTimer.getElapsedTime() < Tunables.lastTransferDelay && !isBallInLowerTransfer()) {
                             break;
                         }
                     } else {
