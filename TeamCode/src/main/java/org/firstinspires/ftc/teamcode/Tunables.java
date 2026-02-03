@@ -97,7 +97,7 @@ public class Tunables { // this should hold all of our constants
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
     public static boolean holdEnd = true; // whether to hold end while shooting
     public static double launchTurnMargin = Math.toRadians(5); // margin we want to get our turn to for launch
-    public static double maxTurretLockMillis = 500;
+    public static double maxTurretLockMillis = 200;
     public static double farZoneDataStart = 95; // if d > this, use far zone data
 
     /** Auto tunables (used in BozoAuto.java) **/

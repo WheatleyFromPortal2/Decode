@@ -38,18 +38,21 @@ public abstract class BozoAuto extends OpMode {
         TRAVEL_TO_LAUNCH, // travel to our defined position to launch balls from. an internal switch statement control which path it will take
         LAUNCH, // wait for us to stop moving
         TRAVEL_TO_BALLS, // travel to the starting point of gathering balls
-        RELOAD, // drive in the straight line to grab the balls
+        RELOAD, // drive in the straight line with intake on to grab balls
         GO_TO_CLEAR, // go to the clear gate
         CLEAR, // wait at the clear gate for the balls
         GO_TO_END, // travel to our end position
         END // end state: do nothing
     }
 
+    private final int maxBallTriplets = 4; // amount of ball triplets we will try to score before going to end
+
     /** these are the **only variables** that should change throughout the auto **/
 
     State state = State.START; // set PathState to start
     private int ballTripletsScored = 0; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
-    private final int maxBallTriplets = 5; // amount of ball triplets we will try to score before going to end
+
+    /** end vars that can change **/
 
     // example paths
     private PathChain // some of these can probably just be Paths, but whatever
