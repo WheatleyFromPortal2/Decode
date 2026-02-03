@@ -11,9 +11,10 @@ import com.pedropathing.paths.PathConstraints;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.HardwareMap;
-
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import com.bylazar.configurables.annotations.Configurable;
 
+@Configurable
 public class Constants {
     public static PIDFCoefficients translationalPIDF = new PIDFCoefficients(0.1, 0, 0.006, 0.11);
     public static FilteredPIDFCoefficients drivePIDF = new FilteredPIDFCoefficients(0.07, 0, 0.001, 0.6, 0.06);
