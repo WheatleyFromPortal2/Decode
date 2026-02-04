@@ -220,6 +220,10 @@ public abstract class BozoTeleOp extends OpMode {
                 break;
         }
 
+        updateTelemetry();
+    }
+
+    private void updateTelemetry() {
         // all telemetry with a question mark (?) indicates a boolean
         // use .debug() for values not to be graphed and to save space
         // use .addData() for values to be graphed on Panels
