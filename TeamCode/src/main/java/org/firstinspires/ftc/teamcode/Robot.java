@@ -52,6 +52,7 @@ public class Robot { // create our global class for our robot
         RAISE_LOWER_TRANSFER,
         WAITING_FOR_SENSOR_HIT,
         WAITING_FOR_EXIT,
+        WAITING_FOR_LOWER,
         WAITING_FOR_TRANSFER
     }
 
@@ -306,7 +307,7 @@ public class Robot { // create our global class for our robot
     }
 
     public boolean updateLaunch() { // outputs true/false whether we are done with launching
-        if (ballsRemaining == 0 || getLaunchRPM() < 1000) { // if we are done with balls or our launch isn't running fast enought
+        if (ballsRemaining == 0 || getLaunchRPM() < 1000) { // if we are done with balls or our launch isn't running fast enough
             cancelLaunch();
             return true; // we're done with launching balls
         } else if (isLaunching) { // balls remaining > 0 && we are launching
@@ -349,10 +350,16 @@ public class Robot { // create our global class for our robot
                             lastLaunchInterval = launchIntervalTimer.getElapsedTimeSeconds();
                         }
                         else {
-                            intake.setPower(1); // allow lower transfer to go back down
-                            launchState = LaunchState.WAITING_FOR_TRANSFER;
+                            launchState = LaunchState.WAITING_FOR_LOWER;
                         }
                         launchStateTimer.resetTimer(); // reset our timer
+                    }
+                    break;
+                case WAITING_FOR_LOWER:
+                    if (launchStateTimer.getElapsedTime() >= Tunables.lowerDelay) {
+                        launchState = LaunchState.WAITING_FOR_TRANSFER;
+                        intake.setPower(1);
+                        launchStateTimer.resetTimer();
                     }
                     break;
                 case WAITING_FOR_TRANSFER:
@@ -384,5 +391,12 @@ public class Robot { // create our global class for our robot
         hood.setPosition(Range.clip(desiredPos, Tunables.hoodMinimum, Tunables.hoodMaximum)); // force hood to stay inside of limits
     }
 
-    public double getHoodPosition() { return hood.getPosition() - Tunables.hoodMinimum; }
+    public double getHoodPosition() {
+        double hoodPos = hood.getPosition();
+        if (hoodPos < 0.01) {
+            return 0; // fix weird floating point display error
+        } else {
+            return hoodPos;
+        }
+    }
 }

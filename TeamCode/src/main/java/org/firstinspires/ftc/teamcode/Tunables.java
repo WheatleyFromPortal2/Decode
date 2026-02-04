@@ -58,7 +58,8 @@ public class Tunables { // this should hold all of our constants
     public static double lowerTransferSensorOpen = 140; // needs to be different than upper transfer because color sensor distance measurements don't exceed 30mm :(
 
     // delays
-    public static int openDelay = 50; // time to wait for upperTransfer to open (in millis)
+    public static int openDelay = 0; // time to wait for upperTransfer to open (in millis)
+    public static int lowerDelay = 40; // time to wait for lower transfer to lower
     public static int transferDelay = 85; // time to wait for ball to enter lower transfer
     public static int lastTransferDelay = 170; // time to wait for last ball to enter lower transfer
     public static int extraPushDelay = 20; // extra time to wait for exit after ball triggers upperTransferSensor
