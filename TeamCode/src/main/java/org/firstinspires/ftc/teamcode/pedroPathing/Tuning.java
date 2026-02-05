@@ -443,7 +443,7 @@ class LateralVelocityTuner extends OpMode {
      */
     @Override
     public void init_loop() {
-        Tuning.telemetryM.debug("The robot will run at 1 power until it reaches " + DISTANCE + " inches to the right.");
+        Tuning.telemetryM.debug("The robot will run at 1 power until it reaches " + DISTANCE + " inches to the left."); // it goes to the left!
         Tuning.telemetryM.debug("Make sure you have enough room, since the robot has inertia after cutting power.");
         Tuning.telemetryM.debug("After running the distance, the robot will cut power from the drivetrain and display the strafe velocity.");
         Tuning.telemetryM.debug("Press B on Gamepad 1 to stop.");
