@@ -8,6 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.HandoffState;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.TimeProfiler;
 import org.firstinspires.ftc.teamcode.Tunables;
 
 // Panels imports
@@ -28,6 +29,7 @@ public abstract class BozoTeleOp extends OpMode {
     private Robot robot;
     private Follower follower;
     private Vision vision;
+    private TimeProfiler timeProfiler;
     private Pose goalPose; // this will be set by the specific OpMode
     private Timer loopTimer; // measures the speed of our loop
     private boolean isAutomatedDrive = false; // whether our drive is manually controlled or following a path
@@ -39,6 +41,7 @@ public abstract class BozoTeleOp extends OpMode {
     private double manualLaunchVelocity; // target launch velocity in TPS
     private double manualLaunchVelocityOffset = 0;
     private boolean isHoodLocked = true; // whether we want to change our hood with our right stick y
+    double lastFollowerHeading;
 
     @Override
     public void init() {
@@ -52,9 +55,12 @@ public abstract class BozoTeleOp extends OpMode {
         follower = Constants.createFollower(hardwareMap);
 
         follower.setPose(HandoffState.pose);
+        lastFollowerHeading = HandoffState.pose.getHeading();
         robot.setBallsRemaining(HandoffState.ballsRemaining);
         robot.zeroTurret(); // assume turret has been brought to zero position at the end of auto
         robot.setLaunchVelocity(robot.RPMToTPS(Tunables.initialManualLaunchRPM)); // warm up launch
+
+        timeProfiler = new TimeProfiler();
 
         goalPose = getGoalPose();
         follower.update();
@@ -74,12 +80,18 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        timeProfiler.start("PIDF");
         robot.calcPIDF();
+        timeProfiler.start("vision");
         vision.update();
+        timeProfiler.stop();
         loopTimer.resetTimer();
+        timeProfiler.start("follower");
         follower.update(); // update our Pedro Pathing follower
         //robot.updateBalls(); // update how many balls we have in our intake
+        timeProfiler.start("update launch");
         boolean updateLaunchStatus = robot.updateLaunch(); // idk if running it directly with the && might cause it to be skipped
+        timeProfiler.start("buttons");
         if (updateLaunchStatus && !follower.isTeleopDrive()) { // check if we're done with holding position
             follower.startTeleOpDrive();
         }
@@ -159,6 +171,8 @@ public abstract class BozoTeleOp extends OpMode {
             }
         }
 
+        timeProfiler.start("launch");
+
         if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
             if (vision.isStale()) { // if it has been a while since our last vision reading
                 double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
@@ -183,13 +197,23 @@ public abstract class BozoTeleOp extends OpMode {
             }
         }
 
+        // turret control
         if (vision.getStaleness() >= Tunables.maxTurretLockMillis) {
             // turret not locked on
             robot.setDesiredTurretPosition(robot.getTurretGoalHeading(follower.getPose(), getGoalPose()));
         } else {
             // turret locked on
-            robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale()); // should auto know if vision is stale but whatever
+            if (Math.abs(lastFollowerHeading - follower.getHeading()) < Math.toRadians(5)) {
+                // haven't had a large change in robot heading
+                robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale()); // should auto know if vision is stale but whatever
+            } else {
+                // have had a large change in robot heading - need to compensate based off of that
+                double odoHeadingChange = lastFollowerHeading - follower.getHeading();
+                double newTurretPos = robot.getDesiredTurretPosition() + odoHeadingChange;
+                robot.setDesiredTurretPosition(newTurretPos);
+            }
         }
+        lastFollowerHeading = follower.getHeading();
 
         // intake control
         if (!robot.isLaunching()) { // allow Robot.java to handle intake while launching
@@ -205,6 +229,8 @@ public abstract class BozoTeleOp extends OpMode {
                 robot.intake.setPower(0); // turn off intake if other conditions aren't fulfilled
             }
         }
+
+        timeProfiler.start("rumble");
         switch (robot.getBallsRemaining()) { // haptic feedback based on how many balls are in the robot
             case 0:
                 gamepad1.stopRumble(); // don't rumble if we don't have any balls
@@ -220,6 +246,7 @@ public abstract class BozoTeleOp extends OpMode {
                 break;
         }
 
+        timeProfiler.start("telemetry");
         updateTelemetry();
     }
 
@@ -273,7 +300,8 @@ public abstract class BozoTeleOp extends OpMode {
 
         // timing
         telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
+        telemetryM.addData("time profiler", timeProfiler.getOutputAndReset());
 
-        telemetryM.update(telemetry); // update telemetry (don't know why we need to pass in 'telemetry' object)
+        telemetryM.update(telemetry); // needed to pass in telemetry object to also update on driver station
     }
 }
