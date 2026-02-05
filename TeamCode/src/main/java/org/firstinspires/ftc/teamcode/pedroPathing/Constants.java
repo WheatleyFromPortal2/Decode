@@ -16,10 +16,13 @@ import com.bylazar.configurables.annotations.Configurable;
 
 @Configurable
 public class Constants {
-    public static PIDFCoefficients translationalPIDF = new PIDFCoefficients(0.1, 0, 0.006, 0.11);
-    public static FilteredPIDFCoefficients drivePIDF = new FilteredPIDFCoefficients(0.07, 0, 0.001, 0.6, 0.06);
+    public static PIDFCoefficients translationalPIDF = new PIDFCoefficients(0.1, 0, 0.008, 0.11);
+    public static FilteredPIDFCoefficients drivePIDF = new FilteredPIDFCoefficients(0.02, 0, 0.008, 0.6, 0.06);
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .mass(13.29)
+            .mass(13.29) // robot mass in kg
+            // calibrated 2-5-26
+            .forwardZeroPowerAcceleration(-34.582)
+            .lateralZeroPowerAcceleration(-65)
             .translationalPIDFCoefficients(translationalPIDF)
             .drivePIDFCoefficients(drivePIDF);
 
@@ -33,7 +36,10 @@ public class Constants {
             .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
             .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
             .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .useBrakeModeInTeleOp(true); // use brake mode
+            .useBrakeModeInTeleOp(true) // use brake mode
+            // calibrated 2-5-26
+            .xVelocity(77.597) // use forward velocity tuner
+            .yVelocity(60.498); // lateral velocity tuner (it goes to the left!)
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
             .forwardPodY(158) // this is in mm

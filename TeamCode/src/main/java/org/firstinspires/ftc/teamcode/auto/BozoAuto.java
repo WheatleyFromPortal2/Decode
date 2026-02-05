@@ -116,13 +116,15 @@ public abstract class BozoAuto extends OpMode {
                 .setLinearHeadingInterpolation(config.pickup2EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
                 .build();
 
+        double midX = (config.pickup1StartPose.getX() + config.pickup1EndPose.getX()) / 2;
+        Pose releaseMidPose = new Pose(midX, config.pickup1EndPose.getY());
         // this path gets our balls from clear from our scorePose
         getClear = follower.pathBuilder()
-                .addPath(new BezierLine(config.pickup1EndPose, config.pickup1StartPose)) // to prevent coming in at a weird angle, we first go to our pickup2StartPose
+                .addPath(new BezierLine(config.pickup1EndPose, releaseMidPose)) // to prevent coming in at a weird angle, we first go to our pickup2StartPose
                 // we want to rotate to the correct heading before we even get close to the release
-                .setConstantHeadingInterpolation(config.pickup1EndPose.getHeading())
-                .addPath(new BezierLine(config.pickup1StartPose, config.releasePose))
-                .setLinearHeadingInterpolation(config.pickup1StartPose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime) // while making the last travel to release, we just want to keep the same heading
+                .setLinearHeadingInterpolation(config.pickup1EndPose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime) // while making the last travel to release, we just want to keep the same heading
+                .addPath(new BezierLine(releaseMidPose, config.releasePose))
+                .setConstantHeadingInterpolation(config.releasePose.getHeading())
                 .build();
 
         // this path goes from the release position to the scoring position
@@ -242,6 +244,7 @@ public abstract class BozoAuto extends OpMode {
                         case 1:
                             //follower.followPath(scorePickup1, true);
                             follower.followPath(getClear, true);
+                            robot.intake.setPower(0);
                             setPathState(State.GO_TO_CLEAR);
                             break;
                         case 2:
