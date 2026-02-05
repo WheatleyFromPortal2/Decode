@@ -644,7 +644,7 @@ class LateralZeroPowerAccelerationTuner extends OpMode {
     /** This initializes the drive motors as well as the Panels telemetry. */
     @Override
     public void init_loop() {
-        Tuning.telemetryM.debug("The robot will run to the right until it reaches " + VELOCITY + " inches per second.");
+        Tuning.telemetryM.debug("The robot will run to the left until it reaches " + VELOCITY + " inches per second."); // to the left!
         Tuning.telemetryM.debug("Then, it will cut power from the drivetrain and roll to a stop.");
         Tuning.telemetryM.debug("Make sure you have enough room.");
         Tuning.telemetryM.debug("After stopping, the lateral zero power acceleration (natural deceleration) will be displayed.");
