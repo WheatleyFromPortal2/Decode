@@ -18,7 +18,7 @@ public abstract class RedAuto extends BozoAuto { // these positions override the
     public static Pose pickup3EndPose = new Pose(124, 47, Math.toRadians(0));
     public static Pose releasePose = new Pose(128, 74, Math.toRadians(90));
     public static Pose endPose = new Pose(104, 65, Math.toRadians(90));
-    public static double scoreTurretPos = -0.92; // because our servos are misaligned, this must be diff from BlueAuto.java.
+    public static double scoreTurretPos = -0.94; // because our servos are misaligned, this must be diff from BlueAuto.java.
     // need to fix turret offset
 
     @Override
