@@ -334,7 +334,7 @@ public class Robot { // create our global class for our robot
     }
 
     public boolean updateLaunch() { // outputs true/false whether we are done with launching
-        if (ballsRemaining == 0 || getLaunchRPM() < 1000) { // if we are done with balls or our launch isn't running fast enough
+        if (ballsRemaining == 0) { // if we are done with balls or our launch isn't running fast enough
             cancelLaunch();
             return true; // we're done with launching balls
         } else if (isLaunching) { // balls remaining > 0 && we are launching
