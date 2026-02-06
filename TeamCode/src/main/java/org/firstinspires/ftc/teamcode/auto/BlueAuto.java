@@ -11,14 +11,14 @@ public abstract class BlueAuto extends BozoAuto { // these positions override th
     public static Pose scorePose = new Pose(50.60314364696112, 103.4801573265256, Math.toRadians(90));
     public static Pose scoreIntermediatePose = new Pose (45, 80, Math.toRadians(90));
     public static Pose pickup1StartPose = new Pose(58, 94, Math.toRadians(180));
-    public static Pose pickup1EndPose = new Pose(26, 94, Math.toRadians(180));
+    public static Pose pickup1EndPose = new Pose(28, 94, Math.toRadians(180));
     public static Pose pickup2StartPose = new Pose(58, 69, Math.toRadians(180));
-    public static Pose pickup2EndPose = new Pose(20, 69, Math.toRadians(180));
+    public static Pose pickup2EndPose = new Pose(19, 69, Math.toRadians(180));
     public static Pose pickup3StartPose = new Pose(58, 47, Math.toRadians(180));
-    public static Pose pickup3EndPose = new Pose(20, 47, Math.toRadians(180));
-    public static Pose releasePose = new Pose(16, 74, Math.toRadians(90));
+    public static Pose pickup3EndPose = new Pose(19, 47, Math.toRadians(180));
+    public static Pose releasePose = new Pose(17, 74, Math.toRadians(90));
     public static Pose endPose = new Pose(40, 65, Math.toRadians(90));
-    public static double scoreTurretPos = 0.988514559173916;
+    public static double scoreTurretPos = 0.948514559173916;
 
     @Override
     protected AutoConfig buildConfig() {
