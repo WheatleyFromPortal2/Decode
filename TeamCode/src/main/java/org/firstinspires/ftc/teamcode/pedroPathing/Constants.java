@@ -17,7 +17,7 @@ import com.bylazar.configurables.annotations.Configurable;
 @Configurable
 public class Constants {
     public static PIDFCoefficients translationalPIDF = new PIDFCoefficients(0.1, 0, 0.008, 0.11);
-    public static FilteredPIDFCoefficients drivePIDF = new FilteredPIDFCoefficients(0.02, 0, 0.004, 0.6, 0.06);
+    public static FilteredPIDFCoefficients drivePIDF = new FilteredPIDFCoefficients(0.02, 0, 0.0001, 0.6, 0.06);
     public static FollowerConstants followerConstants = new FollowerConstants()
             .mass(13.29) // robot mass in kg
             // calibrated 2-5-26

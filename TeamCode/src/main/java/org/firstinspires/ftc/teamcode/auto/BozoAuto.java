@@ -39,6 +39,8 @@ public abstract class BozoAuto extends OpMode {
         LAUNCH, // wait for us to stop moving
         TRAVEL_TO_BALLS, // travel to the starting point of gathering balls
         RELOAD, // drive in the straight line with intake on to grab balls
+        GO_TO_TURN,
+        TURN,
         GO_TO_CLEAR, // go to the clear gate
         CLEAR, // wait at the clear gate for the balls
         GO_TO_END, // travel to our end position
@@ -63,6 +65,7 @@ public abstract class BozoAuto extends OpMode {
             startPickup2,
             grabPickup2,
             scorePickup2,
+            goToTurn,
             scoreClear,
             startPickup3,
             grabPickup3,
@@ -119,10 +122,12 @@ public abstract class BozoAuto extends OpMode {
         double midX = (config.pickup1StartPose.getX() + config.pickup1EndPose.getX()) / 2;
         Pose releaseMidPose = new Pose(midX, config.pickup1EndPose.getY());
         // this path gets our balls from clear from our scorePose
-        getClear = follower.pathBuilder()
+        goToTurn = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup1EndPose, releaseMidPose)) // to prevent coming in at a weird angle, we first go to our pickup2StartPose
-                // we want to rotate to the correct heading before we even get close to the release
-                .setLinearHeadingInterpolation(config.pickup1EndPose.getHeading(), config.releasePose.getHeading(), Tunables.clearEndTime) // while making the last travel to release, we just want to keep the same heading
+                .setConstantHeadingInterpolation(config.pickup1EndPose.getHeading())
+                .build();
+
+        getClear = follower.pathBuilder()
                 .addPath(new BezierLine(releaseMidPose, config.releasePose))
                 .setConstantHeadingInterpolation(config.releasePose.getHeading())
                 .build();
@@ -243,9 +248,9 @@ public abstract class BozoAuto extends OpMode {
                     switch (ballTripletsScored) { // this should always be between 3 and 0
                         case 1:
                             //follower.followPath(scorePickup1, true);
-                            follower.followPath(getClear, true);
+                            follower.followPath(goToTurn, true);
                             robot.intake.setPower(0);
-                            setPathState(State.GO_TO_CLEAR);
+                            setPathState(State.GO_TO_TURN);
                             break;
                         case 2:
                             follower.followPath(scorePickup2, true); // hold end to prevent other robots from moving us
@@ -259,6 +264,17 @@ public abstract class BozoAuto extends OpMode {
                         default: // if we have another amount of ball triplets scored, then crash the program and report the error
                             throw new IllegalStateException("[RELOAD] invalid amount of ballTripletsScored: " + ballTripletsScored);
                     }
+                }
+            case GO_TO_TURN:
+                if (!follower.isBusy()) {
+                    follower.turnTo(config.releasePose.getHeading());
+                    setPathState(State.TURN);
+                }
+                break;
+            case TURN:
+                if (!follower.isBusy()) {
+                    follower.followPath(getClear);
+                    setPathState(State.GO_TO_CLEAR);
                 }
             case GO_TO_CLEAR:
                 if (!follower.isBusy()) {
