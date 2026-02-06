@@ -13,7 +13,6 @@ public class Tunables { // this should hold all of our constants
     // this needs to be calculated+changed every time you modify the launch ratio
     public static double launchRatio = 1; // both of our launch motors are 1:1
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
-    public static double intakeOvercurrent = 6; // amount of amps that we think means a stalled intake
     public static double autoRPMOffset = 0; // add this many RPMs to auto rpm
     public static double turretOffset = 0;
 
@@ -26,7 +25,6 @@ public class Tunables { // this should hold all of our constants
     public static double launchF = 0.0005;
     public static double launchMaxPowerThreshold = 1000; // if RPM diff is greater than this, bypass PIDF and go full power
 
-    // TODO: tune these
     // turret PIDF coefficients
     public static double turretDoubleMinPower = 0.07;
     public static double turretDoubleP = 0.1; // recalibrated 1-28-26
@@ -68,7 +66,6 @@ public class Tunables { // this should hold all of our constants
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
-    public static int intakeOvercurrentDelay = 250; // if intake has been overcurrent for more than this many millis, we consider it full
     public static double launchingIntakePower = 0; // just enough power to keep balls in, without moving them
 
     // rumble effects
@@ -93,13 +90,10 @@ public class Tunables { // this should hold all of our constants
 
     /** TeleOp tunables (used in BozoTeleOp.java) **/
 
-    public static boolean isCalibrationMode = false; // whether out teleop should allow manual control for calibration
     public static double turnRateMultiplier = 0.75; // always have our turns 75% speed
     public static int adjustRPM = 50; // driver increments/decrements by adjustRPM
     public static double initialManualLaunchRPM = 2350; // 2400 is a little too much
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
-    public static boolean holdEnd = true; // whether to hold end while shooting
-    public static double launchTurnMargin = Math.toRadians(5); // margin we want to get our turn to for launch
     public static double maxTurretLockMillis = 200;
     public static double farZoneDataStart = 95; // if d > this, use far zone data
 
@@ -110,15 +104,10 @@ public class Tunables { // this should hold all of our constants
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double clearEndTime = 0.1; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
-    public static int beginningLaunchDelay =  200; // time to wait before launching first ball
     public static double clearTime = 1000; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
 
     /** Vision tunables (used in Vision.java) **/
-    public static double turnP = 1;
-    public static double turnI = 0;
-    public static double turnD = 0;
-
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
     public static double goalOffset = -30; // TODO:
 }
