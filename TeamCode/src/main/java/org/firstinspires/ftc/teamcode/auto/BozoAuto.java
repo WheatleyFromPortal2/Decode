@@ -154,7 +154,7 @@ public abstract class BozoAuto extends OpMode {
 
         // this path goes from the endpoint of the ball pickup our score position
         scorePickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(config.pickup3EndPose, config.scorePose))
+                .addPath(new BezierCurve(config.pickup3EndPose, config.pickup2StartPose, config.scorePose)) // avoid getting stuck on release
                 .setLinearHeadingInterpolation(config.pickup3EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
                 .build();
 
