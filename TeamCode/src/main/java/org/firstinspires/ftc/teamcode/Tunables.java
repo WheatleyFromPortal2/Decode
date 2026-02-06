@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 @Configurable
 public class Tunables { // this should hold all of our constants
-    public static boolean isDebugging = true;
+    public static boolean isDebugging = false;
 
     /** Robot tunables (used in Robot.java) **/
 
