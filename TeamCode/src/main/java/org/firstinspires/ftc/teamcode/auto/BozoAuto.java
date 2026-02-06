@@ -304,7 +304,12 @@ public abstract class BozoAuto extends OpMode {
 
         autonomousPathUpdate(); // update our state machine and run its actions
 
-        sendTelemetry(false); // we don't want to send our init time now that our OpMode is running
+        if (Tunables.isDebugging) {
+            sendTelemetry(false); // we don't want to send our init time now that our OpMode is running
+        }
+
+        telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
+        telemetryM.update(telemetry);
     }
 
     /** This method is called once at the init of the OpMode. **/
@@ -388,9 +393,6 @@ public abstract class BozoAuto extends OpMode {
 
         // timing
         telemetryM.debug("OpMode time (seconds): " + opModeTimer.getElapsedTimeSeconds());
-        telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
-
-        telemetryM.update(telemetry); // update telemetry
     }
 
     public void updateHandoff() {

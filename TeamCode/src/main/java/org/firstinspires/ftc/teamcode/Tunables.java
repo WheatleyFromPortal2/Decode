@@ -6,6 +6,8 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 @Configurable
 public class Tunables { // this should hold all of our constants
+    public static boolean isDebugging = true;
+
     /** Robot tunables (used in Robot.java) **/
 
     // this needs to be calculated+changed every time you modify the launch ratio
