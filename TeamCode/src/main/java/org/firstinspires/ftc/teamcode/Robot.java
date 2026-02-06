@@ -212,21 +212,21 @@ public class Robot { // create our global class for our robot
             double RPM = 0;
             double hoodPos = 0;
             if (d < Tunables.farZoneDataStart) { // use close zone data
-                RPM = 978.45054 *  Math.pow(d, 0.229791);
-                // from Desmos data: 1-30-26
-                // R^2 = 0.9594 using power regression
+                RPM = -0.00943691 * Math.pow(d, 2) +12.47649 * d + 1772.38054;
+                // from Desmos data: 2-5-26 (removing outliers)
+                // R^2 = 0.973 using linear regression
 
-                hoodPos = 0.00000298476 * Math.pow(d, 3) - 0.000600124 * Math.pow(d, 2) + 0.0402257 * d - 0.730382;
-                // from Desmos data: 1-30-26
-                // R^2 = 0.5918 using cubic regression
+                hoodPos = 0.00000256939 * Math.pow(d, 3) - 0.000531448 * Math.pow(d, 2) + 0.0367024 * d - 0.675026;
+                // from Desmos data: 2-5-26 (removing outliers)
+                // R^2 = 0.6066 using cubic regression
             } else { // use far zone data
-                RPM = 568.30191 * Math.pow(d, 0.355137);
-                // from Desmos data: 1-30-26
-                // R^2 = 0.9802 using power regression (log mode = false)
+                RPM = 0.0498139 * Math.pow(d, 2) - 1.32898 * d + 2370.65436;
+                // from Desmos data: 2-5-26 (removing outliers)
+                // R^2 = 0.9822 using quadratic regression
 
-                hoodPos = -0.0000207811 * Math.pow(d, 2) + 0.00490454 * d - 0.0681405;
-                // from Desmos data: 1-30-26
-                // R^2 = 0.9678 using quadratic regression
+                hoodPos = 0.22;
+                // from Desmos data: 2-5-26 (removing outliers)
+                // at this distance, we should always be using the lowest angle
             }
 
             RPM += Tunables.autoRPMOffset;
