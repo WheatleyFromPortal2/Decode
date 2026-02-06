@@ -14,7 +14,10 @@ public class Tunables { // this should hold all of our constants
     public static double launchRatio = 1; // both of our launch motors are 1:1
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
     public static double autoRPMOffset = 0; // add this many RPMs to auto rpm
-    public static double turretOffset = 0;
+    // calibrated 2-6-26; accurate +/-1deg
+    // this offset is in radians
+    public static double turretOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
+    // you can ensure this value is correct by pressing left/right dpad on TurretTuner and observing the turret error
 
     // TODO: tune these
     // launch PIDF coefficients

@@ -179,7 +179,7 @@ public class Robot { // create our global class for our robot
         launchRight.setPower(launchCorrection); // apply correction
 
         // calc turret PIDF
-        double turretServoPos = ((-desiredTurretPosition - Tunables.turretOffset) / (TURRET_SERVO_MAX_RANGE * 2)) + 0.5;
+        double turretServoPos = ((-desiredTurretPosition + Tunables.turretOffset) / (TURRET_SERVO_MAX_RANGE * 2)) + 0.5;
 
         turretServoPos = Range.clip(turretServoPos, 0.0, 1.0);
         if (turretServoPos == lastTurretPos) {
