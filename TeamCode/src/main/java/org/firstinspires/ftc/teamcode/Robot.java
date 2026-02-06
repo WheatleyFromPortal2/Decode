@@ -48,12 +48,12 @@ public class Robot { // create our global class for our robot
 
     private enum LaunchState { // these are the possible states our launch state machine can be in
         START,
-        OPENING_UPPER_TRANSFER,
+        OPEN_UPPER_TRANSFER,
         RAISE_LOWER_TRANSFER,
-        WAITING_FOR_SENSOR_HIT,
-        WAITING_FOR_EXIT,
-        WAITING_FOR_LOWER,
-        WAITING_FOR_TRANSFER
+        WAIT_FOR_SENSOR_HIT,
+        WAIT_FOR_EXIT,
+        WAIT_FOR_LOWER,
+        WAIT_FOR_TRANSFER
     }
 
     /** only these variables should change during runtime **/
@@ -316,16 +316,16 @@ public class Robot { // create our global class for our robot
             switch (launchState) {
                 case START:
                     launchStateTimer.resetTimer();
-                    launchState = LaunchState.OPENING_UPPER_TRANSFER;
+                    launchState = LaunchState.OPEN_UPPER_TRANSFER;
                     //if (ballsRemaining > 1) intake.setPower(Tunables.launchingIntakePower); // hopefully allow lowerTransfer to go down
                     if (upperTransfer.getPosition() != Tunables.upperTransferOpen) {
                         upperTransfer.setPosition(Tunables.upperTransferOpen);
-                        launchState = LaunchState.OPENING_UPPER_TRANSFER;
+                        launchState = LaunchState.OPEN_UPPER_TRANSFER;
                     } else {
                         launchState = LaunchState.RAISE_LOWER_TRANSFER;
                     }
                     break;
-                case OPENING_UPPER_TRANSFER:
+                case OPEN_UPPER_TRANSFER:
                     if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) {
                         launchState = LaunchState.RAISE_LOWER_TRANSFER;
                     }
@@ -334,16 +334,16 @@ public class Robot { // create our global class for our robot
                     lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
                     intake.setPower(Tunables.launchingIntakePower);
                     launchStateTimer.resetTimer();
-                    launchState = LaunchState.WAITING_FOR_SENSOR_HIT;
+                    launchState = LaunchState.WAIT_FOR_SENSOR_HIT;
                     break;
-                case WAITING_FOR_SENSOR_HIT:
+                case WAIT_FOR_SENSOR_HIT:
                     if (isBallInUpperTransfer() // wait until we detect a ball in upper transfer (ball has been launched)
                             || launchStateTimer.getElapsedTime() >= Tunables.maxPushDelay) { // or if that hasn't happened in a while, just go to the next launch
                         launchStateTimer.resetTimer();
-                        launchState = LaunchState.WAITING_FOR_EXIT;
+                        launchState = LaunchState.WAIT_FOR_EXIT;
                     }
                     break;
-                case WAITING_FOR_EXIT:
+                case WAIT_FOR_EXIT:
                     if (launchStateTimer.getElapsedTime() >= Tunables.extraPushDelay) {
                         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit);
                         ballsRemaining -= 1; // we've launched a ball
@@ -352,19 +352,19 @@ public class Robot { // create our global class for our robot
                             lastLaunchInterval = launchIntervalTimer.getElapsedTimeSeconds();
                         }
                         else {
-                            launchState = LaunchState.WAITING_FOR_LOWER;
+                            launchState = LaunchState.WAIT_FOR_LOWER;
                         }
                         launchStateTimer.resetTimer(); // reset our timer
                     }
                     break;
-                case WAITING_FOR_LOWER:
+                case WAIT_FOR_LOWER:
                     if (launchStateTimer.getElapsedTime() >= Tunables.lowerDelay) {
-                        launchState = LaunchState.WAITING_FOR_TRANSFER;
+                        launchState = LaunchState.WAIT_FOR_TRANSFER;
                         intake.setPower(1);
                         launchStateTimer.resetTimer();
                     }
                     break;
-                case WAITING_FOR_TRANSFER:
+                case WAIT_FOR_TRANSFER:
                     if (ballsRemaining == 1) {
                         if (launchStateTimer.getElapsedTime() < Tunables.lastTransferDelay) {
                             break;
