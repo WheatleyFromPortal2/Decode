@@ -64,12 +64,10 @@ public class Robot { // create our global class for our robot
     private int ballsRemaining = 0; // tracks how many balls are in the robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
     private double lastLaunchInterval; // stores the amount of time it took for our last launch
+    private double lastTurretPos = 0;
     /** end vars that change **/
 
     /** for testing **/
-    public double bestTarget;
-    public double bestDist;
-    public double candidate;
     public double launchCorrection; // power to apply to launch motors
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
@@ -184,8 +182,12 @@ public class Robot { // create our global class for our robot
         double turretServoPos = ((-desiredTurretPosition - Tunables.turretOffset) / (TURRET_SERVO_MAX_RANGE * 2)) + 0.5;
 
         turretServoPos = Range.clip(turretServoPos, 0.0, 1.0);
-        turret1.setPosition(turretServoPos);
-        turret2.setPosition(turretServoPos);
+        if (turretServoPos == lastTurretPos) {
+            // do nothing, save loop time
+        } else {
+            turret1.setPosition(turretServoPos);
+            turret2.setPosition(turretServoPos);
+        }
     }
 
     public void zeroTurret() { // zero turret (set current position to forwards)
