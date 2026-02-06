@@ -93,6 +93,7 @@ public abstract class BozoAuto extends OpMode {
         grabPickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup1StartPose, config.pickup1EndPose))
                 .setLinearHeadingInterpolation(config.pickup1StartPose.getHeading(), config.pickup1EndPose.getHeading())
+                .setVelocityConstraint(Tunables.maxGrabVelocity)
                 .build();
 
         // this path goes from the endpoint of the ball pickup to our score position
@@ -111,6 +112,7 @@ public abstract class BozoAuto extends OpMode {
         grabPickup2 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup2StartPose, config.pickup2EndPose))
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup2EndPose.getHeading())
+                .setVelocityConstraint(Tunables.maxGrabVelocity)
                 .build();
 
         // this path goes from the end of the 2nd set of balls to our score position
@@ -149,6 +151,7 @@ public abstract class BozoAuto extends OpMode {
         grabPickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup3StartPose, config.pickup3EndPose))
                 .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup3EndPose.getHeading())
+                .setVelocityConstraint(Tunables.maxGrabVelocity)
                 .build();
 
         // this path goes from the endpoint of the ball pickup our score position
