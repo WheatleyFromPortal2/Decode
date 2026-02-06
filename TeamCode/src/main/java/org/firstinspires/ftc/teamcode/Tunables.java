@@ -102,7 +102,7 @@ public class Tunables { // this should hold all of our constants
 
     /** Auto tunables (used in BozoAuto.java) **/
 
-    public static double scoreRPM = 2300; // RPM to set for launching (stolen from teleop)
+    public static double scoreRPM = 2200; // RPM to set for launching (stolen from teleop)
     public static double scoreHoodPos = 0.171; // hood position for launching in auto
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
@@ -110,6 +110,7 @@ public class Tunables { // this should hold all of our constants
     public static double clearTime = 1000; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
     public static double maxGrabVelocity = 50; // max velocity while grabbing balls in inches/second
+    public static double clearVelocity = 10;
 
     /** Vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
