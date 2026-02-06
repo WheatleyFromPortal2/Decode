@@ -65,6 +65,9 @@ public class Robot { // create our global class for our robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
     private double lastLaunchInterval; // stores the amount of time it took for our last launch
     private double lastTurretPos = 0;
+    private boolean leftLaunchDisconnected = false; // whether our left launch encoder is disconnected
+    private TimeProfiler timeProfiler;
+    String profilerOutput;
     /** end vars that change **/
 
     /** for testing **/
@@ -115,8 +118,13 @@ public class Robot { // create our global class for our robot
         // timers
         launchStateTimer = new Timer(); // set up timer for the launch state machine
         launchIntervalTimer = new Timer();
+
+        timeProfiler = new TimeProfiler();
     }
 
+    public String getProfilerOutput() {
+        return profilerOutput;
+    }
     public double getSystemCurrent() { // return total system current (control + expansion hub) in amps
         return controlHub.getCurrent(CurrentUnit.AMPS) + expansionHub.getCurrent(CurrentUnit.AMPS);
     }
@@ -160,6 +168,7 @@ public class Robot { // create our global class for our robot
     }
 
     public void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
+        timeProfiler.start("update terms");
         // update all PIDF coefficients in controllers
         launchPIDF.updateTerms(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
         // don't use F for the turret; F bases off of our target, which has no relation to the amount of power needed
@@ -168,26 +177,33 @@ public class Robot { // create our global class for our robot
 
         // calc launch PIDF
         // we don't need to negate values from launchLeft, because we have already set its direction to reversed
+        timeProfiler.start("launch velocity query");
         double launchTPS = getLaunchVelocity();
+        timeProfiler.start("launch calc");
         if (TPSToRPM(desiredLaunchVelocity - launchTPS) > Tunables.launchMaxPowerThreshold) {
             launchCorrection = 1; // if our RPM diff is really larger, ignore PIDF and just go full power
         } else {
             launchCorrection = launchPIDF.calc(desiredLaunchVelocity, launchTPS); // use PIDF to calculate needed correction
             launchCorrection = Range.clip(launchCorrection, -0.05, 1.0); // clamp motor output
         }
+        timeProfiler.start("set launch power");
         launchLeft.setPower(launchCorrection); // apply correction
         launchRight.setPower(launchCorrection); // apply correction
 
         // calc turret PIDF
+        timeProfiler.start("turret math");
         double turretServoPos = ((-desiredTurretPosition + Tunables.turretOffset) / (TURRET_SERVO_MAX_RANGE * 2)) + 0.5;
 
         turretServoPos = Range.clip(turretServoPos, 0.0, 1.0);
+        timeProfiler.start("turret set pos");
         if (turretServoPos == lastTurretPos) {
             // do nothing, save loop time
         } else {
             turret1.setPosition(turretServoPos);
             turret2.setPosition(turretServoPos);
         }
+        timeProfiler.stop();
+        profilerOutput = timeProfiler.getOutputAndReset();
     }
 
     public void zeroTurret() { // zero turret (set current position to forwards)
@@ -263,11 +279,20 @@ public class Robot { // create our global class for our robot
     }
 
     public double getLaunchVelocity() {
-        // account for disconnected encoders
-        if (launchLeft.getVelocity() <= 5) return launchRight.getVelocity();
-        if (launchRight.getVelocity() <= 5) return launchLeft.getVelocity();
-        else {
-            return (launchLeft.getVelocity() + launchRight.getVelocity()) / 2; // average our TPS from both motors (the difference should be low)
+        if (!leftLaunchDisconnected) {
+            double leftVelocity = launchLeft.getVelocity();
+            if (leftVelocity <= 5) {
+                leftLaunchDisconnected = true;
+                return launchRight.getVelocity();
+            } else {
+                return leftVelocity;
+            }
+        } else {
+            double rightVelocity = launchRight.getVelocity();
+            if (rightVelocity <= 5) {
+                leftLaunchDisconnected = false;
+                return launchLeft.getVelocity();
+            } else { return rightVelocity; }
         }
     }
 

@@ -49,6 +49,7 @@ public class LaunchTuner extends LinearOpMode {
             if (gamepad1.backWasReleased()) Tunables.lastTransferDelay -= manualChangeAmount;
             if (gamepad1.startWasReleased()) Tunables.lastTransferDelay += manualChangeAmount;
 
+            telemetryM.addLine(robot.getProfilerOutput());
             telemetryM.addLine("use d-pad up/down to modify openDelay (upper transfer opening)");
             telemetryM.addLine("use d-pad left/right to modify extraPushDelay (lower transfer pushing");
             telemetryM.addLine("use X/B to modify transferDelay (time waiting for transfer)");
