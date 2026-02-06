@@ -43,8 +43,8 @@ public class LaunchTuner extends LinearOpMode {
             if (gamepad1.dpadRightWasReleased()) Tunables.extraPushDelay += manualChangeAmount; // increment pushDelay
             if (gamepad1.dpadLeftWasReleased()) Tunables.extraPushDelay -= manualChangeAmount; // decrement pushDelay
 
-            if (gamepad1.xWasReleased()) Tunables.transferDelay += manualChangeAmount; // increment interLaunchWait
-            if (gamepad1.bWasReleased()) Tunables.transferDelay -= manualChangeAmount; // decrement interLaunchWait
+            if (gamepad1.xWasReleased()) Tunables.transferDelay -= manualChangeAmount; // increment interLaunchWait
+            if (gamepad1.bWasReleased()) Tunables.transferDelay += manualChangeAmount; // decrement interLaunchWait
 
             if (gamepad1.backWasReleased()) Tunables.lastTransferDelay -= manualChangeAmount;
             if (gamepad1.startWasReleased()) Tunables.lastTransferDelay += manualChangeAmount;
@@ -54,13 +54,16 @@ public class LaunchTuner extends LinearOpMode {
             telemetryM.addLine("use X/B to modify transferDelay (time waiting for transfer)");
             telemetryM.addLine("use back/start to modify lastTransferDelay");
 
-            telemetryM.addData("openDelay (millis)", Tunables.openDelay);
-            telemetryM.addData("transferDelay (millis)", Tunables.extraPushDelay);
-            telemetryM.addData("maxPushDelay (millis)", Tunables.transferDelay);
-            telemetryM.addData("lastTransferDelay (millis)", Tunables.lastTransferDelay);
-            telemetryM.addData("last launch interval", robot.getLastLaunchInterval());
+            telemetryM.addLine("---all values are in millis---");
+
+            telemetryM.addData("openDelay", Tunables.openDelay);
+            telemetryM.addData("extraPushDelay", Tunables.extraPushDelay);
+            telemetryM.addData("maxPushDelay", Tunables.transferDelay);
+            telemetryM.addData("lastTransferDelay", Tunables.lastTransferDelay);
+
             telemetryM.addData("desired launch RPM", robot.getDesiredLaunchRPM());
             telemetryM.addData("launch RPM", robot.getLaunchRPM());
+            telemetryM.addData("last launch interval (s)", robot.getLastLaunchInterval());
 
             telemetryM.addData("launching?: ", robot.isLaunching()); // update what's happening in our launch and send it to driver
             telemetryM.update(telemetry);
