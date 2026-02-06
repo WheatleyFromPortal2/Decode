@@ -13,6 +13,11 @@ import java.util.List;
 
 public class Vision {
     public static Limelight3A limelight;
+    public enum Pipeline { // expression of our limelight pipelines; order and elements must match exactly with pipeline indices on camera
+        OBELISK, // pipeline 0
+        BLUE_TEAM, // pipeline 1
+        RED_TEAM, // pipeline 2
+    }
     double lastGoalTx, lastGoalDistance, lastGoalTa;
     boolean isBlue; // whether we are blue or red team
     private boolean started = false;
@@ -30,18 +35,18 @@ public class Vision {
     public void start() {
         limelight.start();
 
-        if (isBlue) limelight.pipelineSwitch(1);
-        else limelight.pipelineSwitch(2);
+        setGoalPipeline(isBlue);
 
         started = true;
     }
 
     public boolean update() { // update our vision
-
         if (!started) { // make sure we have started
             throw new RuntimeException("make sure to call vision.start()!");
         }
+
         LLResult result = limelight.getLatestResult();
+
         if (result != null && result.isValid() && !Double.isNaN(result.getTa())) { // if our result is good
             staleTimer.resetTimer(); // reset our staleness timer
 
@@ -64,12 +69,29 @@ public class Vision {
         return 0;
     }
 
+    private int getPipelineIndex() { return getStatus().getPipelineIndex(); } // Limelight pipelines are zero indexed
+
+    public void setGoalPipeline(boolean isBlue) {
+        if (isBlue) {
+            setPipeline(Pipeline.BLUE_TEAM);
+        } else {
+            setPipeline(Pipeline.RED_TEAM);
+        }
+    }
+
+    public void setPipeline(Pipeline pipeline) {
+        if (getPipeline() != pipeline) { // make sure our pipeline is not already correct
+            limelight.pipelineSwitch(pipeline.ordinal()); // convert from Pipeline enum to ordinal/index
+        }
+    }
+
+    /** getter methods **/
+
     public double getLastGoalTx() { return lastGoalTx; }
     public double getLastGoalDistance() { return lastGoalDistance; }
     public double getLastGoalTa() { return lastGoalTa; }
     public boolean isStale() { return staleTimer.getElapsedTime() >= Tunables.maxVisionStaleness; }
     public double getStaleness() { return staleTimer.getElapsedTime(); }
     public LLStatus getStatus() { return limelight.getStatus(); }
-    public double getTemp() { return getStatus().getTemp(); }
-    public double getPipeline() { return getStatus().getPipelineIndex(); }
+    public Pipeline getPipeline() { return Pipeline.values()[getPipelineIndex()]; } // convert from limelight pipeline ordinal/index to Pipeline enum
 }
