@@ -391,7 +391,7 @@ public class Robot { // create our global class for our robot
                     break;
                 case WAIT_FOR_TRANSFER:
                     if (ballsRemaining == 1) {
-                        if (launchStateTimer.getElapsedTime() < Tunables.lastTransferDelay) {
+                        if (launchStateTimer.getElapsedTime() < Tunables.lastTransferDelay && !isBallInLowerTransfer()) {
                             break;
                         }
                     } else {

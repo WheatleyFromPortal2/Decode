@@ -64,7 +64,7 @@ public class Tunables { // this should hold all of our constants
     public static int openDelay = 0; // time to wait for upperTransfer to open (in millis)
     public static int lowerDelay = 40; // time to wait for lower transfer to lower
     public static int transferDelay = 85; // time to wait for ball to enter lower transfer
-    public static int lastTransferDelay = 170; // time to wait for last ball to enter lower transfer
+    public static int lastTransferDelay = 250; // time to wait for last ball to enter lower transfer
     public static int extraPushDelay = 20; // extra time to wait for exit after ball triggers upperTransferSensor
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
@@ -111,6 +111,7 @@ public class Tunables { // this should hold all of our constants
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
     public static double maxGrabVelocity = 50; // max velocity while grabbing balls in inches/second
     public static double clearVelocity = 10;
+    public static double clearMaxPower = 0.8;
 
     /** Vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale

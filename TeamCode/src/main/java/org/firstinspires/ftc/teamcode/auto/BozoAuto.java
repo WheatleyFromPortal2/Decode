@@ -249,7 +249,6 @@ public abstract class BozoAuto extends OpMode {
                         case 1:
                             //follower.followPath(scorePickup1, true);
                             follower.followPath(goToTurn, true);
-                            robot.intake.setPower(0);
                             setPathState(State.GO_TO_TURN);
                             break;
                         case 2:
@@ -275,6 +274,7 @@ public abstract class BozoAuto extends OpMode {
             case TURN:
                 if (!follower.isBusy()) {
                     follower.followPath(getClear);
+                    follower.setMaxPower(Tunables.clearMaxPower);
                     setPathState(State.GO_TO_CLEAR);
                 }
                 break;
@@ -286,6 +286,7 @@ public abstract class BozoAuto extends OpMode {
             case CLEAR:
                 if (stateTimer.getElapsedTime() >= Tunables.clearTime) { // we have waited long enough at clear
                     follower.followPath(scorePickup1);
+                    follower.setMaxPower(1);
                     setPathState(State.TRAVEL_TO_LAUNCH);
                 }
                 break;
