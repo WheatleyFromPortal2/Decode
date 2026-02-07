@@ -112,6 +112,7 @@ public class Tunables { // this should hold all of our constants
     public static double maxGrabVelocity = 50; // max velocity while grabbing balls in inches/second
     public static double clearVelocity = 10;
     public static double clearMaxPower = 0.8;
+    public static double farAutoRPMOffset = 50; // +50 manually calibrated 2-6-26
 
     /** Vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
