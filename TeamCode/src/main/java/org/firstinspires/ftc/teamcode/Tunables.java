@@ -63,8 +63,8 @@ public class Tunables { // this should hold all of our constants
     // delays
     public static int openDelay = 0; // time to wait for upperTransfer to open (in millis)
     public static int lowerDelay = 40; // time to wait for lower transfer to lower
-    public static int transferDelay = 85; // time to wait for ball to enter lower transfer
-    public static int lastTransferDelay = 250; // time to wait for last ball to enter lower transfer
+    public static int transferDelay = 115; // time to wait for ball to enter lower transfer
+    public static int lastTransferDelay = 300; // time to wait for last ball to enter lower transfer
     public static int extraPushDelay = 20; // extra time to wait for exit after ball triggers upperTransferSensor
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
@@ -102,7 +102,7 @@ public class Tunables { // this should hold all of our constants
 
     /** Auto tunables (used in BozoAuto.java) **/
 
-    public static double scoreRPM = 2200; // RPM to set for launching (stolen from teleop)
+    public static double scoreRPM = 2250; // RPM to set for launching (stolen from teleop)
     public static double scoreHoodPos = 0.171; // hood position for launching in auto
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
