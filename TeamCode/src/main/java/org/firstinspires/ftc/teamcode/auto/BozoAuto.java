@@ -248,6 +248,7 @@ public abstract class BozoAuto extends OpMode {
                     switch (ballTripletsScored) { // this should always be between 3 and 0
                         case 1:
                             follower.followPath(scorePickup1, true);
+                            setPathState(State.TRAVEL_TO_LAUNCH);
                             break;
                         case 2:
                             //follower.followPath(scorePickup2, true); // hold end to prevent other robots from moving us
