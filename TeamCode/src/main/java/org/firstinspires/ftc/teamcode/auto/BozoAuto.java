@@ -272,7 +272,7 @@ public abstract class BozoAuto extends OpMode {
                 }
                 break;
             case TURN:
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() || stateTimer.getElapsedTime() >= 500) { // fix weird edge case
                     follower.followPath(getClear);
                     follower.setMaxPower(Tunables.clearMaxPower);
                     setPathState(State.GO_TO_CLEAR);
