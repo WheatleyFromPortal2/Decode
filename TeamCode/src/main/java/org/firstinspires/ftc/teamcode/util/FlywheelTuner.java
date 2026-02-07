@@ -19,9 +19,11 @@ public class FlywheelTuner extends LinearOpMode {
 
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
         boolean isGradualControl = true; // if we're using the right trigger to control speed or just doing full power
+        boolean isSpindown = false;
 
         telemetryM.debug("use the right trigger to control launch speed");
         telemetryM.debug("use the B button to go between gradual control/full power");
+        telemetryM.debug("use the X button to toggle spindown in full power");
 
         waitForStart();
 
@@ -32,17 +34,27 @@ public class FlywheelTuner extends LinearOpMode {
                 isGradualControl = !isGradualControl;
             }
 
+            if (gamepad1.xWasReleased()) {
+                isSpindown = !isSpindown;
+            }
+
             if (isGradualControl) {
                 robot.setLaunchVelocity(robot.RPMToTPS(launchRPM)); // set our desired velocity from converting our desired RPM
                 telemetryM.addData("desiredRPM", launchRPM);
                 telemetryM.debug("in GRADUAL CONTROL");
                 robot.calcPIDF();
             } else {
-                // test launch full power speed
-                robot.launchLeft.setPower(1); // BRRRRRR
-                robot.launchRight.setPower(1); // BRRRRRR
+                if (isSpindown) {
+                    robot.launchLeft.setPower(0);
+                    robot.launchRight.setPower(0);
+                    telemetryM.debug("in SPIN DOWN");
+                } else {
+                    // test launch full power speed
+                    robot.launchLeft.setPower(1); // BRRRRRR
+                    robot.launchRight.setPower(1); // BRRRRRR
+                    telemetryM.debug("in FULL POWER");
+                }
                 telemetryM.addData("desired RPM", 6000 * Tunables.launchRatio);
-                telemetryM.debug("in FULL POWER");
             }
             telemetryM.debug("PIDF: " + Tunables.launchP + ", " + Tunables.launchI + ", " + Tunables.launchD + ", " + Tunables.launchF);
             telemetryM.debug("launchRatio: " + Tunables.launchRatio);
