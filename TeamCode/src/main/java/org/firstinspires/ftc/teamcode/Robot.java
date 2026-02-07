@@ -48,12 +48,12 @@ public class Robot { // create our global class for our robot
 
     private enum LaunchState { // these are the possible states our launch state machine can be in
         START,
-        OPENING_UPPER_TRANSFER,
+        OPEN_UPPER_TRANSFER,
         RAISE_LOWER_TRANSFER,
-        WAITING_FOR_SENSOR_HIT,
-        WAITING_FOR_EXIT,
-        WAITING_FOR_LOWER,
-        WAITING_FOR_TRANSFER
+        WAIT_FOR_SENSOR_HIT,
+        WAIT_FOR_EXIT,
+        WAIT_FOR_LOWER,
+        WAIT_FOR_TRANSFER
     }
 
     /** only these variables should change during runtime **/
@@ -65,6 +65,9 @@ public class Robot { // create our global class for our robot
     private boolean wasBallInIntake = false; // this tracks whether we had a ball in intake last time we checked, use to calculate whether we have gathered all of our balls
     private double lastLaunchInterval; // stores the amount of time it took for our last launch
     private double lastTurretPos = 0;
+    private boolean leftLaunchDisconnected = false; // whether our left launch encoder is disconnected
+    private TimeProfiler timeProfiler;
+    String profilerOutput;
     /** end vars that change **/
 
     /** for testing **/
@@ -115,8 +118,13 @@ public class Robot { // create our global class for our robot
         // timers
         launchStateTimer = new Timer(); // set up timer for the launch state machine
         launchIntervalTimer = new Timer();
+
+        timeProfiler = new TimeProfiler();
     }
 
+    public String getProfilerOutput() {
+        return profilerOutput;
+    }
     public double getSystemCurrent() { // return total system current (control + expansion hub) in amps
         return controlHub.getCurrent(CurrentUnit.AMPS) + expansionHub.getCurrent(CurrentUnit.AMPS);
     }
@@ -160,6 +168,7 @@ public class Robot { // create our global class for our robot
     }
 
     public void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
+        timeProfiler.start("update terms");
         // update all PIDF coefficients in controllers
         launchPIDF.updateTerms(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
         // don't use F for the turret; F bases off of our target, which has no relation to the amount of power needed
@@ -168,26 +177,33 @@ public class Robot { // create our global class for our robot
 
         // calc launch PIDF
         // we don't need to negate values from launchLeft, because we have already set its direction to reversed
+        timeProfiler.start("launch velocity query");
         double launchTPS = getLaunchVelocity();
+        timeProfiler.start("launch calc");
         if (TPSToRPM(desiredLaunchVelocity - launchTPS) > Tunables.launchMaxPowerThreshold) {
             launchCorrection = 1; // if our RPM diff is really larger, ignore PIDF and just go full power
         } else {
             launchCorrection = launchPIDF.calc(desiredLaunchVelocity, launchTPS); // use PIDF to calculate needed correction
             launchCorrection = Range.clip(launchCorrection, -0.05, 1.0); // clamp motor output
         }
+        timeProfiler.start("set launch power");
         launchLeft.setPower(launchCorrection); // apply correction
         launchRight.setPower(launchCorrection); // apply correction
 
         // calc turret PIDF
-        double turretServoPos = ((-desiredTurretPosition - Tunables.turretOffset) / (TURRET_SERVO_MAX_RANGE * 2)) + 0.5;
+        timeProfiler.start("turret math");
+        double turretServoPos = ((-desiredTurretPosition + Tunables.turretOffset) / (TURRET_SERVO_MAX_RANGE * 2)) + 0.5;
 
         turretServoPos = Range.clip(turretServoPos, 0.0, 1.0);
+        timeProfiler.start("turret set pos");
         if (turretServoPos == lastTurretPos) {
             // do nothing, save loop time
         } else {
             turret1.setPosition(turretServoPos);
             turret2.setPosition(turretServoPos);
         }
+        timeProfiler.stop();
+        profilerOutput = timeProfiler.getOutputAndReset();
     }
 
     public void zeroTurret() { // zero turret (set current position to forwards)
@@ -220,7 +236,7 @@ public class Robot { // create our global class for our robot
                 // from Desmos data: 2-5-26 (removing outliers)
                 // R^2 = 0.6066 using cubic regression
             } else { // use far zone data
-                RPM = 0.0498139 * Math.pow(d, 2) - 1.32898 * d + 2370.65436;
+                RPM = 0.0498139 * Math.pow(d, 2) - 1.32898 * d + 2370.65436 + 50; // +50 manually calibrated 2-6-26
                 // from Desmos data: 2-5-26 (removing outliers)
                 // R^2 = 0.9822 using quadratic regression
 
@@ -263,11 +279,20 @@ public class Robot { // create our global class for our robot
     }
 
     public double getLaunchVelocity() {
-        // account for disconnected encoders
-        if (launchLeft.getVelocity() <= 5) return launchRight.getVelocity();
-        if (launchRight.getVelocity() <= 5) return launchLeft.getVelocity();
-        else {
-            return (launchLeft.getVelocity() + launchRight.getVelocity()) / 2; // average our TPS from both motors (the difference should be low)
+        if (!leftLaunchDisconnected) {
+            double leftVelocity = launchLeft.getVelocity();
+            if (leftVelocity <= 5) {
+                leftLaunchDisconnected = true;
+                return launchRight.getVelocity();
+            } else {
+                return leftVelocity;
+            }
+        } else {
+            double rightVelocity = launchRight.getVelocity();
+            if (rightVelocity <= 5) {
+                leftLaunchDisconnected = false;
+                return launchLeft.getVelocity();
+            } else { return rightVelocity; }
         }
     }
 
@@ -309,23 +334,23 @@ public class Robot { // create our global class for our robot
     }
 
     public boolean updateLaunch() { // outputs true/false whether we are done with launching
-        if (ballsRemaining == 0 || getLaunchRPM() < 1000) { // if we are done with balls or our launch isn't running fast enough
+        if (ballsRemaining == 0) { // if we are done with balls or our launch isn't running fast enough
             cancelLaunch();
             return true; // we're done with launching balls
         } else if (isLaunching) { // balls remaining > 0 && we are launching
             switch (launchState) {
                 case START:
                     launchStateTimer.resetTimer();
-                    launchState = LaunchState.OPENING_UPPER_TRANSFER;
+                    launchState = LaunchState.OPEN_UPPER_TRANSFER;
                     //if (ballsRemaining > 1) intake.setPower(Tunables.launchingIntakePower); // hopefully allow lowerTransfer to go down
                     if (upperTransfer.getPosition() != Tunables.upperTransferOpen) {
                         upperTransfer.setPosition(Tunables.upperTransferOpen);
-                        launchState = LaunchState.OPENING_UPPER_TRANSFER;
+                        launchState = LaunchState.OPEN_UPPER_TRANSFER;
                     } else {
                         launchState = LaunchState.RAISE_LOWER_TRANSFER;
                     }
                     break;
-                case OPENING_UPPER_TRANSFER:
+                case OPEN_UPPER_TRANSFER:
                     if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) {
                         launchState = LaunchState.RAISE_LOWER_TRANSFER;
                     }
@@ -334,16 +359,16 @@ public class Robot { // create our global class for our robot
                     lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
                     intake.setPower(Tunables.launchingIntakePower);
                     launchStateTimer.resetTimer();
-                    launchState = LaunchState.WAITING_FOR_SENSOR_HIT;
+                    launchState = LaunchState.WAIT_FOR_SENSOR_HIT;
                     break;
-                case WAITING_FOR_SENSOR_HIT:
+                case WAIT_FOR_SENSOR_HIT:
                     if (isBallInUpperTransfer() // wait until we detect a ball in upper transfer (ball has been launched)
                             || launchStateTimer.getElapsedTime() >= Tunables.maxPushDelay) { // or if that hasn't happened in a while, just go to the next launch
                         launchStateTimer.resetTimer();
-                        launchState = LaunchState.WAITING_FOR_EXIT;
+                        launchState = LaunchState.WAIT_FOR_EXIT;
                     }
                     break;
-                case WAITING_FOR_EXIT:
+                case WAIT_FOR_EXIT:
                     if (launchStateTimer.getElapsedTime() >= Tunables.extraPushDelay) {
                         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit);
                         ballsRemaining -= 1; // we've launched a ball
@@ -352,21 +377,21 @@ public class Robot { // create our global class for our robot
                             lastLaunchInterval = launchIntervalTimer.getElapsedTimeSeconds();
                         }
                         else {
-                            launchState = LaunchState.WAITING_FOR_LOWER;
+                            launchState = LaunchState.WAIT_FOR_LOWER;
                         }
                         launchStateTimer.resetTimer(); // reset our timer
                     }
                     break;
-                case WAITING_FOR_LOWER:
+                case WAIT_FOR_LOWER:
                     if (launchStateTimer.getElapsedTime() >= Tunables.lowerDelay) {
-                        launchState = LaunchState.WAITING_FOR_TRANSFER;
+                        launchState = LaunchState.WAIT_FOR_TRANSFER;
                         intake.setPower(1);
                         launchStateTimer.resetTimer();
                     }
                     break;
-                case WAITING_FOR_TRANSFER:
+                case WAIT_FOR_TRANSFER:
                     if (ballsRemaining == 1) {
-                        if (launchStateTimer.getElapsedTime() < Tunables.lastTransferDelay) {
+                        if (launchStateTimer.getElapsedTime() < Tunables.lastTransferDelay && !isBallInLowerTransfer()) {
                             break;
                         }
                     } else {

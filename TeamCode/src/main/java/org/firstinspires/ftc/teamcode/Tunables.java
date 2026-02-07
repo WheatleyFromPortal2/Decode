@@ -14,7 +14,10 @@ public class Tunables { // this should hold all of our constants
     public static double launchRatio = 1; // both of our launch motors are 1:1
     // if intake has a velocity that is less than intakeStallVelocity or a current greater than intakeOvercurrent then we consider it stalled
     public static double autoRPMOffset = 0; // add this many RPMs to auto rpm
-    public static double turretOffset = 0;
+    // calibrated 2-6-26; accurate +/-1deg
+    // this offset is in radians
+    public static double turretOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
+    // you can ensure this value is correct by pressing left/right dpad on TurretTuner and observing the turret error
 
     // TODO: tune these
     // launch PIDF coefficients
@@ -60,8 +63,8 @@ public class Tunables { // this should hold all of our constants
     // delays
     public static int openDelay = 0; // time to wait for upperTransfer to open (in millis)
     public static int lowerDelay = 40; // time to wait for lower transfer to lower
-    public static int transferDelay = 85; // time to wait for ball to enter lower transfer
-    public static int lastTransferDelay = 170; // time to wait for last ball to enter lower transfer
+    public static int transferDelay = 115; // time to wait for ball to enter lower transfer
+    public static int lastTransferDelay = 300; // time to wait for last ball to enter lower transfer
     public static int extraPushDelay = 20; // extra time to wait for exit after ball triggers upperTransferSensor
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
@@ -99,7 +102,7 @@ public class Tunables { // this should hold all of our constants
 
     /** Auto tunables (used in BozoAuto.java) **/
 
-    public static double scoreRPM = 2300; // RPM to set for launching (stolen from teleop)
+    public static double scoreRPM = 2250; // RPM to set for launching (stolen from teleop)
     public static double scoreHoodPos = 0.171; // hood position for launching in auto
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
@@ -107,6 +110,8 @@ public class Tunables { // this should hold all of our constants
     public static double clearTime = 1000; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
     public static double maxGrabVelocity = 50; // max velocity while grabbing balls in inches/second
+    public static double clearVelocity = 10;
+    public static double clearMaxPower = 0.8;
 
     /** Vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale

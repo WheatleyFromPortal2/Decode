@@ -52,7 +52,7 @@ public abstract class BozoAuto extends OpMode {
     /** these are the **only variables** that should change throughout the auto **/
 
     State state = State.START; // set PathState to start
-    private int ballTripletsScored = 0; // start with 4 ball triplets (1 in robot, 3 on field), decrements every launch
+    private int ballTripletsScored = 0; // start with 0, increment at the end of each LAUNCH cycle
 
     /** end vars that can change **/
 
@@ -74,8 +74,6 @@ public abstract class BozoAuto extends OpMode {
             goToEnd;
 
     public void buildPaths() {
-        config = buildConfig(); // get our config
-
         // this path goes from the starting point to our scoring point
         scorePreload = follower.pathBuilder()
                 .addPath(new BezierCurve(startPose, config.scorePose)) // test if this works
@@ -150,13 +148,13 @@ public abstract class BozoAuto extends OpMode {
         // this path picks up the 3rd set of balls
         grabPickup3 = follower.pathBuilder()
                 .addPath(new BezierLine(config.pickup3StartPose, config.pickup3EndPose))
-                .setLinearHeadingInterpolation(config.pickup2StartPose.getHeading(), config.pickup3EndPose.getHeading())
+                .setLinearHeadingInterpolation(config.pickup3StartPose.getHeading(), config.pickup3EndPose.getHeading())
                 .setVelocityConstraint(Tunables.maxGrabVelocity)
                 .build();
 
         // this path goes from the endpoint of the ball pickup our score position
         scorePickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(config.pickup3EndPose, config.scorePose))
+                .addPath(new BezierCurve(config.pickup3EndPose, config.pickup2StartPose, config.scorePose)) // avoid getting stuck on release
                 .setLinearHeadingInterpolation(config.pickup3EndPose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime)
                 .build();
 
@@ -197,7 +195,6 @@ public abstract class BozoAuto extends OpMode {
                 if (robot.updateLaunch()) { // we're done with launching balls
                     ballTripletsScored++; // increment the amount of triplets that we have scored if we have a successful launch
                     robot.intake.setPower(0); // save power
-                    setPathState(State.TRAVEL_TO_BALLS);
                     /* if we're holding point, we shouldn't have to re-enable motors
                     follower.activateAllPIDFs();
                     follower.resumePathFollowing(); */
@@ -256,7 +253,6 @@ public abstract class BozoAuto extends OpMode {
                             //follower.followPath(scorePickup2, true); // hold end to prevent other robots from moving us
                             //setPathState(State.TRAVEL_TO_LAUNCH);
                             follower.followPath(goToTurn, true);
-                            robot.intake.setPower(0);
                             setPathState(State.GO_TO_TURN);
                             break;
                         // case 3: clearing (done in LAUNCH)
@@ -268,6 +264,7 @@ public abstract class BozoAuto extends OpMode {
                             throw new IllegalStateException("[RELOAD] invalid amount of ballTripletsScored: " + ballTripletsScored);
                     }
                 }
+                break;
             case GO_TO_TURN:
                 if (!follower.isBusy()) {
                     follower.turnTo(config.releasePose.getHeading());
@@ -275,10 +272,12 @@ public abstract class BozoAuto extends OpMode {
                 }
                 break;
             case TURN:
-                if (!follower.isBusy()) {
+                if (!follower.isBusy() || stateTimer.getElapsedTime() >= 500) { // fix weird edge case
                     follower.followPath(getClear);
+                    follower.setMaxPower(Tunables.clearMaxPower);
                     setPathState(State.GO_TO_CLEAR);
                 }
+                break;
             case GO_TO_CLEAR:
                 if (!follower.isBusy()) {
                     setPathState(State.CLEAR); // this will also reset stateTimer, allowing us to measure how long we have been at clear
@@ -287,6 +286,7 @@ public abstract class BozoAuto extends OpMode {
             case CLEAR:
                 if (stateTimer.getElapsedTime() >= Tunables.clearTime) { // we have waited long enough at clear
                     follower.followPath(scorePickup1);
+                    follower.setMaxPower(1);
                     setPathState(State.TRAVEL_TO_LAUNCH);
                 }
                 break;
@@ -334,9 +334,10 @@ public abstract class BozoAuto extends OpMode {
     /** This method is called once at the init of the OpMode. **/
     @Override
     public void init() {
+        config = buildConfig(); // get our config
+
         // set up our timers
         loopTimer = new Timer();
-        loopTimer.resetTimer();
         stateTimer = new Timer();
         opModeTimer = new Timer();
 
