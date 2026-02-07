@@ -6,7 +6,7 @@ import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 
 
-@Autonomous(name = "BlueGoalAuto", group = "Blue", preselectTeleOp = "BlueTeleOp")
+@Autonomous(name = "BlueICQCGoalAuto", group = "Blue", preselectTeleOp = "BlueTeleOp")
 public class BlueGoalAuto extends BlueAuto {
     @Override
     public Pose getStartPose() {
