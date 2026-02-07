@@ -132,12 +132,10 @@ public abstract class BozoAuto extends OpMode {
                 .setConstantHeadingInterpolation(config.releasePose.getHeading())
                 .build();
 
-        // this path goes from the release position to the scoring position
-        /*
         scoreClear = follower.pathBuilder()
-                .addPath(new BezierCurve(config.releasePose, config.pickup2StartPose, config.scorePose)) // use the pickup2StartPose so it backs out more directly
+                .addPath(new BezierLine(config.releasePose, config.scorePose)) // use the pickup2StartPose so it backs out more directly
                 .setLinearHeadingInterpolation(config.releasePose.getHeading(), config.scorePose.getHeading(), Tunables.scoreEndTime) // this heading should work
-                .build(); */
+                .build();
 
         // this path goes from the score point to the beginning of the 3rd set of balls
         startPickup3 = follower.pathBuilder()
@@ -286,7 +284,7 @@ public abstract class BozoAuto extends OpMode {
                 break;
             case CLEAR:
                 if (stateTimer.getElapsedTime() >= Tunables.clearTime) { // we have waited long enough at clear
-                    follower.followPath(scorePickup1);
+                    follower.followPath(scoreClear);
                     follower.setMaxPower(1);
                     setPathState(State.TRAVEL_TO_LAUNCH);
                 }
