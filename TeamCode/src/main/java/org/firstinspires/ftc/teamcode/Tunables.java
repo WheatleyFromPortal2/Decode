@@ -46,7 +46,7 @@ public class Tunables { // this should hold all of our constants
     public static double turretMaxVelocityForVision = Math.toRadians(10); // max amount of error to apply vision offset
 
     // servo open/close points (don't find these with the backplate on!)
-    public static double lowerTransferLowerLimit = 0.145; // recalibrated 1-30-26
+    public static double lowerTransferLowerLimit = 0.154; // recalibrated 2-7-26
     public static double lowerTransferUpperLimit = 0.45; // recalibrated 1-27-26
     // servo position where upper transfer prevents balls from passing into launch
     public static double upperTransferClosed = 0.00; // recalibrated 1-27-26
