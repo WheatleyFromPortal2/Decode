@@ -236,7 +236,7 @@ public class Robot { // create our global class for our robot
                 // from Desmos data: 2-5-26 (removing outliers)
                 // R^2 = 0.6066 using cubic regression
             } else { // use far zone data
-                RPM = 0.0498139 * Math.pow(d, 2) - 1.32898 * d + 2370.65436 + 50; // +50 manually calibrated 2-6-26
+                RPM = 0.0498139 * Math.pow(d, 2) - 1.32898 * d + 2370.65436 + Tunables.farAutoRPMOffset;
                 // from Desmos data: 2-5-26 (removing outliers)
                 // R^2 = 0.9822 using quadratic regression
 
