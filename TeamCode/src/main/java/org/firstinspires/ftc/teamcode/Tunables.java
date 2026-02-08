@@ -22,7 +22,7 @@ public class Tunables { // this should hold all of our constants
     // TODO: tune these
     // launch PIDF coefficients
     // updated 1-23-26
-    public static double launchP = 0.012;
+    public static double launchP = 0.02;
     public static double launchI = 0;
     public static double launchD = 0.0001;
     public static double launchF = 0.0005;

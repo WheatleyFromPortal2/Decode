@@ -12,9 +12,9 @@ public abstract class RedAuto extends BozoAuto { // these positions override the
     public static Pose scoreIntermediatePose = new Pose(99, 80, Math.toRadians(90));
     public static Pose pickup1StartPose = new Pose(86, 94, Math.toRadians(0));
     public static Pose pickup1EndPose = new Pose(117, 94, Math.toRadians(0));
-    public static Pose pickup2StartPose = new Pose(86, 69, Math.toRadians(0));
+    public static Pose pickup2StartPose = new Pose(82, 69, Math.toRadians(0));
     public static Pose pickup2EndPose = new Pose(123, 68, Math.toRadians(0));
-    public static Pose pickup3StartPose = new Pose(86, 47, Math.toRadians(0));
+    public static Pose pickup3StartPose = new Pose(82, 47, Math.toRadians(0));
     public static Pose pickup3EndPose = new Pose(123, 47, Math.toRadians(0));
     public static Pose releasePose = new Pose(129, 74, Math.toRadians(90));
     public static Pose endPose = new Pose(104, 65, Math.toRadians(90));
