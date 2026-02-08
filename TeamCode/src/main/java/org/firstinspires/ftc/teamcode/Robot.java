@@ -219,7 +219,7 @@ public class Robot { // create our global class for our robot
         double xDst = goalPose.getX() - currentPosition.getX();
         double yDst = goalPose.getY() - currentPosition.getY();
         double desiredAbsoluteHeading = Math.atan2(yDst, xDst);
-        return desiredAbsoluteHeading - currentPosition.getHeading();
+        return desiredAbsoluteHeading - currentPosition.getHeading() + Tunables.magicOffset;
         //return desiredAbsoluteHeading - currentPosition.getHeading();
     }
 

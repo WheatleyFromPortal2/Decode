@@ -113,6 +113,7 @@ public class Tunables { // this should hold all of our constants
     public static double clearVelocity = 10;
     public static double clearMaxPower = 0.8;
     public static double farAutoRPMOffset = 90; // manually calibrated 2-7-26
+    public static double magicOffset = 0.12;
 
     /** Vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
