@@ -28,7 +28,7 @@ public class TurretTuner extends LinearOpMode {
 
         waitForStart();
         while (opModeIsActive()) {
-            robot.calcPIDF();
+            robot.update();
             vision.update();
             robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale());
 

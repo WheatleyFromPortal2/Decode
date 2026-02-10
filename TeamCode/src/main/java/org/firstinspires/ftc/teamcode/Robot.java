@@ -17,6 +17,7 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
+import org.firstinspires.ftc.teamcode.subsys.Intake;
 import org.firstinspires.ftc.teamcode.subsys.PIDF;
 import org.firstinspires.ftc.teamcode.subsys.TimeProfiler;
 
@@ -37,7 +38,7 @@ public class Robot { // create our global class for our robot
 
     public LynxModule controlHub;
     public LynxModule expansionHub;
-    public DcMotorEx intake, launchLeft, launchRight, turretEncoder; // drive motors are handled by Pedro Pathing
+    public DcMotorEx launchLeft, launchRight, turretEncoder; // drive motors are handled by Pedro Pathing
     public Servo lowerTransfer, upperTransfer; // servos
     private Servo hood; // we only want to modify hood through setHoodPosition(pos), to ensure we don't set it out of bounds
     public Servo turret1, turret2; // continuous servos
@@ -58,6 +59,10 @@ public class Robot { // create our global class for our robot
         WAIT_FOR_TRANSFER
     }
 
+    /** subsystems **/
+    public Intake intake;
+
+
     /** only these variables should change during runtime **/
     public static LaunchState launchState = LaunchState.START; // set our launch state to start
     public double desiredLaunchVelocity; // this stores our desired launch velocity, used to check if we're in range
@@ -76,11 +81,13 @@ public class Robot { // create our global class for our robot
     public double launchCorrection; // power to apply to launch motors
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
+        // get subsystems ready
+        intake = new Intake(hw);
+
         controlHub = hw.get(LynxModule.class, "Control Hub");
         expansionHub = hw.get(LynxModule.class, "Expansion Hub 2"); // I believe this starts at 2
 
         // DC motors (all are DcMotorEx for current monitoring)
-        intake = hw.get(DcMotorEx.class, "intake"); // intake motor
         launchLeft = hw.get(DcMotorEx.class, "launchLeft"); // left launch motor, connected with a 1:1 ratio
         launchRight = hw.get(DcMotorEx.class, "launchRight"); // right launch motor, connected with a 1:1 ratio
         turretEncoder = hw.get(DcMotorEx.class, "turretEncoder"); // encoder for turret, no motor is connected to it
@@ -93,10 +100,6 @@ public class Robot { // create our global class for our robot
         // turret servos
         turret1 = hw.get(Servo.class, "turret1");
         turret2 = hw.get(Servo.class, "turret2");
-
-        intake.setDirection(DcMotorEx.Direction.FORWARD);
-        intake.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
-        intake.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER); // we're just running our intake at 100% speed all the time, so we don't need the encoder
 
         launchLeft.setDirection(DcMotorEx.Direction.REVERSE);
         launchLeft.setZeroPowerBehavior(DcMotorEx.ZeroPowerBehavior.FLOAT); // don't brake when we turn off the motor
@@ -122,6 +125,10 @@ public class Robot { // create our global class for our robot
         launchIntervalTimer = new Timer();
 
         timeProfiler = new TimeProfiler();
+    }
+
+    public void update() {
+        calcPIDF();
     }
 
     public String getProfilerOutput() {
@@ -169,7 +176,8 @@ public class Robot { // create our global class for our robot
         }
     }
 
-    public void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
+    private void calcPIDF() { // this calculates and applies our PIDFs for our launch motors and turret servos
+        intake.update();
         timeProfiler.start("update terms");
         // update all PIDF coefficients in controllers
         launchPIDF.updateTerms(Tunables.launchP, Tunables.launchI, Tunables.launchD, Tunables.launchF);
@@ -265,7 +273,6 @@ public class Robot { // create our global class for our robot
         lowerTransfer.setPosition(Tunables.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
     }
 
-    public double getIntakeCurrent() { return intake.getCurrent(CurrentUnit.AMPS); } // return intake current in amps
     public boolean isFull() {
         return ballsRemaining >= 3;
     }
@@ -359,7 +366,7 @@ public class Robot { // create our global class for our robot
                     break;
                 case RAISE_LOWER_TRANSFER:
                     lowerTransfer.setPosition(Tunables.lowerTransferUpperLimit);
-                    intake.setPower(Tunables.launchingIntakePower);
+                    intake.hold();
                     launchStateTimer.resetTimer();
                     launchState = LaunchState.WAIT_FOR_SENSOR_HIT;
                     break;
@@ -387,7 +394,7 @@ public class Robot { // create our global class for our robot
                 case WAIT_FOR_LOWER:
                     if (launchStateTimer.getElapsedTime() >= Tunables.lowerDelay) {
                         launchState = LaunchState.WAIT_FOR_TRANSFER;
-                        intake.setPower(1);
+                        intake.on();
                         launchStateTimer.resetTimer();
                     }
                     break;

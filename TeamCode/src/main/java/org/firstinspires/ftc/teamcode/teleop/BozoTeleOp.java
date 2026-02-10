@@ -4,6 +4,7 @@
 
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.bylazar.gamepad.GamepadManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.HandoffState;
@@ -35,7 +36,7 @@ public abstract class BozoTeleOp extends OpMode {
     private boolean isAutomatedDrive = false; // whether our drive is manually controlled or following a path
     private boolean isAutomatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
-    private boolean isIntakePowered = true; // start with intake powered
+    private GamepadManager gamepadManager;
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
     private double manualLaunchVelocity; // target launch velocity in TPS
@@ -45,6 +46,9 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void init() {
+        gamepadManager = new GamepadManager();
+        gamepad1 = gamepadManager.asCombinedFTCGamepad(gamepad1);
+
         // create timers and reset them
         loopTimer = new Timer();
         loopTimer.resetTimer();
@@ -76,12 +80,13 @@ public abstract class BozoTeleOp extends OpMode {
     public void start() {
         follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
         robot.resetLaunchServos(); // set servos to starting state
+        robot.intake.on();
     }
 
     @Override
     public void loop() {
         timeProfiler.start("PIDF");
-        robot.calcPIDF();
+        robot.update();
         timeProfiler.start("vision");
         vision.update();
         timeProfiler.stop();
@@ -97,7 +102,7 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         if (gamepad1.aWasReleased()) { // toggle intake
-            isIntakePowered = !isIntakePowered;
+            robot.intake.toggle();
         }
         if (gamepad1.bWasReleased()) { // toggle automated launch
             isAutomatedLaunch = !isAutomatedLaunch;
@@ -215,21 +220,6 @@ public abstract class BozoTeleOp extends OpMode {
         }
         lastFollowerHeading = follower.getHeading();
 
-        // intake control
-        if (!robot.isLaunching()) { // allow Robot.java to handle intake while launching
-            if (isIntakePowered) { // if we want to power our intake, and it isn't full
-                // our intake is 0% or 100%
-                if (!isIntakeReversed && !robot.isFull()) robot.intake.setPower(1); // only power intake normal direction if we aren't full
-                if (isIntakeReversed) robot.intake.setPower(-1); // reverse intake to eject/unclog (works even if intake is full)
-            }
-            //else if (robot.isLaunching()) {
-            //    robot.intake.setPower(1); // always power intake while we're launching
-            //}
-            else {
-                robot.intake.setPower(0); // turn off intake if other conditions aren't fulfilled
-            }
-        }
-
         timeProfiler.start("rumble");
         switch (robot.getBallsRemaining()) { // haptic feedback based on how many balls are in the robot
             case 0:
@@ -289,7 +279,7 @@ public abstract class BozoTeleOp extends OpMode {
 
             // current monitoring
             telemetryM.addData("launch current", robot.getLaunchCurrent()); // display combined launch current
-            telemetryM.addData("intake current", robot.getIntakeCurrent()); // display intake current
+            telemetryM.addData("intake current", robot.intake.getCurrent()); // display intake current
             telemetryM.addData("system current", robot.getSystemCurrent()); // display total system current
 
             // odo

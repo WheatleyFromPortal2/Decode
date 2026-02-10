@@ -186,7 +186,7 @@ public abstract class BozoAuto extends OpMode {
                     /* if we're holding point, we shouldn't have to disable motors
                     follower.pausePathFollowing();
                     follower.deactivateAllPIDFs(); */
-                    robot.intake.setPower(1); // turn on intake so transfer can work
+                    robot.intake.on(); // turn on intake so transfer can work
                     robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
                     setPathState(State.LAUNCH); // let's launch
                 }
@@ -194,7 +194,7 @@ public abstract class BozoAuto extends OpMode {
             case LAUNCH:
                 if (robot.updateLaunch()) { // we're done with launching balls
                     ballTripletsScored++; // increment the amount of triplets that we have scored if we have a successful launch
-                    robot.intake.setPower(0); // save power
+                    robot.intake.off(); // save power
                     /* if we're holding point, we shouldn't have to re-enable motors
                     follower.activateAllPIDFs();
                     follower.resumePathFollowing(); */
@@ -225,7 +225,7 @@ public abstract class BozoAuto extends OpMode {
                 break;
             case TRAVEL_TO_BALLS: // travel to the start position of the balls, but don't grab them yet
                 if(!follower.isBusy()) {
-                    robot.intake.setPower(1); // re-enable intake to pickup balls
+                    robot.intake.on(); // re-enable intake to pickup balls
                     switch (ballTripletsScored) { // this should always be between 3 and 0
                         case 1:
                             follower.followPath(grabPickup1);
@@ -297,7 +297,7 @@ public abstract class BozoAuto extends OpMode {
                 }
                 break;
             case END:
-                robot.intake.setPower(0); // turn off intake
+                robot.intake.on(); // turn off intake
                 updateHandoff();
                 follower.deactivateAllPIDFs(); // stop the follower
                 requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
@@ -317,7 +317,7 @@ public abstract class BozoAuto extends OpMode {
         loopTimer.resetTimer();
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
-        robot.calcPIDF();
+        robot.update();
 
         updateHandoff();
 
@@ -374,7 +374,7 @@ public abstract class BozoAuto extends OpMode {
     public void start() {
         opModeTimer.resetTimer();
         robot.resetLaunchServos(); // get servos ready
-        robot.intake.setPower(1); // start intake
+        robot.intake.on(); // start intake
         robot.setLaunchVelocity(robot.RPMToTPS(Tunables.scoreRPM)); // we're just gonna keep our score RPM constant for now
         setPathState(State.START);
     }

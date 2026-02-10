@@ -57,7 +57,6 @@ public class Tunables { // this should hold all of our constants
     public static double hoodMaximum = 0.54; // calibrated 1-22-26
 
     // distance sensor limits (better to undershoot rather than to overshoot)
-    public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
     public static double lowerTransferSensorOpen = 140; // needs to be different than upper transfer because color sensor distance measurements don't exceed 30mm :(
 
     // delays
@@ -69,7 +68,6 @@ public class Tunables { // this should hold all of our constants
     public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
 
     public static double scoreMargin = 100; // margin of 100TPS; TODO: tune this
-    public static double launchingIntakePower = 0; // just enough power to keep balls in, without moving them
 
     // rumble effects
     private static int delay1 = 200; // ms delay for 1ball
@@ -90,6 +88,16 @@ public class Tunables { // this should hold all of our constants
             .addStep(0.0, 0.0, delay3) // rumble right motor 100% for delay3
             // no pause (more intensity)
             .build();
+
+    /** intake tunables ** (used in Intake.java) **/
+
+    public static boolean intakeUsePowerSave = true;
+    public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
+    public static int intakePowerSaveWaitInterval = 100; // how often to check for a stalled intake while running
+    public static int intakePowerSaveCheckInterval = 100; // how often to update intake power/velocity check in millis
+    public static double intakePowerSaveTriggerAmps = 4; // if we are drawing more amsp than this, trigger power save
+    public static double intakePowerSaveTriggerVelocity = 0; // if we have a tps less than this, trigger power save
+    public static double intakeHoldPower = 0.05; // minimum power for balls to not fall out of intake
 
     /** TeleOp tunables (used in BozoTeleOp.java) **/
 

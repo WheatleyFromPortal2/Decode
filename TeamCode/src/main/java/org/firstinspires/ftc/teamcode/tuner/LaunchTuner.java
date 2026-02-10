@@ -12,7 +12,6 @@ import org.firstinspires.ftc.teamcode.Tunables;
 
 @TeleOp(name="LaunchTuner", group="Tuner")
 public class LaunchTuner extends LinearOpMode {
-    private boolean intakeOn = true;
 
     private final static int  manualChangeAmount = 10; // amount of millis to increment/decrement when d-pad is pressed
 
@@ -25,14 +24,10 @@ public class LaunchTuner extends LinearOpMode {
         waitForStart();
         while (opModeIsActive()) {
             robot.updateLaunch();
-            robot.calcPIDF();
+            robot.update();
             robot.setLaunchVelocity(robot.RPMToTPS(2400)); // RPM doesn't really matter
 
-            if (gamepad1.aWasReleased()) intakeOn = !intakeOn; // toggle intake
-            if (!robot.isLaunching()) {
-                if (intakeOn) robot.intake.setPower(1);
-                else robot.intake.setPower(0);
-            }
+            if (gamepad1.aWasReleased()) robot.intake.toggle();
 
             if (gamepad1.rightBumperWasReleased()) robot.launchBalls(1); // launch 1 ball
             if (gamepad1.yWasReleased()) robot.launchBalls(3); // launch 3 balls
