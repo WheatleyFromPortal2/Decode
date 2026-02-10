@@ -1,6 +1,6 @@
 /** this OpMode is used to test/tune the turret **/
 
-package org.firstinspires.ftc.teamcode.util;
+package org.firstinspires.ftc.teamcode.tuner;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -9,10 +9,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.Tunables;
-import org.firstinspires.ftc.teamcode.Vision;
+import org.firstinspires.ftc.teamcode.subsys.Vision;
 
-@TeleOp(name="TurretTuner", group="Util")
+@TeleOp(name="TurretTuner", group="Tuner")
 public class TurretTuner extends LinearOpMode {
 
     @Override

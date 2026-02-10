@@ -1,6 +1,6 @@
 /** the purpose of OpMode is to test distance sensors and their endpoints */
 
-package org.firstinspires.ftc.teamcode.util;
+package org.firstinspires.ftc.teamcode.tuner;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -12,7 +12,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
-@TeleOp(name="SensorTuner", group="Util")
+@TeleOp(name="SensorTuner", group="Tuner")
 public class SensorTuner extends LinearOpMode {
     @Override
     public void runOpMode() {

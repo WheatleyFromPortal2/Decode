@@ -1,7 +1,7 @@
 /** the purpose of OpMode is to test servo endpoints and max flywheel speed
  * MAKE SURE BOTH SERVOS ARE NOT GOING TO RUN INTO ANYTHING!!! **/
 
-package org.firstinspires.ftc.teamcode.util;
+package org.firstinspires.ftc.teamcode.tuner;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -11,7 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
-@TeleOp(name="ServoTuner", group="Util")
+@TeleOp(name="ServoTuner", group="Tuner")
 public class ServoTuner extends LinearOpMode {
 
     @Override

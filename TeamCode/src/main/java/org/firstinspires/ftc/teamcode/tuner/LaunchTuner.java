@@ -1,6 +1,6 @@
 /** this OpMode is used to tune delays for our launch state machine **/
 
-package org.firstinspires.ftc.teamcode.util;
+package org.firstinspires.ftc.teamcode.tuner;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
-@TeleOp(name="LaunchTuner", group="Util")
+@TeleOp(name="LaunchTuner", group="Tuner")
 public class LaunchTuner extends LinearOpMode {
     private boolean intakeOn = true;
 

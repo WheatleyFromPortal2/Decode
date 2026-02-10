@@ -1,6 +1,6 @@
 /** the purpose of OpMode is to test flywheel max speed and tune flywheel PIDF **/
 
-package org.firstinspires.ftc.teamcode.util;
+package org.firstinspires.ftc.teamcode.tuner;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
@@ -10,7 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
 
-@TeleOp(name="FlywheelTuner", group="Util")
+@TeleOp(name="FlywheelTuner", group="Tuner")
 public class FlywheelTuner extends LinearOpMode {
 
     @Override

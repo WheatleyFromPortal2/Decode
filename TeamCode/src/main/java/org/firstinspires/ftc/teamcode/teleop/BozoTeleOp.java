@@ -8,7 +8,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.HandoffState;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.TimeProfiler;
+import org.firstinspires.ftc.teamcode.subsys.TimeProfiler;
 import org.firstinspires.ftc.teamcode.Tunables;
 
 // Panels imports
@@ -17,7 +17,7 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 
 // Pedro Pathing imports
-import org.firstinspires.ftc.teamcode.Vision;
+import org.firstinspires.ftc.teamcode.subsys.Vision;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
