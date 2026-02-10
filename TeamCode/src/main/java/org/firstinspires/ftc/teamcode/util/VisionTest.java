@@ -4,10 +4,15 @@ package org.firstinspires.ftc.teamcode.util;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
+import com.pedropathing.follower.Follower;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
+import org.firstinspires.ftc.teamcode.HandoffState;
+import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Vision;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import com.pedropathing.util.Timer;
 
 @TeleOp(name="VisionTest", group="Util")
 public class VisionTest extends LinearOpMode {
@@ -15,19 +20,26 @@ public class VisionTest extends LinearOpMode {
 
     @Override
     public void runOpMode() {
-        Vision vision = new Vision(hardwareMap, isBlueTeam); // let's just say that we are blue team
+        Vision vision = new Vision(hardwareMap);
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
-        vision.start();
+        Follower follower = Constants.createFollower(hardwareMap);
+        Robot robot = new Robot(hardwareMap);
+        Timer loopTimer = new Timer();
+
+        vision.startPipeline(Vision.Pipeline.FULL_POS);
+        follower.setStartingPose(HandoffState.pose); // should be middle of field by default
 
         waitForStart();
 
         while (opModeIsActive()) {
-            vision.update();
-            telemetryM.debug("isBlueTeam: " + isBlueTeam);
+            loopTimer.resetTimer();
+            follower.update();
+            vision.updateFullPos(follower.getHeading(), robot.getTurretPosition());
 
-            telemetryM.addData("last goal distance", vision.getLastGoalDistance());
-            telemetryM.addData("last goal tx", vision.getLastGoalTx());
-            telemetryM.addData("last goal ta", vision.getLastGoalTa());
+            telemetryM.addData("loop time millis (without telemetry)", loopTimer.getElapsedTime());
+            telemetryM.addData("stale?", vision.isStale());
+            telemetryM.addData("lastBotPose", vision.getLastBotPose());
+            telemetryM.addData("pipeline", vision.getPipeline());
             telemetryM.addData("limelight status", vision.getStatus());
             telemetryM.update(telemetry); // update our telemetry
             idle();

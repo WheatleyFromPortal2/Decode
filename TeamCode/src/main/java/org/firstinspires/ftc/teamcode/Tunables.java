@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 @Configurable
@@ -118,4 +119,12 @@ public class Tunables { // this should hold all of our constants
     /** Vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
     public static double goalOffset = -30; // TODO:
+
+    // offsets for translating from limelight->field position
+    // TODO: calibrate these
+    //public static double limelightOffsetZ = 0;
+    public static double maxLimelightHeadingError = Math.toRadians(5); // if our limelight reports a heading that differs by more than this, discard that measurement
+    public static double turretOffsetX = 0;
+    public static double turretOffsetY = 0;
+    public static double limelightTurretRadius = 0; // how far limelight is mounted from center of turret in inches
 }

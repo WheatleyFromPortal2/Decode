@@ -50,8 +50,8 @@ public abstract class BozoTeleOp extends OpMode {
         loopTimer.resetTimer();
 
         robot = new Robot(hardwareMap);
-        vision = new Vision(hardwareMap, isBlueTeam());
-        vision.start();
+        vision = new Vision(hardwareMap);
+        vision.startPipeline(Vision.Pipeline.FULL_POS);
         follower = Constants.createFollower(hardwareMap);
 
         follower.setPose(HandoffState.pose);
@@ -83,7 +83,7 @@ public abstract class BozoTeleOp extends OpMode {
         timeProfiler.start("PIDF");
         robot.calcPIDF();
         timeProfiler.start("vision");
-        vision.update();
+        vision.updateFullPos(follower.getHeading(), robot.getTurretPosition());
         timeProfiler.stop();
         loopTimer.resetTimer();
         timeProfiler.start("follower");
@@ -181,8 +181,7 @@ public abstract class BozoTeleOp extends OpMode {
                 robot.setAutomatedLaunch(goalDst);
                 robot.setAutomatedHoodPosition(goalDst);
             } else {
-                robot.setAutomatedLaunch(vision.getLastGoalDistance()); // get goal distance using vision
-                robot.setAutomatedHoodPosition(vision.getLastGoalDistance()); // get goal distance using vision
+                // TODO: fill in with appropriate automatic methods
             }
         } else { // set our launch velocity and hood angle manually
             robot.setLaunchVelocity(manualLaunchVelocity + manualLaunchVelocityOffset); // set our launch velocity to our desired launch velocity with our offset
@@ -198,21 +197,7 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         // turret control
-        if (vision.getStaleness() >= Tunables.maxTurretLockMillis) {
-            // turret not locked on
-            robot.setDesiredTurretPosition(robot.getTurretGoalHeading(follower.getPose(), getGoalPose()));
-        } else {
-            // turret locked on
-            if (Math.abs(lastFollowerHeading - follower.getHeading()) < Math.toRadians(5)) {
-                // haven't had a large change in robot heading
-                robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale()); // should auto know if vision is stale but whatever
-            } else {
-                // have had a large change in robot heading - need to compensate based off of that
-                double odoHeadingChange = lastFollowerHeading - follower.getHeading();
-                double newTurretPos = robot.getDesiredTurretPosition() + odoHeadingChange;
-                robot.setDesiredTurretPosition(newTurretPos);
-            }
-        }
+        // TODO: fix to use absolute combined positioning from vision
         lastFollowerHeading = follower.getHeading();
 
         // intake control
@@ -277,10 +262,8 @@ public abstract class BozoTeleOp extends OpMode {
             telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin());
 
             // vision & distances
-            telemetryM.addData("last vision goal dst", vision.getLastGoalDistance());
             telemetryM.addData("odo goal dst", follower.getPose().distanceFrom(getGoalPose()));
             telemetryM.debug("vision stale?: " + vision.isStale());
-            telemetryM.debug("lastTx: " + vision.getLastGoalTx());
 
             // state
             telemetryM.debug("automated drive?: " + isAutomatedDrive);

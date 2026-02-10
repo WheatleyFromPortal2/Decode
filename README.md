@@ -254,11 +254,12 @@ We are using a Limelight 3A
 
 ## pipelines
 
-| filename         | index  | allowed tag IDs | purpose                                 |
-|:-----------------|--------|:----------------|:----------------------------------------|
-| `0_Obelisk.vpr`  | `0`    | 21, 22, 23      | detect pattern                          |
-| `1_BlueTeam.vpr` | `1`    | 20              | get blue goal april tag distance and tx |
-| `2_RedTeam.vpr`  | `2`    | 24              | get red goal april tag distance and tx  |
+| filename         | index  | allowed tag IDs | purpose                                       |
+|:-----------------|--------|:----------------|:----------------------------------------------|
+| `0_Obelisk.vpr`  | `0`    | 21,22,23        | detect pattern                                |
+| `1_BlueTeam.vpr` | `1`    | 20              | get blue goal april tag distance and tx       |
+| `2_RedTeam.vpr`  | `2`    | 24              | get red goal april tag distance and tx        |
+| `3_FullPos.vpr`  | `3`    | 20,24           | get full positioning data from both goal tags |
 
 pipeline files are saved in the [limelight folder](limelight/)
 
