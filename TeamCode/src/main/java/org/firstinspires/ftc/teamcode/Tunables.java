@@ -93,7 +93,8 @@ public class Tunables { // this should hold all of our constants
 
     /** TeleOp tunables (used in BozoTeleOp.java) **/
 
-    public static double turnRateMultiplier = 0.75; // always have our turns 75% speed
+    public static double fieldCentricTurnRateMultiplier = 0.75; // what to multiply turn input while doing field centric control
+    public static double robotCentricTurnRateMultiplier = 0.4; // what to multiply turn input while doing robot centric control
     public static int adjustRPM = 50; // driver increments/decrements by adjustRPM
     public static double initialManualLaunchRPM = 2350; // 2400 is a little too much
     public static boolean useBrakes = true; // whether to use brakes in TeleOp

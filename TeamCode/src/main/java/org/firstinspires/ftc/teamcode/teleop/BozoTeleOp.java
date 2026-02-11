@@ -148,7 +148,7 @@ public abstract class BozoTeleOp extends OpMode {
                 follower.setTeleOpDrive(
                         -gamepad1.left_stick_y * slowModeMultiplier,
                         -gamepad1.left_stick_x * slowModeMultiplier,
-                        -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                        -gamepad1.right_stick_x * Tunables.robotCentricTurnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
                         true // true = robot centric; false = field centric
                 );
             } else { // we are controlling relative to the field
@@ -159,7 +159,7 @@ public abstract class BozoTeleOp extends OpMode {
                 follower.setTeleOpDrive(
                         -gamepad1.left_stick_y * slowModeMultiplier * flipControl,
                         -gamepad1.left_stick_x * slowModeMultiplier * flipControl,
-                        -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                        -gamepad1.right_stick_x * Tunables.fieldCentricTurnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
                         false // true = robot centric; false = field centric
                 );
             }
