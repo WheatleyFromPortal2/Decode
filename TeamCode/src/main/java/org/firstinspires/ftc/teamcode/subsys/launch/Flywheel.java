@@ -41,7 +41,9 @@ public class Flywheel {
         double currentTPS = getTPS();
         double newPower;
 
-        if (Math.abs(currentTPS - setpointTPS) < Tunables.flywheelQuickStartThreshold) {
+        if (setpointTPS == 0) {
+            newPower = 0.0;
+        } else if (Math.abs(currentTPS - setpointTPS) < Tunables.flywheelQuickStartThreshold) {
             // small difference - use PIDF
             newPower = pidf.calc(setpointTPS, currentTPS); // calc new motor power
         } else {
