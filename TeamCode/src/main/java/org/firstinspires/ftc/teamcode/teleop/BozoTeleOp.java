@@ -8,6 +8,7 @@ import com.bylazar.gamepad.GamepadManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.HandoffState;
+import org.firstinspires.ftc.teamcode.Physics;
 import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
 import org.firstinspires.ftc.teamcode.subsys.TimeProfiler;
@@ -29,6 +30,7 @@ import com.pedropathing.util.Timer;
 // this class will never be run as a TeleOp, and will always be extended by either RedTeleOp or BlueTeleOp
 public abstract class BozoTeleOp extends OpMode {
     private Robot robot;
+    private Physics physics;
     private Follower follower;
     private Vision vision;
     private TimeProfiler timeProfiler;
@@ -54,6 +56,7 @@ public abstract class BozoTeleOp extends OpMode {
         loopTimer.resetTimer();
 
         robot = new Robot(hardwareMap);
+        physics = new Physics();
         vision = new Vision(hardwareMap, isBlueTeam());
         vision.start();
         follower = Constants.createFollower(hardwareMap);
@@ -86,7 +89,6 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void loop() {
-        robot.setSetpoints(setpoints);
         timeProfiler.start("PIDF");
         timeProfiler.start("vision");
         vision.update();
@@ -175,25 +177,26 @@ public abstract class BozoTeleOp extends OpMode {
         timeProfiler.start("launch");
 
         if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
-            if (vision.isStale()) { // if it has been a while since our last vision reading
-                double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
+            LaunchSetpoints physicsSetpoints = physics.getNeededStaticVelocity(follower.getPose(), getGoalPose());
 
-                double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
-                robot.setAutomatedLaunchSetpoints(goalDst);
-            } else {
-                robot.setAutomatedLaunchSetpoints(vision.getLastGoalDistance());
-            }
+            robot.setSetpoints(physicsSetpoints);
+
+            //double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
+            //double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
+            //robot.setAutomatedLaunchSetpoints(goalDst);
+            //robot.setAutomatedLaunchSetpoints(vision.getLastGoalDistance());
         } else { // set our launch velocity and hood angle manually
-            robot.setSetpoints(setpoints);
-
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
                 double hoodRange = Tunables.hoodMaximum - Tunables.hoodMinimum;
                 double stickValue = (-gamepad1.right_stick_y + 1) / 2; // reverse stick and map from (-1)<->(1) to (0)<->(1)
                 double manualHoodPos = hoodRange * stickValue; // multiply increase from min by right stick y value
                 setpoints.setHoodPos(manualHoodPos);
+                robot.setSetpoints(setpoints);
             }
+
         }
+
 
         // TODO: refactor this to use fused auto-aim
         lastFollowerHeading = follower.getHeading();
@@ -234,6 +237,8 @@ public abstract class BozoTeleOp extends OpMode {
         // launch system
         if (isAutomatedLaunch) {
             telemetryM.addLine("launch is in AUTOMATED control");
+            telemetryM.addData("desired RPM", robot.getSetpoints().getRPM());
+            telemetryM.addData("desired hood pos", robot.getSetpoints().getHoodPos());
         } else {
             telemetryM.addLine("launch is in MANUAL control");
             telemetryM.addData("desired flywheel RPM", setpoints.getRPM()); // make sure to convert from TPS->RPM
@@ -243,7 +248,7 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         if (Tunables.isDebugging) {
-            telemetryM.addData("hood pos", setpoints.getHoodPos());
+            telemetryM.addData("hood pos", robot.getSetpoints().getHoodPos());
             telemetryM.addData("turret pos", robot.turret.getPos());
             telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
 
