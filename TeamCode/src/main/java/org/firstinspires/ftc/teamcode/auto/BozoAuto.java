@@ -9,6 +9,7 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
+import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -21,6 +22,7 @@ import org.firstinspires.ftc.teamcode.Tunables;
 
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
 
 
 public abstract class BozoAuto extends OpMode {
@@ -29,13 +31,14 @@ public abstract class BozoAuto extends OpMode {
     protected abstract Pose getStartPose();
     Robot robot;
     private Follower follower;
-    private Timer stateTimer, opModeTimer, loopTimer;
+    private Timer stateTimer, loopTimer;
     private TelemetryManager telemetryM; // create our telemetry object
     private Pose startPose;
 
     private enum State { // define our possible states for our FSM
         START, // starting state, waiting for OpMode to begin
         TRAVEL_TO_LAUNCH, // travel to our defined position to launch balls from. an internal switch statement control which path it will take
+        START_LAUNCH, // issue launch ball command to robot
         LAUNCH, // wait for us to stop moving
         TRAVEL_TO_BALLS, // travel to the starting point of gathering balls
         RELOAD, // drive in the straight line with intake on to grab balls
@@ -166,7 +169,7 @@ public abstract class BozoAuto extends OpMode {
     }
 
     // isn't as flexible as https://state-factory.gitbook.io/state-factory, but it should be good enough for now
-    public void autonomousPathUpdate() {
+    public void autonomousPathUpdate(boolean robotUpdateStatus) {
             /* You could check for
             - Follower State: "if(!follower.isBusy()) {}"
             - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
@@ -180,21 +183,24 @@ public abstract class BozoAuto extends OpMode {
                 break;
             case TRAVEL_TO_LAUNCH:
                 if (!follower.isBusy() // check if our follower is busy
-                        && robot.isLaunchWithinMargin() // check if our launch velocity is within our margin
+                        && robot.flywheel.isWithinMargin() // check if our launch velocity is within our margin
                         && follower.getPose().roughlyEquals(config.scorePose, Tunables.launchDistanceMargin)) { // check if we're holding position close enough to where we want to shoot
                     //follower.holdPoint(config.scorePose); // this should already be done by holdEnd: true
                     /* if we're holding point, we shouldn't have to disable motors
                     follower.pausePathFollowing();
                     follower.deactivateAllPIDFs(); */
-                    robot.intake.setPower(1); // turn on intake so transfer can work
                     robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
-                    setPathState(State.LAUNCH); // let's launch
+                    setPathState(State.START_LAUNCH); // let's launch
                 }
                 break;
+            case START_LAUNCH:
+                robot.launchBalls(3);
+                setPathState(State.LAUNCH);
+                break;
             case LAUNCH:
-                if (robot.updateLaunch()) { // we're done with launching balls
+                if (robotUpdateStatus) { // we're done with launching balls
                     ballTripletsScored++; // increment the amount of triplets that we have scored if we have a successful launch
-                    robot.intake.setPower(0); // save power
+                    robot.intake.off(); // save power
                     /* if we're holding point, we shouldn't have to re-enable motors
                     follower.activateAllPIDFs();
                     follower.resumePathFollowing(); */
@@ -225,7 +231,7 @@ public abstract class BozoAuto extends OpMode {
                 break;
             case TRAVEL_TO_BALLS: // travel to the start position of the balls, but don't grab them yet
                 if(!follower.isBusy()) {
-                    robot.intake.setPower(1); // re-enable intake to pickup balls
+                    robot.intake.forward(); // re-enable intake to pickup balls
                     switch (ballTripletsScored) { // this should always be between 3 and 0
                         case 1:
                             follower.followPath(grabPickup1);
@@ -291,13 +297,13 @@ public abstract class BozoAuto extends OpMode {
                 }
                 break;
             case GO_TO_END: // travels to the end
-                robot.setDesiredTurretPosition(0); // lock turret in middle
+                robot.turret.setDesiredPos(0); // lock turret in middle
                 if(!follower.isBusy()) {
                     setPathState(State.END);
                 }
                 break;
             case END:
-                robot.intake.setPower(0); // turn off intake
+                robot.intake.forward(); // turn off intake
                 updateHandoff();
                 follower.deactivateAllPIDFs(); // stop the follower
                 requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
@@ -317,11 +323,11 @@ public abstract class BozoAuto extends OpMode {
         loopTimer.resetTimer();
         // These loop the movements of the robot, these must be called continuously in order to work
         follower.update();
-        robot.calcPIDF();
+
 
         updateHandoff();
 
-        autonomousPathUpdate(); // update our state machine and run its actions
+        autonomousPathUpdate(robot.update()); // update our state machine and run its actions
 
         if (Tunables.isDebugging) {
             sendTelemetry(false); // we don't want to send our init time now that our OpMode is running
@@ -339,11 +345,9 @@ public abstract class BozoAuto extends OpMode {
         // set up our timers
         loopTimer = new Timer();
         stateTimer = new Timer();
-        opModeTimer = new Timer();
 
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
         robot = new Robot(hardwareMap);
-        robot.resetLaunchServos(); // get servos ready
 
         telemetryM.debug("creating follower... (this may take a while)");
         telemetryM.update(telemetry);
@@ -355,8 +359,11 @@ public abstract class BozoAuto extends OpMode {
         telemetryM.update(telemetry);
 
         buildPaths(); // this will create our paths from our predefined variables
-        robot.setDesiredTurretPosition(config.scoreTurretPos); // we will just always keep our turret in score position
-        robot.setHoodPosition(Tunables.scoreHoodPos); // we will just always keep our hood in the same position
+        LaunchSetpoints setpoints = new LaunchSetpoints(0, 0, 0);
+        setpoints.setRPM(Tunables.scoreRPM);
+        setpoints.setTurretPos(config.scoreTurretPos);
+        setpoints.setHoodPos(Tunables.scoreHoodPos);
+        robot.setSetpoints(setpoints);
 
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
 
@@ -372,10 +379,7 @@ public abstract class BozoAuto extends OpMode {
     /** This method is called once at the start of the OpMode. **/
     @Override
     public void start() {
-        opModeTimer.resetTimer();
-        robot.resetLaunchServos(); // get servos ready
-        robot.intake.setPower(1); // start intake
-        robot.setLaunchVelocity(robot.RPMToTPS(Tunables.scoreRPM)); // we're just gonna keep our score RPM constant for now
+        robot.intake.forward(); // start intake
         setPathState(State.START);
     }
 
@@ -383,8 +387,7 @@ public abstract class BozoAuto extends OpMode {
     @Override
     public void stop() {
         updateHandoff(); // update our hand off when we stop
-        // doesn't really work because stopping OpMode disables servo power
-        robot.resetLaunchServos(); // return servos to starting position
+        // moving servos doesn't really work because stopping the OpMode disables servo power
     }
 
     public void sendTelemetry(boolean sendInitTime) {
@@ -392,7 +395,7 @@ public abstract class BozoAuto extends OpMode {
         if (sendInitTime) telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
 
         // warnings!
-        if (Math.abs(robot.getDesiredLaunchRPM() - robot.getLaunchRPM()) > 100) telemetryM.debug("WARNING: LAUNCH OUT OF 100RPM RANGE");
+        if (robot.flywheel.isWithinMargin()) telemetryM.debug("WARNING: LAUNCH OUT OF MARGIN");
 
         // state
         telemetryM.debug("path state: " + state);
@@ -401,10 +404,8 @@ public abstract class BozoAuto extends OpMode {
         telemetryM.debug("is follower busy?: " + follower.isBusy());
 
         // launch system
-        telemetryM.addData("desiredLaunchRPM", robot.getDesiredLaunchRPM());
-        telemetryM.addData("launch RPM", robot.getLaunchRPM());
+        telemetryM.addData("launch RPM", robot.flywheel.getRPM());
         telemetryM.addData("ballsRemaining", robot.getBallsRemaining());
-        telemetryM.debug("is launch within margin?: " + robot.isLaunchWithinMargin());
 
         // odo
         telemetryM.addData("x", follower.getPose().getX());
@@ -412,7 +413,7 @@ public abstract class BozoAuto extends OpMode {
         telemetryM.addData("heading", follower.getPose().getHeading());
 
         // timing
-        telemetryM.debug("OpMode time (seconds): " + opModeTimer.getElapsedTimeSeconds());
+        telemetryM.debug("OpMode time (seconds): " + getRuntime());
     }
 
     public void updateHandoff() {

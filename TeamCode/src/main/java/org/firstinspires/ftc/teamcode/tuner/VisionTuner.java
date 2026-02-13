@@ -1,16 +1,16 @@
 /** the purpose of OpMode is to test our vision code */
 
-package org.firstinspires.ftc.teamcode.util;
+package org.firstinspires.ftc.teamcode.tuner;
 
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.Vision;
+import org.firstinspires.ftc.teamcode.subsys.Vision;
 
-@TeleOp(name="VisionTest", group="Util")
-public class VisionTest extends LinearOpMode {
+@TeleOp(name="VisionTuner", group="Tuner")
+public class VisionTuner extends LinearOpMode {
     public boolean isBlueTeam = true;
 
     @Override

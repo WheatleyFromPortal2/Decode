@@ -1,7 +1,7 @@
 /** general PIDF controller to use for pointing robot towards goal april tag **/
 // taken from: https://roboftc.github.io/code/pidf.html
 
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.subsys;
 
 public class PIDF {
     // PIDF coefficients
