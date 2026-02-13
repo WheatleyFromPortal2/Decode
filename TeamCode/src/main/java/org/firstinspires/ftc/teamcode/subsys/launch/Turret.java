@@ -4,13 +4,14 @@ import static org.firstinspires.ftc.robotcore.external.navigation.AngleUnit.norm
 
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Tunables;
 
 public class Turret {
-    private ServoImplEx turret1, turret2;
+    private Servo turret1, turret2;
     private DcMotorEx encoder;
 
     private static final int TURRET_TICKS_PER_REV = 1024; // tested 1-13-26
@@ -25,8 +26,8 @@ public class Turret {
     /** end vars that change **/
 
     public Turret(HardwareMap hw) {
-        turret1 = hw.get(ServoImplEx.class, "turret1");
-        turret2 = hw.get(ServoImplEx.class, "turret2");
+        turret1 = hw.get(Servo.class, "turret1");
+        turret2 = hw.get(Servo.class, "turret2");
         //turret1.setPwmEnable();
         //turret2.setPwmEnable();
 
@@ -38,10 +39,12 @@ public class Turret {
     public void update() {
         if (isPowered) {
             //double newTurretServoPos = ((-desiredPos + Tunables.turretOffset) / (Tunables.turretMax * 2)) + 0.5;
-
+            double maxAdjusted = ((-desiredPos + Tunables.turretCenterOffset) / (Tunables.turretMaxRange * 2)) + 0.5;
+            /*
             double turretAngle = Tunables.turretCenterOffset - desiredPos;
             double preClamped = Range.clip(turretAngle, -Tunables.turretMaxRight, Tunables.turretMaxLeft);
             double maxAdjusted = (preClamped + Tunables.turretMaxRight) / (Tunables.turretMaxLeft + Tunables.turretMaxRight);
+             */
 
             if (Double.isNaN(maxAdjusted)) {
                 throw new IllegalStateException("turret position is NaN!");
@@ -94,10 +97,11 @@ public class Turret {
     /** setter methods **/
 
     public void setDesiredPos(double radians) { // set desired turret angle
-        if (!isPowered) on();
+        //if (!isPowered) on();
         desiredPos = normalizeRadians(radians);
     }
 
+    /*
     public void off() {
         turret1.setPwmDisable();
         turret2.setPwmDisable();
@@ -109,17 +113,18 @@ public class Turret {
         turret2.setPwmEnable();
         isPowered = true;
     }
+    */
 
     public void lock() {
         desiredPos = 0;
-        on();
+        //on();
     }
 
     public void zero() { // fully reset everything
         lastDesiredPos = 0;
         isPowered = true;
         resetEncoder();
-        off();
+        //off();
     }
 
     public void setRawServoPositions(double pos) { // !only use this for calibration!
