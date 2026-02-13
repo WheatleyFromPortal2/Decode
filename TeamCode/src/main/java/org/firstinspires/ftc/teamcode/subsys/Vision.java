@@ -1,5 +1,5 @@
 /** this class holds all of our code that interfaces with our Limelight **/
-package org.firstinspires.ftc.teamcode;
+package org.firstinspires.ftc.teamcode.subsys;
 
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.hardware.limelightvision.LLResult;
@@ -9,6 +9,8 @@ import com.qualcomm.hardware.limelightvision.Limelight3A;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 import com.pedropathing.util.Timer;
+
+import org.firstinspires.ftc.teamcode.Tunables;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
