@@ -6,12 +6,11 @@ import com.pedropathing.math.Vector;
 import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
 
 public class Physics {
-    // both of these are in meters
+    // both of these must be in meters
     private final double SHOOTER_Z = .4064; // calibrated 2-13-26
     private final double GOAL_Z = 0.7874; // calibrated 2-13-26
-    public Physics() { // set up class
 
-    }
+    public Physics() {} // set up class
 
     public LaunchSetpoints getNeededStaticVelocity(
             Pose robotPose,
@@ -49,10 +48,9 @@ public class Physics {
 
     public LaunchSetpoints getNeededVelocity(
             Pose robotPose,
-            Vector robotVelocity,
+            Vector robotVector,
             Pose goalPose )
     {
-        // TODO: convert this all to meters (including vector if necessary)
         LaunchSetpoints setpoints = new LaunchSetpoints(0, 0, 0);
 
         // convert from inches to meters
@@ -62,17 +60,19 @@ public class Physics {
         double goalX = inchesToMeters(goalPose.getX());
         double goalY = inchesToMeters(goalPose.getY());
 
+        // Pedro Pathing vectors are also stored in inches and thus need to be converted
+        double robotVx = inchesToMeters(robotVector.getXComponent());
+        double robotVy = inchesToMeters(robotVector.getYComponent());
+
         final double G = 9.81;
         final double ANGLE = Math.PI / 3.0;
         setpoints.setHoodPos(ANGLE);
         final double SHOT_DELAY = 0.15;
-        double robotVx = robotVelocity.getXComponent();
-        double robotVy = robotVelocity.getYComponent();
-        double fireX = robotPose.getX() + robotVx * SHOT_DELAY;
-        double fireY = robotPose.getY() + robotVy * SHOT_DELAY;
+        double fireX = robotX + robotVx * SHOT_DELAY;
+        double fireY = robotY + robotVy * SHOT_DELAY;
 
-        double dx = goalPose.getX() - fireX;
-        double dy = goalPose.getY() - fireY;
+        double dx = goalX - fireX;
+        double dy = goalY - fireY;
         double d = Math.hypot(dx, dy);
         double h = GOAL_Z - SHOOTER_Z;
 
@@ -112,8 +112,7 @@ public class Physics {
 
     private double velocityToRPM(double velocity)
     {
-        double RPM = (velocity + 0.475726) /0.00246641;
-        return RPM;
+        return (velocity + 0.475726) / 0.00246641;
     }
 
     private double inchesToMeters(double inches) {
