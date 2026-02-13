@@ -236,8 +236,10 @@ public abstract class BozoTeleOp extends OpMode {
             telemetryM.addLine("launch is in AUTOMATED control");
         } else {
             telemetryM.addLine("launch is in MANUAL control");
-            telemetryM.debug("desired launch RPM: " + setpoints.getRPM()); // make sure to convert from TPS->RPM
-            telemetryM.debug("hood locked?: " + isHoodLocked);
+            telemetryM.addData("desired flywheel RPM", setpoints.getRPM()); // make sure to convert from TPS->RPM
+            telemetryM.addData("actual flywheel RPM", robot.flywheel.getRPM());
+            if (isHoodLocked) { telemetryM.debug("hood LOCKED"); }
+            telemetryM.addData("hood pos", robot.hood.getPos());
         }
 
         if (Tunables.isDebugging) {
