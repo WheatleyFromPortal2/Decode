@@ -160,6 +160,7 @@ public class Robot { // create our global class for our robot
     }
 
     private void setState(LaunchState newState) {
+        if (newState == LaunchState.START) { intake.forward(); }
         state = newState;
         launchStateTimer.resetTimer();
     }
