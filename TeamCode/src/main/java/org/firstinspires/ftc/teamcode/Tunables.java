@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.control.KalmanFilterParameters;
 import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
@@ -96,7 +97,7 @@ public class Tunables { // this should hold all of our constants
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
     public static double farZoneDataStart = 95; // if d > this, use far zone data
 
-    /** Auto tunables (used in BozoAuto.java) **/
+    /** auto tunables (used in BozoAuto.java) **/
 
     public static double scoreRPM = 2250; // RPM to set for launching (stolen from teleop)
     public static double scoreHoodPos = 0.171; // hood position for launching in auto
@@ -108,7 +109,7 @@ public class Tunables { // this should hold all of our constants
     public static double clearMaxPower = 0.8;
     public static double magicOffset = 0.12;
 
-    /** Vision tunables (used in Vision.java) **/
+    /** vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
     public static double goalOffset = -30; // TODO:
 
@@ -119,4 +120,11 @@ public class Tunables { // this should hold all of our constants
     public static double turretOffsetX = 0;
     public static double turretOffsetY = 0;
     public static double limelightTurretRadius = 0; // how far limelight is mounted from center of turret in inches
+
+    /** fusion tunables (used in Fusion.java) **/
+
+    public static double modelCovariance = 0.05; // odo noise
+    public static double dataCovariance = 0.01; // vision noise
+
+    public static double maxVisionVariance = 10; // reject vision estimates with a euclidean distance difference greater than this from odo
 }

@@ -10,10 +10,9 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.HandoffState;
 import org.firstinspires.ftc.teamcode.Robot;
-import org.firstinspires.ftc.teamcode.Vision;
+import org.firstinspires.ftc.teamcode.subsys.Vision;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.util.Timer;
-import org.firstinspires.ftc.teamcode.subsys.Vision;
 
 @TeleOp(name="VisionTuner", group="Tuner")
 public class VisionTuner extends LinearOpMode {
@@ -35,7 +34,7 @@ public class VisionTuner extends LinearOpMode {
         while (opModeIsActive()) {
             loopTimer.resetTimer();
             follower.update();
-            vision.updateFullPos(follower.getHeading(), robot.getTurretPosition());
+            vision.updateFullPos(follower.getHeading(), robot.turret.getPos());
 
             telemetryM.addData("loop time millis (without telemetry)", loopTimer.getElapsedTime());
             telemetryM.addData("stale?", vision.isStale());

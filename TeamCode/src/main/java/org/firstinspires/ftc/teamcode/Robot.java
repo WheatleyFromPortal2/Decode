@@ -11,7 +11,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 // unit imports
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
+import org.firstinspires.ftc.teamcode.subsys.Fusion;
 import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
+import org.firstinspires.ftc.teamcode.subsys.Vision;
 import org.firstinspires.ftc.teamcode.subsys.launch.Flywheel;
 import org.firstinspires.ftc.teamcode.subsys.launch.Hood;
 import org.firstinspires.ftc.teamcode.subsys.launch.Intake;
@@ -47,6 +49,9 @@ public class Robot { // create our global class for our robot
     public Intake intake;
     public Transfer transfer;
 
+    public Fusion fusion;
+    public Vision vision;
+
 
     /** only these variables should change during runtime **/
 
@@ -66,6 +71,9 @@ public class Robot { // create our global class for our robot
         turret = new Turret(hw);
         intake = new Intake(hw);
         transfer = new Transfer(hw);
+
+        vision = new Vision(hw);
+        fusion = new Fusion(HandoffState.pose);
 
         setpoints = new LaunchSetpoints(0, 0, 0);
 

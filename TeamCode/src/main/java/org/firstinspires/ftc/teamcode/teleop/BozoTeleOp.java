@@ -89,7 +89,7 @@ public abstract class BozoTeleOp extends OpMode {
         robot.setSetpoints(setpoints);
         timeProfiler.start("PIDF");
         timeProfiler.start("vision");
-        vision.updateFullPos(follower.getHeading(), robot.getTurretPosition());
+        vision.updateFullPos(follower.getHeading(), robot.turret.getPos());
         timeProfiler.stop();
         loopTimer.resetTimer();
         timeProfiler.start("follower");
@@ -181,7 +181,7 @@ public abstract class BozoTeleOp extends OpMode {
                 double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
                 robot.setAutomatedLaunchSetpoints(goalDst);
             } else {
-                robot.setAutomatedLaunchSetpoints(vision.getLastGoalDistance());
+                //robot.setAutomatedLaunchSetpoints(vision.get);
                 // TODO: fill in with appropriate automatic methods
             }
         } else { // set our launch velocity and hood angle manually
