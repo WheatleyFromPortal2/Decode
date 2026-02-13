@@ -3,6 +3,8 @@ package org.firstinspires.ftc.teamcode;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 
+import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
+
 public class Physics {
     private final double SHOOTER_Z = .4064; // calibrated 2-13-26
     private final double GOAL_Z = 0.7874; // calibrated 2-13-26
@@ -10,12 +12,14 @@ public class Physics {
 
     }
 
-    public double[] getNeededStaticVelocity(
+    public LaunchSetpoints getNeededStaticVelocity(
             Pose robotPose,
             Pose goalPose )
     {
+        LaunchSetpoints setpoints = new LaunchSetpoints(0, 0, 0);
         final double G = 9.81;
         final double ANGLE = Math.PI / 3.0;
+        setpoints.setHoodPos(ANGLE);
 
         double dx = goalPose.getX() - robotPose.getX();
         double dy = goalPose.getY() - robotPose.getY();
@@ -29,17 +33,21 @@ public class Physics {
         if (denom <= 0) return null;
 
         double v = Math.sqrt((G * d * d) / denom);
-        return new double[]{v, ANGLE};
+        double RPM = velocityToRPM(v);
+        setpoints.setRPM(RPM);
+        return setpoints;
     }
 
-    public double[] getNeededVelocity(
+    public LaunchSetpoints getNeededVelocity(
             Pose robotPose,
             Vector robotVelocity,
             Pose goalPose )
     {
+        LaunchSetpoints setpoints = new LaunchSetpoints(0, 0, 0);
 
         final double G = 9.81;
         final double ANGLE = Math.PI / 3.0;
+        setpoints.setHoodPos(ANGLE);
         final double SHOT_DELAY = 0.15;
         double robotVx = robotVelocity.getXComponent();
         double robotVy = robotVelocity.getYComponent();
@@ -79,7 +87,10 @@ public class Physics {
         }
 
         if (bestV < 0) return null;
-        return new double[]{bestV, ANGLE};
+
+        double RPM = velocityToRPM(bestV);
+        setpoints.setRPM(RPM);
+        return setpoints;
     }
 
     public double velocityToRPM(double velocity)

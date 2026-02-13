@@ -71,6 +71,8 @@ public class Tunables { // this should hold all of our constants
     public static double hoodMinimum = 0.32; // calibrated 1-22-26
     public static double hoodMaximum = 0.54; // calibrated 1-22-26
     public static double hoodWriteMargin = 0.01; // if our hood position change is less than this, don't waste time with a write
+    // angles: 0.22 = 50deg; 0.00917 = 19deg
+    // just use a map and save lowest/highest deg vals
 
     /** turret tunables (used in Turret.java) **/
     public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
