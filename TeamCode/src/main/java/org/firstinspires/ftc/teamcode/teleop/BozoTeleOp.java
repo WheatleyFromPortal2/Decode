@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.HandoffState;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
 import org.firstinspires.ftc.teamcode.subsys.TimeProfiler;
 import org.firstinspires.ftc.teamcode.Tunables;
 
@@ -39,8 +40,7 @@ public abstract class BozoTeleOp extends OpMode {
     private GamepadManager gamepadManager;
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
-    private double manualLaunchVelocity; // target launch velocity in TPS
-    private double manualLaunchVelocityOffset = 0;
+    private LaunchSetpoints setpoints;
     private boolean isHoodLocked = true; // whether we want to change our hood with our right stick y
     double lastFollowerHeading;
 
@@ -60,16 +60,17 @@ public abstract class BozoTeleOp extends OpMode {
 
         follower.setPose(HandoffState.pose);
         lastFollowerHeading = HandoffState.pose.getHeading();
-        robot.setBallsRemaining(HandoffState.ballsRemaining);
-        robot.zeroTurret(); // assume turret has been brought to zero position at the end of auto
-        robot.setLaunchVelocity(robot.RPMToTPS(Tunables.initialManualLaunchRPM)); // warm up launch
+        robot.turret.zero(); // assume turret has been brought to zero position at the end of auto
+
+        setpoints = new LaunchSetpoints(0, 0, 0);
+        setpoints.setRPM(Tunables.initialManualLaunchRPM);
+        robot.setSetpoints(setpoints);
 
         timeProfiler = new TimeProfiler();
 
         goalPose = getGoalPose();
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
-        manualLaunchVelocity = robot.RPMToTPS(Tunables.initialManualLaunchRPM); // convert from RPM->TPS, starting point
         telemetryM.debug("init time: " + loopTimer.getElapsedTime()); // tell how long our init tool
         telemetryM.update(telemetry);
     }
@@ -79,14 +80,14 @@ public abstract class BozoTeleOp extends OpMode {
 
     public void start() {
         follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
-        robot.resetLaunchServos(); // set servos to starting state
-        robot.intake.on();
+        robot.transfer.reset();
+        robot.intake.forward();
     }
 
     @Override
     public void loop() {
+        robot.setSetpoints(setpoints);
         timeProfiler.start("PIDF");
-        robot.update();
         timeProfiler.start("vision");
         vision.update();
         timeProfiler.stop();
@@ -95,12 +96,7 @@ public abstract class BozoTeleOp extends OpMode {
         follower.update(); // update our Pedro Pathing follower
         //robot.updateBalls(); // update how many balls we have in our intake
         timeProfiler.start("update launch");
-        boolean updateLaunchStatus = robot.updateLaunch(); // idk if running it directly with the && might cause it to be skipped
         timeProfiler.start("buttons");
-        if (updateLaunchStatus && !follower.isTeleopDrive()) { // check if we're done with holding position
-            follower.startTeleOpDrive();
-        }
-
         if (gamepad1.aWasReleased()) { // toggle intake
             robot.intake.toggle();
         }
@@ -141,10 +137,10 @@ public abstract class BozoTeleOp extends OpMode {
             follower.setPose(headingPose); // see if this works
         }
 
-        if (gamepad1.dpadUpWasReleased()) manualLaunchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
-        if (gamepad1.dpadDownWasReleased()) manualLaunchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
-        if (gamepad1.dpadLeftWasReleased()) manualLaunchVelocityOffset -= robot.RPMToTPS(Tunables.adjustRPM) / 2; // decrement by half of adjustRPM (in TPS)
-        if (gamepad1.dpadRightWasReleased()) manualLaunchVelocityOffset += robot.RPMToTPS(Tunables.adjustRPM) / 2; // increment by half of adjustRPM (in TPS)
+        if (gamepad1.dpadUpWasReleased()) setpoints.incrementRPM(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
+        if (gamepad1.dpadDownWasReleased()) setpoints.decrementRPM(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
+        if (gamepad1.dpadRightWasReleased()) setpoints.incrementRPM(Tunables.adjustRPM / 2.0); // increment by half of adjustRPM (in TPS)
+        if (gamepad1.dpadLeftWasReleased()) setpoints.decrementRPM(Tunables.adjustRPM / 2.0); // decrement by half of adjustRPM (in TPS)
 
         if (!isAutomatedDrive) {
             double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
@@ -183,41 +179,23 @@ public abstract class BozoTeleOp extends OpMode {
                 double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
 
                 double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
-                robot.setAutomatedLaunch(goalDst);
-                robot.setAutomatedHoodPosition(goalDst);
+                robot.setAutomatedLaunchSetpoints(goalDst);
             } else {
-                robot.setAutomatedLaunch(vision.getLastGoalDistance()); // get goal distance using vision
-                robot.setAutomatedHoodPosition(vision.getLastGoalDistance()); // get goal distance using vision
+                robot.setAutomatedLaunchSetpoints(vision.getLastGoalDistance());
             }
         } else { // set our launch velocity and hood angle manually
-            robot.setLaunchVelocity(manualLaunchVelocity + manualLaunchVelocityOffset); // set our launch velocity to our desired launch velocity with our offset
-            //robot.setDesiredTurretPosition(0); // lock turret
+            robot.setSetpoints(setpoints);
 
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
                 double hoodRange = Tunables.hoodMaximum - Tunables.hoodMinimum;
                 double stickValue = (-gamepad1.right_stick_y + 1) / 2; // reverse stick and map from (-1)<->(1) to (0)<->(1)
                 double manualHoodPos = hoodRange * stickValue; // multiply increase from min by right stick y value
-                robot.setHoodPosition(manualHoodPos);
+                setpoints.setHoodPos(manualHoodPos);
             }
         }
 
-        // turret control
-        if (vision.getStaleness() >= Tunables.maxTurretLockMillis) {
-            // turret not locked on
-            robot.setDesiredTurretPosition(robot.getTurretGoalHeading(follower.getPose(), getGoalPose()));
-        } else {
-            // turret locked on
-            if (Math.abs(lastFollowerHeading - follower.getHeading()) < Math.toRadians(5)) {
-                // haven't had a large change in robot heading
-                robot.applyTxToTurret(vision.getLastGoalTx(), vision.isStale()); // should auto know if vision is stale but whatever
-            } else {
-                // have had a large change in robot heading - need to compensate based off of that
-                double odoHeadingChange = lastFollowerHeading - follower.getHeading();
-                double newTurretPos = robot.getDesiredTurretPosition() + odoHeadingChange;
-                robot.setDesiredTurretPosition(newTurretPos);
-            }
-        }
+        // TODO: refactor this to use fused auto-aim
         lastFollowerHeading = follower.getHeading();
 
         timeProfiler.start("rumble");
@@ -236,6 +214,11 @@ public abstract class BozoTeleOp extends OpMode {
                 break;
         }
 
+        boolean updateLaunchStatus = robot.update(); // idk if running it directly with the && might cause it to be skipped
+        if (updateLaunchStatus && !follower.isTeleopDrive()) { // check if we're done with holding position
+            follower.startTeleOpDrive();
+        }
+
         timeProfiler.start("telemetry");
         updateTelemetry();
     }
@@ -246,25 +229,21 @@ public abstract class BozoTeleOp extends OpMode {
         // use .addData() for values to be graphed on Panels
 
         // warnings!
-        if (isIntakeReversed) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
-        if (robot.isFull()) telemetryM.addLine("WARNING: INTAKE FULL!!!"); // alert driver intake is over current
+        if (robot.intake.isReverse()) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
 
         // launch system
         if (isAutomatedLaunch) {
             telemetryM.addLine("launch is in AUTOMATED control");
         } else {
             telemetryM.addLine("launch is in MANUAL control");
-            telemetryM.debug("desired launch RPM offset: " + robot.TPSToRPM(manualLaunchVelocityOffset)); // make sure to convert from TPS->RPM
+            telemetryM.debug("desired launch RPM: " + setpoints.getRPM()); // make sure to convert from TPS->RPM
             telemetryM.debug("hood locked?: " + isHoodLocked);
         }
 
         if (Tunables.isDebugging) {
-            telemetryM.debug("desired launch RPM: " + robot.getDesiredLaunchRPM()); // make sure to convert from TPS->RPM
-            telemetryM.addData("launch RPM", robot.getLaunchRPM()); // convert from ticks/sec to rev/min
-            telemetryM.addData("hood pos", robot.getHoodPosition());
-            telemetryM.addData("turret pos", robot.getTurretPosition());
+            telemetryM.addData("hood pos", setpoints.getHoodPos());
+            telemetryM.addData("turret pos", robot.turret.getPos());
             telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
-            telemetryM.debug("launch within margin?: " + robot.isLaunchWithinMargin());
 
             // vision & distances
             telemetryM.addData("last vision goal dst", vision.getLastGoalDistance());
@@ -278,7 +257,7 @@ public abstract class BozoTeleOp extends OpMode {
             telemetryM.debug("follower busy?: " + follower.isBusy());
 
             // current monitoring
-            telemetryM.addData("launch current", robot.getLaunchCurrent()); // display combined launch current
+            telemetryM.addData("flywheel current", robot.flywheel.getCurrent()); // display combined launch current
             telemetryM.addData("intake current", robot.intake.getCurrent()); // display intake current
             telemetryM.addData("system current", robot.getSystemCurrent()); // display total system current
 

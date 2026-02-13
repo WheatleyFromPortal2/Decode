@@ -1,3 +1,5 @@
+/** simple and flexible time profiler that outputs a string **/
+
 package org.firstinspires.ftc.teamcode.subsys;
 
 import com.pedropathing.util.Timer;
@@ -14,6 +16,7 @@ public class TimeProfiler {
         output = "";
         isTiming = false;
     }
+
     public void start(String segment) { // start timing, and if we are already timing, stop that
         if (isTiming) {
             stop();

@@ -7,65 +7,78 @@ import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
-import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.Tunables;
+import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
+import org.firstinspires.ftc.teamcode.subsys.launch.Flywheel;
 
 @TeleOp(name="FlywheelTuner", group="Tuner")
 public class FlywheelTuner extends LinearOpMode {
+    private enum TuneMode {
+        NO_POWER,
+        FULL_POWER,
+        PIDF
+    }
+
+    private double MAX_SET_RPM = 6000;
 
     @Override
     public void runOpMode() {
-        Robot robot = new Robot(hardwareMap); // create our robot class
+        Flywheel flywheel = new Flywheel(hardwareMap);
 
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
-        boolean isGradualControl = true; // if we're using the right trigger to control speed or just doing full power
-        boolean isSpindown = false;
 
-        telemetryM.debug("use the right trigger to control launch speed");
-        telemetryM.debug("use the B button to go between gradual control/full power");
-        telemetryM.debug("use the X button to toggle spindown in full power");
+        TuneMode mode = TuneMode.NO_POWER;
+
+        TuneMode mode0 = TuneMode.values()[0];
+        TuneMode mode1 = TuneMode.values()[1];
+        TuneMode mode2 = TuneMode.values()[2];
 
         waitForStart();
 
         while (opModeIsActive()) {
-            double launchRPM = ((gamepad1.right_trigger) * (6000 * Tunables.launchRatio)); // calculates max motor speed and multiplies it by the float of the right trigger
+            telemetryM.addLine("select your tuning mode using the gamepad:");
+            telemetryM.addLine("(A): " + mode0);
+            telemetryM.addLine("(B): " + mode1);
+            telemetryM.addLine("(X): " + mode2);
 
-            if (gamepad1.bWasReleased()) { // switch modes we press the B button
-                isGradualControl = !isGradualControl;
+            if (gamepad1.aWasReleased()) { mode = mode0; }
+            if (gamepad1.bWasReleased()) { mode = mode1; }
+            if (gamepad1.xWasReleased()) { mode = mode2; }
+
+            telemetryM.addLine("");
+            telemetryM.addLine("current testing mode is: " + mode);
+
+            switch (mode) {
+                case NO_POWER:
+                    flywheel.powerUpdate(0.0); // apply no power
+                    break;
+                case FULL_POWER:
+                    flywheel.powerUpdate(1.0);
+                    break;
+                case PIDF:
+                    LaunchSetpoints setState = new LaunchSetpoints(0, 0, 0); // use LaunchState for conversion
+
+                    double desiredFlywheelRPM = (MAX_SET_RPM * gamepad1.right_trigger);
+
+                    setState.setRPM(desiredFlywheelRPM);
+                    flywheel.setpointUpdate(setState.getTPS());
+
+                    telemetryM.addData("desired flywheel RPM", desiredFlywheelRPM);
+                    telemetryM.addData("desired flywheel TPS", setState.getTPS());
+                    break;
             }
 
-            if (gamepad1.xWasReleased()) {
-                isSpindown = !isSpindown;
-            }
+            LaunchSetpoints currentState = new LaunchSetpoints(flywheel.getTPS(), 0, 0); // use LaunchState for conversion
 
-            if (isGradualControl) {
-                robot.setLaunchVelocity(robot.RPMToTPS(launchRPM)); // set our desired velocity from converting our desired RPM
-                telemetryM.addData("desiredRPM", launchRPM);
-                telemetryM.debug("in GRADUAL CONTROL");
-                robot.update();
-            } else {
-                if (isSpindown) {
-                    robot.launchLeft.setPower(0);
-                    robot.launchRight.setPower(0);
-                    telemetryM.debug("in SPIN DOWN");
-                } else {
-                    // test launch full power speed
-                    robot.launchLeft.setPower(1); // BRRRRRR
-                    robot.launchRight.setPower(1); // BRRRRRR
-                    telemetryM.debug("in FULL POWER");
-                }
-                telemetryM.addData("desired RPM", 6000 * Tunables.launchRatio);
-            }
-            telemetryM.debug("PIDF: " + Tunables.launchP + ", " + Tunables.launchI + ", " + Tunables.launchD + ", " + Tunables.launchF);
-            telemetryM.debug("launchRatio: " + Tunables.launchRatio);
-            telemetryM.addData("launchCorrection", robot.launchCorrection);
-            telemetryM.addData("actualRPM", robot.getLaunchRPM());
-            telemetryM.addData("desiredTPS", robot.RPMToTPS(robot.getDesiredLaunchRPM()));
-            telemetryM.addData("leftLaunchTPS", robot.launchLeft.getVelocity());
-            telemetryM.addData("rightLaunchTPS", robot.launchRight.getVelocity());
-            telemetryM.addData("rawLaunchRPM", robot.getLaunchRPM());
-            telemetryM.addData("launchCurrent", robot.getLaunchCurrent());
+            telemetryM.addData("flywheel RPM", currentState.getRPM());
+            telemetryM.addData("flywheel TPS", currentState.getTPS());
+
+            telemetryM.debug("PIDF: " + Tunables.flywheelP + ", " + Tunables.flywheelI + ", " + Tunables.flywheelD + ", " + Tunables.flywheelF);
+            telemetryM.addData("flywheel power", flywheel.getPower());
+            telemetryM.addData("flywheel current", flywheel.getCurrent());
+
             telemetryM.update(telemetry); // update our telemetry
+
             idle();
         }
     }
