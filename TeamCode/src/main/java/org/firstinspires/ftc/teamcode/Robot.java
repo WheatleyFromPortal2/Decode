@@ -72,6 +72,9 @@ public class Robot { // create our global class for our robot
         controlHub = hw.get(LynxModule.class, "Control Hub");
         expansionHub = hw.get(LynxModule.class, "Expansion Hub 2"); // I believe this starts at 2
 
+        controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+        expansionHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
+
         launchStateTimer = new Timer(); // set up timer for the launch state machine
         launchIntervalTimer = new Timer();
     }
