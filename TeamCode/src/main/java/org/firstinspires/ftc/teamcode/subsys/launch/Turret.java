@@ -43,6 +43,10 @@ public class Turret {
             double preClamped = Range.clip(turretAngle, -Tunables.turretMaxRight, Tunables.turretMaxLeft);
             double maxAdjusted = (preClamped + Tunables.turretMaxRight) / (Tunables.turretMaxLeft + Tunables.turretMaxRight);
 
+            if (Double.isNaN(maxAdjusted)) {
+                throw new IllegalStateException("turret position is NaN!");
+            }
+
             double newTurretServoPos = Range.clip(maxAdjusted, 0.0, 1.0); // make sure we don't cause an exception
 
             if (newTurretServoPos == lastDesiredPos) {
