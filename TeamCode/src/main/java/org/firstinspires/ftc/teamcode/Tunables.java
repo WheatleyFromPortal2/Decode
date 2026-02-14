@@ -68,8 +68,10 @@ public class Tunables { // this should hold all of our constants
 
     /** hood tunables (used in Hood.java) **/
 
-    public static double hoodMinimum = 0.32; // calibrated 1-22-26
-    public static double hoodMaximum = 0.54; // calibrated 1-22-26
+    public static double hoodMinimumPos = 0.32; // calibrated 1-22-26
+    public static double hoodMinimumRadians = Math.toRadians(50); // calibrated 2-14-26
+    public static double hoodMaximumPos = 0.54; // calibrated 1-22-26
+    public static double hoodMaximumRadians = Math.toRadians(72); // calibrated 2-14-26
     public static double hoodWriteMargin = 0.01; // if our hood position change is less than this, don't waste time with a write
 
     /** turret tunables (used in Turret.java) **/
