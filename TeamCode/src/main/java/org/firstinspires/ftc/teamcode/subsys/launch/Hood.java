@@ -15,18 +15,18 @@ public class Hood {
     public Hood(HardwareMap hw) {
         servo = hw.get(Servo.class, "hood");
 
-        servo.setPosition(Tunables.hoodMinimum);
-        lastPos = Tunables.hoodMinimum; // force initial write
+        servo.setPosition(Tunables.hoodMinimumPos);
+        lastPos = Tunables.hoodMinimumPos; // force initial write
     }
 
     public void update(double setpointPos) {
-        setPositionFast(setpointPos + Tunables.hoodMinimum);
+        setPositionFast(setpointPos + Tunables.hoodMinimumPos);
     }
 
     /** internal methods **/
     private void setPositionFast(double newPos) {
         // clamp within set hardware limits
-        newPos = Range.clip(newPos, Tunables.hoodMinimum, Tunables.hoodMaximum);
+        newPos = Range.clip(newPos, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos);
 
         if (Math.abs(newPos - lastPos) > Tunables.hoodWriteMargin) { // don't write excessively
             servo.setPosition(newPos);
@@ -37,7 +37,11 @@ public class Hood {
     /** getter methods **/
 
     public double getPos() { // return position as measured from minimum
-        return lastPos - Tunables.hoodMinimum;
+        return lastPos - Tunables.hoodMinimumPos;
+    }
+
+    public double getRadians() {
+        return posToRadians(getPos());
     }
 
     public double getAbsolutePos() {
@@ -47,7 +51,7 @@ public class Hood {
     /** setter methods **/
 
     public void setPos(double newPos) {
-        setPositionFast(newPos + Tunables.hoodMinimum);
+        setPositionFast(newPos + Tunables.hoodMinimumPos);
         // set position relative to minimum
     }
 
@@ -56,5 +60,17 @@ public class Hood {
         double clampedPos = Range.clip(pos, 0.0, 1.0);
         servo.setPosition(clampedPos);
         lastPos = clampedPos;
+    }
+
+    public void setRadians(double radians) {
+        setPositionFast(radiansToPos(radians));
+    }
+
+    private double radiansToPos(double radians) {
+        return Range.scale(radians, Tunables.hoodMinimumRadians, Tunables.hoodMaximumRadians, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos);
+    }
+
+    private double posToRadians(double pos) {
+        return Range.scale(pos, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos, Tunables.hoodMinimumRadians, Tunables.hoodMaximumRadians);
     }
 }

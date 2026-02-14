@@ -25,6 +25,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.util.Range;
 
 @Configurable
 // this class will never be run as a TeleOp, and will always be extended by either RedTeleOp or BlueTeleOp
@@ -177,9 +178,7 @@ public abstract class BozoTeleOp extends OpMode {
         timeProfiler.start("launch");
 
         if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
-            LaunchSetpoints physicsSetpoints = physics.getNeededStaticVelocity(follower.getPose(), getGoalPose());
-
-            robot.setSetpoints(physicsSetpoints);
+            setpoints = physics.getNeededStaticVelocity(follower.getPose(), getGoalPose());
 
             //double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
             //double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
@@ -193,10 +192,11 @@ public abstract class BozoTeleOp extends OpMode {
                 double manualHoodPos = hoodRange * stickValue; // multiply increase from min by right stick y value
                 setpoints.setHoodPos(manualHoodPos);
                 robot.setSetpoints(setpoints);
+                setpoints.setHoodPos(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos);
             }
-
         }
 
+        robot.setSetpoints(setpoints);
 
         // TODO: refactor this to use fused auto-aim
         lastFollowerHeading = follower.getHeading();
