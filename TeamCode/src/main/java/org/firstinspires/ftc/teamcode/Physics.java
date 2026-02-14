@@ -112,7 +112,8 @@ public class Physics {
 
     private double velocityToRPM(double velocity)
     {
-        return (velocity + 0.475726) / 0.00246641;
+        // calibrated 2-13-26
+        return (velocity + 0.475726) / 0.00246641 + Tunables.physicsRPMOffset;
     }
 
     private double inchesToMeters(double inches) {
