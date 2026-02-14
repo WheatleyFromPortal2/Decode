@@ -187,12 +187,7 @@ public abstract class BozoTeleOp extends OpMode {
         } else { // set our launch velocity and hood angle manually
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
-                double hoodRange = Tunables.hoodMaximum - Tunables.hoodMinimum;
-                double stickValue = (-gamepad1.right_stick_y + 1) / 2; // reverse stick and map from (-1)<->(1) to (0)<->(1)
-                double manualHoodPos = hoodRange * stickValue; // multiply increase from min by right stick y value
-                setpoints.setHoodPos(manualHoodPos);
-                robot.setSetpoints(setpoints);
-                setpoints.setHoodPos(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos);
+                setpoints.setHoodPos(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos));
             }
         }
 
