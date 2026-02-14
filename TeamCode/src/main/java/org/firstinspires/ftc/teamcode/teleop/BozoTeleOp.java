@@ -188,7 +188,7 @@ public abstract class BozoTeleOp extends OpMode {
 
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
-                setpoints.setHoodPos(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos);
+                setpoints.setHoodPos(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos));
             }
         }
 
