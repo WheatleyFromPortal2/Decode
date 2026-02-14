@@ -9,7 +9,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -362,7 +361,7 @@ public abstract class BozoAuto extends OpMode {
         LaunchSetpoints setpoints = new LaunchSetpoints(0, 0, 0);
         setpoints.setRPM(Tunables.scoreRPM);
         setpoints.setTurretPos(config.scoreTurretPos);
-        setpoints.setHoodPos(Tunables.scoreHoodPos);
+        setpoints.setHoodRadians(Tunables.scoreHoodRadians);
         robot.setSetpoints(setpoints);
 
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function

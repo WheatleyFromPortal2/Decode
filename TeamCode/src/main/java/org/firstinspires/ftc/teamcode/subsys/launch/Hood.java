@@ -19,10 +19,6 @@ public class Hood {
         lastPos = Tunables.hoodMinimumPos; // force initial write
     }
 
-    public void update(double setpointPos) {
-        setPositionFast(setpointPos + Tunables.hoodMinimumPos);
-    }
-
     /** internal methods **/
     private void setPositionFast(double newPos) {
         // clamp within set hardware limits

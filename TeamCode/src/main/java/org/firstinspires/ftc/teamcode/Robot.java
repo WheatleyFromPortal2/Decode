@@ -82,7 +82,7 @@ public class Robot { // create our global class for our robot
     public boolean update() {
         // update static
         flywheel.setpointUpdate(setpoints.getTPS());
-        hood.update(setpoints.getHoodPos());
+        hood.setRadians(setpoints.getHoodRadians());
 
         // turret is more complex, so we need to set and then update
         turret.setDesiredPos(setpoints.getTurretPos());
@@ -211,7 +211,7 @@ public class Robot { // create our global class for our robot
             }
 
             setpoints.setRPM(RPM);
-            setpoints.setHoodPos(hoodPos);
+            setpoints.setHoodRadians(hoodPos);
         }
     }
 

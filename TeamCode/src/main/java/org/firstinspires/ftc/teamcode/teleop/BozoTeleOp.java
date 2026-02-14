@@ -187,7 +187,7 @@ public abstract class BozoTeleOp extends OpMode {
         } else { // set our launch velocity and hood angle manually
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
-                setpoints.setHoodPos(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos));
+                setpoints.setHoodRadians(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos));
             }
         }
 
@@ -233,7 +233,7 @@ public abstract class BozoTeleOp extends OpMode {
         if (isAutomatedLaunch) {
             telemetryM.addLine("launch is in AUTOMATED control");
             telemetryM.addData("desired RPM", robot.getSetpoints().getRPM());
-            telemetryM.addData("desired hood pos", robot.getSetpoints().getHoodPos());
+            telemetryM.addData("desired hood pos", robot.getSetpoints().getHoodRadians());
         } else {
             telemetryM.addLine("launch is in MANUAL control");
             telemetryM.addData("desired flywheel RPM", setpoints.getRPM()); // make sure to convert from TPS->RPM
@@ -243,7 +243,7 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         if (Tunables.isDebugging) {
-            telemetryM.addData("hood pos", robot.getSetpoints().getHoodPos());
+            telemetryM.addData("hood pos", robot.getSetpoints().getHoodRadians());
             telemetryM.addData("turret pos", robot.turret.getPos());
             telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
 

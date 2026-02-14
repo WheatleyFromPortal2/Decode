@@ -27,7 +27,7 @@ public class Physics {
 
         final double G = 9.81;
         final double ANGLE = Math.PI / 3.0;
-        setpoints.setHoodPos(ANGLE);
+        setpoints.setHoodRadians(ANGLE);
 
         double dx = goalX - robotX;
         double dy = goalY - robotY;
@@ -66,7 +66,8 @@ public class Physics {
 
         final double G = 9.81;
         final double ANGLE = Math.PI / 3.0;
-        setpoints.setHoodPos(ANGLE);
+        setpoints.setHoodRadians(ANGLE);
+
         final double SHOT_DELAY = 0.15;
         double fireX = robotX + robotVx * SHOT_DELAY;
         double fireY = robotY + robotVy * SHOT_DELAY;
