@@ -16,8 +16,7 @@ import org.firstinspires.ftc.teamcode.subsys.launch.Hood;
 public class ServoTuner extends OpMode {
 
     private enum TuneMode { // order matters for display
-        LOWER_TRANSFER,
-        UPPER_TRANSFER,
+        TRANSFER,
         HOOD_ABSOLUTE,
         HOOD_RADIANS,
         UNSELECTED
@@ -75,15 +74,10 @@ public class ServoTuner extends OpMode {
         telemetryM.addLine("use the right stick to tune positions");
 
         switch (mode) {
-            case LOWER_TRANSFER:
-                transfer.setRawLower(stickAmount);
+            case TRANSFER:
+                transfer.setServoRaw(stickAmount);
 
-                telemetryM.addData("lower transfer pos", stickAmount);
-                break;
-            case UPPER_TRANSFER:
-                transfer.setRawUpper(stickAmount);
-
-                telemetryM.addData("lower transfer pos", stickAmount);
+                telemetryM.addData("transfer pos", stickAmount);
                 break;
             case HOOD_ABSOLUTE:
                 /*telemetryM.addLine("this tuner will still map your stick input between:");

@@ -30,7 +30,7 @@ it may take a second for the control hub to show up in Android Studio
 
 # hardware map
 
-driver station config name: `v2 real`
+driver station config name: `v3`
 
 ## control hub
 
@@ -81,14 +81,14 @@ make sure to connect every motor with the correct polarity; the reversing should
 
 ### servos
 
-| servo port   | servo type                | verbatim name   |
-|:-------------|---------------------------|:----------------|
-| `0`          | Full Range Servo          | `hood`          |
-| `1`          | *unused*                  | *unused*        |
-| `2`          | *unused*                  | *unused*        |
-| `3`          | *unused*                  | *unused*        |
-| `4`          | *unused*                  | *unused*        |
-| `5`          | *unused*                  | *unused*        |
+| servo port   | servo type       | verbatim name |
+|:-------------|------------------|:--------------|
+| `0`          | Full Range Servo | `hoodServo`   |
+| `1`          | Servo            | `sorterServo` |
+| `2`          | *unused*         | *unused*      |
+| `3`          | *unused*         | *unused*      |
+| `4`          | *unused*         | *unused*      |
+| `5`          | *unused*         | *unused*      |
 
 ## expansion hub
 
@@ -108,15 +108,14 @@ make sure to connect every motor with the correct polarity; the reversing should
 
 | motor port   | motor type              | verbatim name   | encoder?  |
 |:-------------|-------------------------|:----------------|:----------|
-| `0`          | GoBILDA 5202/3/4 series | `intake`        | ❌         |
-| `1`          | GoBILDA 5202/3/4 series | `launchLeft`    | ✅         |
-| `2`          | GoBILDA 5202/3/4 series | `launchRight`   | ✅         |
-| `3`          | GoBILDA 5202/3/4 series | `turretEncoder` | ✅         |
+| `0`          | GoBILDA 5202/3/4 series | `intakeMotor`   | ✅         |
+| `1`          | GoBILDA 5202/3/4 series | `transferMotor` | ❌         |
+| `2`          | GoBILDA 5202/3/4 series | `launchLeft`    | ✅         |
+| `3`          | GoBILDA 5202/3/4 series | `launchRight`   | ✅         |
 
-`turretEncoder` shouldn't have a motor connected, because we are just using the encoder port
+our turret encoder should be plugged into our intake motor encoder port, we should not have an encoder connected from the intake motor itself
 
-connecting `launchLeft`/`launchRight` correctly is very important
-- you only need an encoder on one of them to function, but having both increases accuracy+reliability
+`launchLeft`/`launchRight` are agnostic to which port each encoder is plugged into. As long as at least one has an encoder than PIDF will work
 
 ## servo hub
 
@@ -127,8 +126,8 @@ connecting `launchLeft`/`launchRight` correctly is very important
 
 | servo port   | servo type | verbatim name   |
 |:-------------|------------|:----------------|
-| `0`          | Servo      | `lowerTransfer` |
-| `1`          | Servo      | `upperTransfer` |
+| `0`          | Servo      | `intakeServo`   |
+| `1`          | Servo      | `transferServo` |
 | `2`          | Servo      | `turret1`       |
 | `3`          | Servo      | `turret2`       |
 | `4`          | *unused*   | *unused*        |
