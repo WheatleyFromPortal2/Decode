@@ -131,7 +131,7 @@ public class TurretTuner extends OpMode {
                         break;
                     case RESET:
                         turret.setDesiredPos(0); // reset to normal, now perfectly centered position
-                        turret.on();
+                        //turret.on();
                         turret.update();
                         calibrationState = CalibrationState.END;
                         break;

@@ -24,6 +24,7 @@ import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.util.Timer;
+import com.qualcomm.robotcore.util.Range;
 
 @Configurable
 // this class will never be run as a TeleOp, and will always be extended by either RedTeleOp or BlueTeleOp
@@ -185,16 +186,14 @@ public abstract class BozoTeleOp extends OpMode {
                 // TODO: fill in with appropriate automatic methods
             }
         } else { // set our launch velocity and hood angle manually
-            robot.setSetpoints(setpoints);
 
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
-                double hoodRange = Tunables.hoodMaximum - Tunables.hoodMinimum;
-                double stickValue = (-gamepad1.right_stick_y + 1) / 2; // reverse stick and map from (-1)<->(1) to (0)<->(1)
-                double manualHoodPos = hoodRange * stickValue; // multiply increase from min by right stick y value
-                setpoints.setHoodPos(manualHoodPos);
+                setpoints.setHoodPos(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos));
             }
         }
+
+        robot.setSetpoints(setpoints);
 
         // TODO: refactor this to use fused auto-aim
         // turret control
@@ -239,8 +238,10 @@ public abstract class BozoTeleOp extends OpMode {
             telemetryM.addLine("launch is in AUTOMATED control");
         } else {
             telemetryM.addLine("launch is in MANUAL control");
-            telemetryM.debug("desired launch RPM: " + setpoints.getRPM()); // make sure to convert from TPS->RPM
-            telemetryM.debug("hood locked?: " + isHoodLocked);
+            telemetryM.addData("desired flywheel RPM", setpoints.getRPM()); // make sure to convert from TPS->RPM
+            telemetryM.addData("actual flywheel RPM", robot.flywheel.getRPM());
+            if (isHoodLocked) { telemetryM.debug("hood LOCKED"); }
+            telemetryM.addData("hood pos", robot.hood.getPos());
         }
 
         if (Tunables.isDebugging) {

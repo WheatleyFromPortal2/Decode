@@ -6,7 +6,9 @@ import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.Tunables;
 import org.firstinspires.ftc.teamcode.subsys.launch.Transfer;
 import org.firstinspires.ftc.teamcode.subsys.launch.Hood;
 
@@ -16,7 +18,8 @@ public class ServoTuner extends OpMode {
     private enum TuneMode { // order matters for display
         LOWER_TRANSFER,
         UPPER_TRANSFER,
-        HOOD,
+        HOOD_ABSOLUTE,
+        HOOD_RADIANS,
         UNSELECTED
     }
 
@@ -44,7 +47,7 @@ public class ServoTuner extends OpMode {
         TuneMode mode0 = TuneMode.values()[0];
         TuneMode mode1 = TuneMode.values()[1];
         TuneMode mode2 = TuneMode.values()[2];
-        //TuneMode mode3 = TuneMode.values()[3];
+        TuneMode mode3 = TuneMode.values()[3];
 
         telemetryM.addLine("select your tuning mode using the gamepad:");
         // display servo test modes in order of TestMode enum
@@ -56,7 +59,7 @@ public class ServoTuner extends OpMode {
         if (gamepad1.aWasReleased()) { mode = mode0; }
         if (gamepad1.bWasReleased()) { mode = mode1; }
         if (gamepad1.xWasReleased()) { mode = mode2; }
-        //if (gamepad1.yWasReleased()) { mode = mode3; }
+        if (gamepad1.yWasReleased()) { mode = mode3; }
 
         telemetryM.addLine("current testing mode is: " + mode);
 
@@ -82,16 +85,22 @@ public class ServoTuner extends OpMode {
 
                 telemetryM.addData("lower transfer pos", stickAmount);
                 break;
-            case HOOD:
+            case HOOD_ABSOLUTE:
                 /*telemetryM.addLine("this tuner will still map your stick input between:");
                 telemetryM.addLine("Tunables.hoodMinimum: " + Tunables.hoodMinimum);
                 telemetryM.addLine("Tunables.hoodMaximum" + Tunables.hoodMaximum);
                 telemetryM.addLine("both of which can be adjusted with Panels"); */
-                telemetryM.addLine("this will set the raw hood position");
+                telemetryM.addLine("setting raw hood position");
 
                 hood.setRawPos(stickAmount);
                 telemetryM.addLine("");
                 telemetryM.addData("hood position (absolute)", hood.getAbsolutePos());
+                break;
+            case HOOD_RADIANS:
+                hood.setPos(Range.scale(stickAmount, 0, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos));
+
+                telemetryM.addLine("hood set to: " + hood.getRadians() + "rad");
+                telemetryM.addData("degrees", Math.toDegrees(hood.getRadians()));
                 break;
             case UNSELECTED:
                 throw new RuntimeException("make sure to select a tuning mode before starting!");

@@ -41,7 +41,9 @@ public class Flywheel {
         double currentTPS = getTPS();
         double newPower;
 
-        if (Math.abs(currentTPS - setpointTPS) < Tunables.flywheelQuickStartThreshold) {
+        if (setpointTPS == 0) {
+            newPower = 0.0;
+        } else if (Math.abs(currentTPS - setpointTPS) < Tunables.flywheelQuickStartThreshold) {
             // small difference - use PIDF
             newPower = pidf.calc(setpointTPS, currentTPS); // calc new motor power
         } else {
@@ -69,18 +71,19 @@ public class Flywheel {
     public double getTPS() {
         // get TPS of flywheel in the fastest way while also being able to fall back between encoders
         if (!isLeftEncoderDisconnected) {
-            double leftVelocity = launchLeft.getVelocity();
-            if (Math.abs(leftVelocity) <= FALLBACK_MIN_TPS) { // if our velocity is negative, fall back!
+            double leftVelocity = Math.abs(launchLeft.getVelocity()); // account for encoder plugged into wrong port
+
+            if (leftVelocity <= FALLBACK_MIN_TPS) { // if our velocity is negative, fall back!
                 isLeftEncoderDisconnected = true;
-                return launchRight.getVelocity();
+                return Math.abs(launchRight.getVelocity());
             } else {
                 return leftVelocity;
             }
         } else {
-            double rightVelocity = launchRight.getVelocity();
-            if (Math.abs(rightVelocity) <= FALLBACK_MIN_TPS) { // if our velocity is negative, fall back!
+            double rightVelocity = Math.abs(launchRight.getVelocity()); // account for encoder plugged into wrong port
+            if (rightVelocity <= FALLBACK_MIN_TPS) { // if our velocity is negative, fall back!
                 isLeftEncoderDisconnected = false;
-                return launchLeft.getVelocity();
+                return Math.abs(launchLeft.getVelocity());
             } else { return rightVelocity; }
         }
     }
