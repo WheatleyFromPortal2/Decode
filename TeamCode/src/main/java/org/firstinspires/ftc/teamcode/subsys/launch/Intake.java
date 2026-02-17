@@ -36,7 +36,7 @@ public class Intake {
     private Rev2mDistanceSensor intakeSensor;
 
     public Intake(HardwareMap hw) {
-        motor = hw.get(DcMotorEx.class, "intake");
+        motor = hw.get(DcMotorEx.class, "intakeMotor");
         intakeSensor = hw.get(Rev2mDistanceSensor.class, "intakeSensor");
 
         motor.setDirection(DcMotorEx.Direction.FORWARD);
@@ -177,4 +177,7 @@ public class Intake {
         else return intakeSensor.getDistance(DistanceUnit.MM) < Tunables.intakeSensorOpen;
     }
 
+    public DcMotorEx getMotor() { // get our intake motor whose encoder is used by Turret.java
+        return motor;
+    }
 }
