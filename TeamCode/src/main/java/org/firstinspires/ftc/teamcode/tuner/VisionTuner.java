@@ -5,25 +5,27 @@ package org.firstinspires.ftc.teamcode.tuner;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
 import org.firstinspires.ftc.teamcode.HandoffState;
-import org.firstinspires.ftc.teamcode.Robot;
 import org.firstinspires.ftc.teamcode.subsys.Vision;
 import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
+import org.firstinspires.ftc.teamcode.subsys.launch.Intake;
+import org.firstinspires.ftc.teamcode.subsys.launch.Turret;
+
 import com.pedropathing.util.Timer;
 
 @TeleOp(name="VisionTuner", group="Tuner")
 public class VisionTuner extends LinearOpMode {
-    public boolean isBlueTeam = true;
-
     @Override
     public void runOpMode() {
         Vision vision = new Vision(hardwareMap);
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
         Follower follower = Constants.createFollower(hardwareMap);
-        Robot robot = new Robot(hardwareMap);
+        Intake intake = new Intake(hardwareMap);
+        Turret turret = new Turret(hardwareMap, intake.getMotor());
         Timer loopTimer = new Timer();
 
         vision.startPipeline(Vision.Pipeline.FULL_POS);
@@ -34,11 +36,18 @@ public class VisionTuner extends LinearOpMode {
         while (opModeIsActive()) {
             loopTimer.resetTimer();
             follower.update();
-            vision.updateFullPos(follower.getHeading(), robot.turret.getPos());
+            vision.updateFullPos(follower.getHeading(), turret.getPos());
 
             telemetryM.addData("loop time millis (without telemetry)", loopTimer.getElapsedTime());
             telemetryM.addData("stale?", vision.isStale());
-            telemetryM.addData("lastBotPose", vision.getLastBotPose());
+            telemetryM.addData("raw raw pose", vision.limelight.getLatestResult().getBotpose().toString());
+            Pose lastBotPose = vision.getLastBotPose();
+            if (lastBotPose != null) {
+                telemetryM.addData("lastBotPose", vision.getLastBotPose());
+            } else {
+                telemetryM.debug("last bot pose null");
+            }
+            telemetryM.addData("odo pose", follower.getPose());
             telemetryM.addData("pipeline", vision.getPipeline());
             telemetryM.addData("limelight status", vision.getStatus());
             telemetryM.update(telemetry); // update our telemetry

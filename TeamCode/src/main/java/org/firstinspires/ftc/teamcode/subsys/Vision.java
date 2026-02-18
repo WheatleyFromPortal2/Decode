@@ -74,7 +74,8 @@ public class Vision {
 
         if (result != null && result.isValid() && !Double.isNaN(result.getTa())) { // if our result is good
             staleTimer.resetTimer(); // reset our staleness timer
-            lastBotPose = translateLLPoseToField(result.getBotpose_MT2(), odoHeadingRadians, turretHeadingRadians);
+            //lastBotPose = translateLLPoseToField(result.getBotpose_MT2(), odoHeadingRadians, turretHeadingRadians);
+            lastBotPose = translateLLPoseToField(result.getBotpose(), odoHeadingRadians, turretHeadingRadians);
             return true; // we actually have a good result
         } else { return false; } // we haven't gotten any new results
     }
@@ -139,7 +140,7 @@ public class Vision {
     }
 
     private double getLimelightAbsoluteHeading(double odoHeadingRadians, double turretHeadingRadians) {
-        return odoHeadingRadians + turretHeadingRadians;
+        return odoHeadingRadians + turretHeadingRadians - Math.toDegrees(90);
     }
 
     /* take in raw pose of the limelight and convert it to a field pose.
@@ -152,47 +153,54 @@ public class Vision {
         double rawHeadingRadians = rawPose3D.getOrientation().getYaw(AngleUnit.RADIANS);
         double limelightHeadingRadians = getLimelightAbsoluteHeading(odoHeadingRadians, turretHeadingRadians);
         Position rawPos = rawPose3D.getPosition().toUnit(DistanceUnit.INCH); // ensure we are using inches
-        double rawX = rawPos.x;
-        double rawY = rawPos.y;
+        double rawX = rawPos.y + 72;
+        double rawY = 72 - rawPos.x;
         // we don't care about z
-
         // first let's check our heading. it should have already been seeded well, so if it drifts from our actual heading by too much,
         // then it is likely that this measurement is outdated, and it should therefor be discarded
+
+        /*
         if (Math.abs(AngleUnit.normalizeRadians(rawHeadingRadians - limelightHeadingRadians)) > Tunables.maxLimelightHeadingError) {
             return null; // we don't have a good reading, don't rely off of this data
-        } else {
-            double centeredX = rawX + Tunables.turretOffsetX;
-            double centeredY = rawY + Tunables.turretOffsetY;
-
-            /* calc our offset from the turret center using trigonometric functions:
-            1. we draw a circle in a cartesian plane with a radius of Tunables.limelightTurretRadius
-            2. we draw a right triangle, with:
-                a. leg1 with a length of x inches
-                b. leg2 with a length of y inches
-                c. hypotenuse with:
-                    1. one point at the center of the circle
-                    2. one point on the circle
-                    3. a length of the radius of the circle (Tunables.limelightTurretRadius)
-            3. we use:
-                a. the angle of the turret (a / limelightHeadingRadians)
-                b. the length of the hypotenuse (Tunables.limelightTurretRadius)
-                c. sohcahtoa
-               in order to figure out the length of the legs (x and y)
-                a. cos(a) = y/r
-                b. sin(a) = y/r
-               so:
-                x: r * cos(a)
-                y: r * sin(a)
-             */
-            double camOffsetX = Tunables.limelightTurretRadius * Math.sin(limelightHeadingRadians);
-            double camOffsetY = Tunables.limelightTurretRadius * Math.cos(limelightHeadingRadians);
-
-            double fieldX = camOffsetX + centeredX;
-            double fieldY = camOffsetY + centeredY;
-
-            // use our pinpoint's compass for heading, it is good enough until Kalman Filter
-            return new Pose(fieldX, fieldY, odoHeadingRadians);
         }
+        */
+
+        double centeredX = rawX + Tunables.turretOffsetX;
+        double centeredY = rawY + Tunables.turretOffsetY;
+
+        /* calc our offset from the turret center using trigonometric functions:
+        1. we draw a circle in a cartesian plane with a radius of Tunables.limelightTurretRadius
+        2. we draw a right triangle, with:
+            a. leg1 with a length of x inches
+            b. leg2 with a length of y inches
+            c. hypotenuse with:
+                1. one point at the center of the circle
+                2. one point on the circle
+                3. a length of the radius of the circle (Tunables.limelightTurretRadius)
+        3. we use:
+            a. the angle of the turret (a / limelightHeadingRadians)
+            b. the length of the hypotenuse (Tunables.limelightTurretRadius)
+            c. sohcahtoa
+           in order to figure out the length of the legs (x and y)
+            a. cos(a) = y/r
+            b. sin(a) = y/r
+           so:
+            x: r * cos(a)
+            y: r * sin(a)
+         */
+        /*
+        double camOffsetX = Tunables.limelightTurretRadius * Math.sin(limelightHeadingRadians);
+        double camOffsetY = Tunables.limelightTurretRadius * Math.cos(limelightHeadingRadians);
+
+        double fieldX = camOffsetX + centeredX;
+        double fieldY = camOffsetY + centeredY;
+        */
+
+        return new Pose(rawX, rawY, odoHeadingRadians);
+
+        // use our pinpoint's compass for heading, it is good enough until Kalman Filter
+        //return new Pose(fieldX, fieldY, odoHeadingRadians);
+
         // why did we have to use 3 different coordinate and orientation systems?
     }
 
