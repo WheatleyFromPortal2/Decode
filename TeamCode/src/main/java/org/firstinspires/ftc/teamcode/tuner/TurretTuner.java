@@ -67,6 +67,12 @@ public class TurretTuner extends OpMode {
         TuneMode mode2 = TuneMode.values()[2];
 
         telemetryM.addLine("select your tuning mode using the gamepad:");
+
+        telemetryM.addLine("");
+        telemetryM.addLine("to re-center and re-mesh turret servos:");
+        telemetryM.addLine("select " + TuneMode.TEST_RAW + " and leave the sticks untouched while keeping the Opmode running");
+
+        telemetryM.addLine("");
         // display servo test modes in order of TestMode enum
         telemetryM.addLine("(A): " + mode0);
         telemetryM.addLine("(B): " + mode1);
