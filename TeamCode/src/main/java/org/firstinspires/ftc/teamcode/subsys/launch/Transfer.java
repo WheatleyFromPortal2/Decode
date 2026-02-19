@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode.subsys.launch;
 
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -7,19 +9,31 @@ import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.teamcode.Tunables;
 
 public class Transfer {
-    private Servo lower, upper;
+    private enum State {
+        OFF,
+        FORWARD,
+        REVERSE
+    }
+
+    private Servo servo;
+    private DcMotorEx motor;
     private DigitalChannel lowerTransferSensor, upperTransferSensor;
 
     /** only variables that should change through run time **/
 
-    private boolean isLowerRaised;
     private boolean isUpperOpen;
+    private boolean wasBallInUpperTransfer = false; // was a ball in lower transfer last time
+    private State state = State.OFF;
 
     /** end vars that change **/
 
     public Transfer(HardwareMap hw) {
-        lower = hw.get(Servo.class, "lowerTransfer");
-        upper = hw.get(Servo.class, "upperTransfer");
+        motor = hw.get(DcMotorEx.class, "transferMotor");
+        servo = hw.get(Servo.class, "transferServo");
+
+        motor.setDirection(DcMotorEx.Direction.REVERSE);
+        motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
+        motor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
         lowerTransferSensor = hw.get(DigitalChannel.class, "lowerTransferSensor");
         upperTransferSensor = hw.get(DigitalChannel.class, "upperTransferSensor");
@@ -31,9 +45,16 @@ public class Transfer {
     }
 
     /** getter methods **/
+    public boolean isOff() {
+        return state == State.OFF;
+    }
 
-    public boolean isLowerRaised() {
-        return isLowerRaised;
+    public boolean isForward() {
+        return state == State.FORWARD;
+    }
+
+    public boolean isReverse() {
+        return state == State.REVERSE;
     }
 
     public boolean isUpperOpen() {
@@ -49,51 +70,71 @@ public class Transfer {
         // if this sensor disconnects, it reports true (which is inverted to false), so the launch state machine will just fallback to the fixed delay
     }
 
+    public boolean wasBallLaunched() {
+        boolean ballInUpper = isBallInUpper();
+        boolean launched;
+
+        if (!wasBallInUpperTransfer && ballInUpper) {
+            // ball has launched
+            launched = true;
+        } else {
+            launched = false;
+        }
+
+        wasBallInUpperTransfer = ballInUpper;
+        return launched;
+    }
+
     /** setter methods **/
 
-    public void raiseLower() {
-        if (!isLowerRaised) {
-            lower.setPosition(Tunables.lowerTransferUpperLimit);
-            isLowerRaised = true;
+    public void off() {
+        if (state != State.OFF) {
+            close();
+            motor.setPower(0);
+            state = State.OFF;
         }
     }
 
-    public void lowerLower() { // goofy name
-        if (isLowerRaised) {
-            lower.setPosition(Tunables.lowerTransferLowerLimit);
-            isLowerRaised = false;
+    public void forward() {
+        if (state != State.FORWARD) {
+            open();
+            motor.setPower(Tunables.transferMotorForwardPower);
+            state = State.FORWARD;
         }
     }
 
-    public void openUpper() {
+    public void reverse() {
+        if (state != State.REVERSE) {
+            close();
+            motor.setPower(Tunables.transferMotorReversePower);
+            state = State.REVERSE;
+        }
+    }
+
+    private void open() {
         if (!isUpperOpen) {
-            upper.setPosition(Tunables.upperTransferOpen);
+            servo.setPosition(Tunables.transferServoOpen);
             isUpperOpen = true;
         }
     }
 
-    public void closeUpper() {
+    private void close() {
         if (isUpperOpen) {
-            upper.setPosition(Tunables.upperTransferClosed);
+            servo.setPosition(Tunables.transferServoClosed);
             isUpperOpen = false;
         }
     }
 
-    public void setRawLower(double pos) {
+    public void setServoRaw(double pos) {
         // this will cause caching errors, so only use for testing!
-        lower.setPosition(pos);
+        servo.setPosition(pos);
     }
 
-    public void setRawUpper(double pos) {
-        // this will cause caching errors, so only use for testing!
-        upper.setPosition(pos);
-    }
+    public void reset() { // reset everything
+        servo.setPosition(Tunables.transferServoClosed);
+        motor.setPower(0);
 
-    public void reset() { // reset servo positions
-        lower.setPosition(Tunables.lowerTransferLowerLimit); // make sure lower transfer is not getting in the way
-        upper.setPosition(Tunables.upperTransferClosed); // make sure balls cannot launch
-
-        isLowerRaised = false;
+        state = State.OFF;
         isUpperOpen = false;
     }
 }
