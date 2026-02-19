@@ -49,7 +49,8 @@ public class Physics {
     public LaunchSetpoints getNeededVelocity(
             Pose robotPose,
             Vector robotVector,
-            Pose goalPose )
+            Pose goalPose,
+            double SHOT_DELAY)
     {
         LaunchSetpoints setpoints = new LaunchSetpoints(0, 0, 0);
 
@@ -68,7 +69,7 @@ public class Physics {
         final double ANGLE = Math.PI / 3.0;
         setpoints.setHoodRadians(ANGLE);
 
-        final double SHOT_DELAY = 0.15;
+        //SHOT DELAY TUNE NOW
         double fireX = robotX + robotVx * SHOT_DELAY;
         double fireY = robotY + robotVy * SHOT_DELAY;
 
@@ -77,34 +78,25 @@ public class Physics {
         double d = Math.hypot(dx, dy);
         double h = GOAL_Z - SHOOTER_Z;
 
-        double ux = dx / d;
-        double uy = dy / d;
+        double theta = Math.atan(dy/dx);
+        double phi = 0;
+        double num1 = 2 * Math.sin(ANGLE) * d - 0.762;
+        double denom1 = d * d * G;
+        double sqrt = Math.sqrt(num1/denom1);
+        double num = robotVy * Math.cos((Math.PI/2) - theta) + robotVx * Math.cos(theta) - robotVy * Math.sin((Math.PI/2) - theta) - sqrt;
+        double denom = robotVx * Math.sin(theta);
+        phi = Math.acos(num / denom);
 
-        double vAlong = robotVx * ux + robotVy * uy;
-
-        double cos = Math.cos(ANGLE);
-        double sin = Math.sin(ANGLE);
-
-        double bestV = -1;
-        double bestErr = Double.MAX_VALUE;
-
-        for (double v = 1.0; v <= 20.0; v += 0.02) {
-            double vx = v * cos + vAlong;
-            if (vx <= 0) continue;
-
-            double t = d / vx;
-            if (t <= 0) continue;
-
-            double z = v * sin * t - 0.5 * G * t * t;
-            double err = Math.abs(z - h);
-
-            if (err < bestErr) {
-                bestErr = err;
-                bestV = v;
-            }
+        if (phi >= Math.PI)
+        {
+            phi = 2 * Math.PI - phi;
         }
 
-        if (bestV < 0) return null;
+        setpoints.setTurretPos(phi);
+
+        double num2 = -(robotVy * Math.sin((Math.PI/2) - theta)) + robotVx * Math.sin(theta);
+        double denom2 = Math.sin(phi);
+        double bestV = num2/denom2;
 
         double RPM = velocityToRPM(bestV);
         setpoints.setRPM(RPM);
