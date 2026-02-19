@@ -43,9 +43,12 @@ public class Robot { // create our global class for our robot
     private LaunchSetpoints setpoints;
     private Timer launchStateTimer;
     private Timer launchIntervalTimer;
+    private Timer firstShotDelayTimer;
     private int ballsRemaining = 0;
     private boolean launching = false;
     private double lastLaunchInterval = 0; // measure last amount of time it took to launch balls in seconds
+    private double lastFirstShotDelay = 0; // last delay from issuing launch command to ball exiting in seconds
+    private boolean preLaunch = true;
 
     /** end vars that change **/
 
@@ -87,13 +90,19 @@ public class Robot { // create our global class for our robot
                 }
 
                 if (ballsRemaining <= 0) {
+                    lastLaunchInterval = launchIntervalTimer.getElapsedTimeSeconds();
                     launchIntervalTimer.resetTimer();
+                    if (preLaunch) {
+                        lastFirstShotDelay = launchIntervalTimer.getElapsedTimeSeconds();
+                        preLaunch = false;
+                    }
+                    endLaunch();
                     return true;
                 } else {
                     return false;
                 }
             } else { // we have exceeded our max launch time
-                cancelLaunch();
+                endLaunch();
             }
         } else {
             transfer.off();
@@ -113,14 +122,6 @@ public class Robot { // create our global class for our robot
 
     public double getGoalDst(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
         return currentPosition.distanceFrom(goalPose) + Tunables.goalOffset; // use poses to find our distance easily :)
-    }
-
-    public double getTurretGoalHeading(@NonNull Pose currentPosition, @NonNull Pose goalPose) { // return turret heading to point towards goal in radians
-        double xDst = goalPose.getX() - currentPosition.getX();
-        double yDst = goalPose.getY() - currentPosition.getY();
-        double desiredAbsoluteHeading = Math.atan2(yDst, xDst);
-        return desiredAbsoluteHeading - currentPosition.getHeading() + Tunables.magicOffset;
-        //return desiredAbsoluteHeading - currentPosition.getHeading();
     }
 
     public void setAutomatedLaunchSetpoints(double d) { // given positions, use our functions to set our launch speed and hood position
@@ -157,10 +158,12 @@ public class Robot { // create our global class for our robot
         if (ballsRemaining > 3) ballsRemaining = 3;
         launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
         launchIntervalTimer.resetTimer();
+        firstShotDelayTimer.resetTimer();
+        preLaunch = true;
         launching = true;
     }
 
-    public void cancelLaunch() {
+    public void endLaunch() {
         ballsRemaining = 0;
         transfer.reset();
         launching = false;
@@ -179,6 +182,9 @@ public class Robot { // create our global class for our robot
     public LaunchSetpoints getSetpoints() {
         return setpoints;
     }
+
+    public double getLastLaunchDelay() { return lastLaunchInterval; }
+    public double getFirstShotDelay() { return lastFirstShotDelay; }
 
     /** setter methods **/
 
