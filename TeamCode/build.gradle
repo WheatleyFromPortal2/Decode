@@ -14,6 +14,7 @@
 // Include common definitions from above.
 apply from: '../build.common.gradle'
 apply from: '../build.dependencies.gradle'
+apply plugin: 'org.team11260.fast-load-plugin'
 
 
 android {
@@ -26,4 +27,23 @@ android {
 
 dependencies {
     implementation project(':FtcRobotController')
+    implementation 'org.team11260:fast-load:0.1.2'
+}
+
+repositories {
+    maven {
+        url = 'https://www.matthewo.tech/maven/'
+    }
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+        maven {
+            url = 'https://www.matthewo.tech/maven/'
+        }
+    }
+    dependencies {
+        classpath 'org.team11260:fast-load-plugin:0.1.2'
+    }
 }
