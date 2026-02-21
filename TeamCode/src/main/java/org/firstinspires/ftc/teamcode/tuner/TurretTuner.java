@@ -121,7 +121,7 @@ public class TurretTuner extends OpMode {
                     case MOVE_LEFT_MAX:
                         telemetryM.addLine("calibrating turret left max range...");
                         if (isTurretStopped()) { // wait for turret to stop moving
-                            Tunables.turretMaxLeft = turret.getPos() - Tunables.turretCenterOffset; // account for offset
+                            Tunables.turretMaxLeft = turret.getPos();
 
                             // recenter
                             turret.setRawServoPositions(0.5);
@@ -141,15 +141,16 @@ public class TurretTuner extends OpMode {
                     case MOVE_RIGHT_MAX:
                         telemetryM.addLine("calibrating turret right max range");
                         if (isTurretStopped()) { // wait for turret to stop moving
-                            Tunables.turretMaxRight = Tunables.turretCenterOffset - turret.getPos();
+                            Tunables.turretMaxRight = turret.getPos();
 
                             calibrationState = CalibrationState.RESET;
                         }
                         break;
                     case RESET:
-                        turret.setDesiredPos(0); // reset to normal, now perfectly centered position
+                        turret.setRawServoPositions(0.5);
+                        //turret.setDesiredPos(0); // reset to normal, now perfectly centered position
                         //turret.on();
-                        turret.update();
+                        //turret.update();
                         calibrationState = CalibrationState.END;
                         break;
                     case END:
@@ -203,6 +204,7 @@ public class TurretTuner extends OpMode {
         turret.setDesiredPos(inputPos);
 
         telemetryM.addData("desired turret position", turret.getDesiredPos());
+        telemetryM.addData("turret error (deg", Math.toDegrees(turret.getDesiredPos() - inputPos));
 
     }
 

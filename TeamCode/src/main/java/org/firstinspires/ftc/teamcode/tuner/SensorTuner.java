@@ -25,12 +25,18 @@ public class SensorTuner extends LinearOpMode {
         RevColorSensorV3 color = hardwareMap.get(RevColorSensorV3.class, "color");
         color.enableLed(true);
 
+        transfer.open();
+
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
         Timer functionTimer = new Timer();
+
+        int ballLaunches = 0;
 
         waitForStart();
 
         while (opModeIsActive()) {
+            if (transfer.wasBallLaunched()) { ballLaunches++; }
+            telemetryM.addData("ball launches", ballLaunches);
             telemetryM.addLine("---Brushland I2C light readings---");
             telemetryM.addData("I2C raw light detected", color.getRawLightDetected());
             telemetryM.addData("red", color.red());

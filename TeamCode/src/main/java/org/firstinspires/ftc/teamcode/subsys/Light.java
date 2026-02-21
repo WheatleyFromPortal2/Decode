@@ -8,41 +8,45 @@ import com.qualcomm.robotcore.util.Range;
 
 public class Light {
     // from: https://www.gobilda.com/rgb-indicator-light-pwm-controlled/
-    double OFF = 0.0;
-    double RED = 0.279;
-    double ORANGE = 0.333;
-    double YELLOW = 0.388;
-    double GREEN = 0.5;
-    double BLUE = 0.611;
-    double VIOLET = 0.721;
-    double WHITE = 1.0;
-
-    private double lastColor = -1; // force hardware write first try
+    private final double OFF = 0.0;
+    private final double RED = 0.279;
+    private final double ORANGE = 0.333;
+    private final double YELLOW = 0.388;
+    private final double GREEN = 0.5;
+    private final double BLUE = 0.611;
+    private final double VIOLET = 0.721;
+    private final double WHITE = 1.0;
 
     private Servo light;
+
+    private double lastColor = -1; // force hardware write first try
+    private double color = OFF;
 
     public Light(HardwareMap hw) {
         light = hw.get(Servo.class, "light");
 
-        off(); // start with light off
+        setColorFast(OFF); // start off
     }
 
-    public void off() { setColorFast(OFF); }
-
-    /** color methods **/
-    public void red() { setColorFast(RED); }
-    public void orange() { setColorFast(ORANGE); }
-    public void yellow() { setColorFast(YELLOW); }
-    public void green() { setColorFast(GREEN); }
-    public void blue() { setColorFast(BLUE); }
-    public void violet() { setColorFast(VIOLET); }
-    public void white() { setColorFast(WHITE); }
-
-    public void setColorFast(double color) {
-        color = Range.clip(color, 0.0, 1.0);
+    public void update() {
+        color = Range.clip(color, 0.0, 1.0); // clip color to servo limits
         if (color != lastColor) { // only write to hardware if necessary
             light.setPosition(color);
             lastColor = color;
         }
+    }
+
+    public void off() { color = OFF; }
+
+    /** color methods **/
+    public void red() { color = RED; }
+    public void orange() { color = ORANGE; }
+    public void yellow() { color = YELLOW; }
+    public void green() { color = GREEN; }
+    public void blue() { color = BLUE; }
+    public void violet() { color = VIOLET; }
+    public void white() { color = WHITE; }
+
+    public void setColorFast(double color) {
     }
 }

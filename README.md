@@ -91,7 +91,7 @@ make sure to connect every motor with the correct polarity; the reversing should
 |:-------------|------------------|:--------------|
 | `0`          | Full Range Servo | `hoodServo`   |
 | `1`          | Servo            | `sorterServo` |
-| `2`          | *unused*         | *unused*      |
+| `2`          | Servo            | `light`       |
 | `3`          | *unused*         | *unused*      |
 | `4`          | *unused*         | *unused*      |
 | `5`          | *unused*         | *unused*      |

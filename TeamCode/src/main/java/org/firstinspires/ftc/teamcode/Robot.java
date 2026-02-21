@@ -11,7 +11,9 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 // unit imports
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit;
+import org.firstinspires.ftc.teamcode.subsys.Indexer;
 import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
+import org.firstinspires.ftc.teamcode.subsys.Light;
 import org.firstinspires.ftc.teamcode.subsys.launch.Flywheel;
 import org.firstinspires.ftc.teamcode.subsys.launch.Hood;
 import org.firstinspires.ftc.teamcode.subsys.launch.Intake;
@@ -36,7 +38,8 @@ public class Robot { // create our global class for our robot
     public Turret turret;
     public Intake intake;
     public Transfer transfer;
-
+    public Indexer indexer;
+    public Light light;
 
     /** only these variables should change during runtime **/
 
@@ -56,6 +59,8 @@ public class Robot { // create our global class for our robot
         hood = new Hood(hw);
         turret = new Turret(hw, intake.getMotor()); // pass in intake motor to use for turret encoder
         transfer = new Transfer(hw);
+        light = new Light(hw);
+        indexer = new Indexer(hw);
 
         setpoints = new LaunchSetpoints(0, 0, 0);
 
@@ -74,19 +79,31 @@ public class Robot { // create our global class for our robot
         flywheel.setpointUpdate(setpoints.getTPS());
         hood.update(setpoints.getHoodPos());
 
+        // light overrides
+        if (launching) { light.orange(); }
+        if (intake.isReverse()) { light.red(); }
+
+        light.update();
+
         // turret is more complex, so we need to set and then update
         turret.setDesiredPos(setpoints.getTurretPos());
         turret.update();
+
+        if (!transfer.isBallInLower()) { transfer.forward(); }
+        else { transfer.off(); }
 
         if (launching) {
             if (launchIntervalTimer.getElapsedTime() <= Tunables.maxLaunchTime) {
                 intake.forward();
                 transfer.forward();
+                transfer.open();
+
                 if (transfer.wasBallLaunched()) {
                     ballsRemaining--;
                 }
 
                 if (ballsRemaining <= 0) {
+                    light.white();
                     launchIntervalTimer.resetTimer();
                     return true;
                 } else {
@@ -96,7 +113,6 @@ public class Robot { // create our global class for our robot
                 cancelLaunch();
             }
         } else {
-            transfer.off();
             return true; // done launching
         }
         // code will never be reached but IDE gets mad
