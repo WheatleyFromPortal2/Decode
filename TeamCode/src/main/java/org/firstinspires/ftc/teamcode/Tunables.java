@@ -15,12 +15,7 @@ public class Tunables { // this should hold all of our constants
     public static double farAutoRPMOffset = 90; // manually calibrated 2-7-26
 
     // launch delays
-    public static int openDelay = 0; // time to wait for upperTransfer to open (in millis)
-    public static int lowerDelay = 40; // time to wait for lower transfer to lower
-    public static int transferDelay = 115; // time to wait for ball to enter lower transfer
-    public static int lastTransferDelay = 300; // time to wait for last ball to enter lower transfer
-    public static int extraPushDelay = 20; // extra time to wait for exit after ball triggers upperTransferSensor
-    public static int maxPushDelay = 250; // maximum time to wait for lowerTransfer to move (in millis)
+    public static int maxLaunchTime = 500; // max amount of time to complete one launch cycle
 
 
     // rumble effects
@@ -78,19 +73,28 @@ public class Tunables { // this should hold all of our constants
 
     /** turret tunables (used in Turret.java) **/
     public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
-    public static double turretMaxRange = 1.3962634015954636;
     public static double turretMaxLeft = 1; // max range that the turret can go left or right from servo center
     public static double turretMaxRight = 1;
     // TODO: fix NaN in Turret.java
 
     /** transfer tunables (used in Transfer.java) **/
 
-    public static double lowerTransferLowerLimit = 0.154; // recalibrated 2-7-26
-    public static double lowerTransferUpperLimit = 0.45; // recalibrated 1-27-26
+    public static double transferMotorForwardPower = 1;
+    public static double transferMotorReversePower = -1;
+
     // servo position where upper transfer prevents balls from passing into launch
-    public static double upperTransferClosed = 0.00; // recalibrated 1-27-26
+    public static double transferServoClosed = 0.00; // recalibrated 2-17-26
     // servo position where upper transfer allows balls to pass into launch
-    public static double upperTransferOpen = 0.28; // recalibrated 1-16-25
+    public static double transferServoOpen = 0.34; // recalibrated 2-17-25
+
+    /** indexer tunables (used in Indexer.java) **/
+
+    public static double indexerKickerIntake = 0.99; // get balls from intake (down)
+    public static double indexerKickerUp = 0.887; // move balls to chute
+    public static double indexerKickerChute = 0.674; // get balls from chute
+
+    public static double indexerBlockerClosed = 0.5;
+    public static double indexerBlockerOpen = 0.0;
 
 
     /** TeleOp tunables (used in BozoTeleOp.java) **/

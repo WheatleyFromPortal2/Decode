@@ -11,15 +11,18 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Tunables;
+import org.firstinspires.ftc.teamcode.subsys.launch.Intake;
 import org.firstinspires.ftc.teamcode.subsys.launch.Turret;
 
 @TeleOp(name="TurretTuner", group="Tuner")
 public class TurretTuner extends OpMode {
-    private int MIN_MOVE_TIME = 100; // minimum millis to wait for turret to move
+    private int START_MOVE_MILLIS = 100; // minimum millis to wait for turret to move
+    private int SETTLE_MILLIS = 1000; // time to wait for turret to settle
 
     private enum TuneMode { // order matters for display
         CALIBRATE,
         TEST,
+        TEST_RAW,
         UNSELECTED
     }
 
@@ -41,12 +44,14 @@ public class TurretTuner extends OpMode {
     private TuneMode mode = TuneMode.UNSELECTED;
     private CalibrationState calibrationState = CalibrationState.START;
     private Timer moveTimer = new Timer();
+    private boolean startedMoving = false;
 
     /** end vars that change **/
 
     @Override
     public void init() {
-        turret = new Turret(hardwareMap);
+        Intake intake = new Intake(hardwareMap); // need to do this to get encoder
+        turret = new Turret(hardwareMap, intake.getMotor());
 
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
 
@@ -59,14 +64,17 @@ public class TurretTuner extends OpMode {
     public void init_loop() {
         TuneMode mode0 = TuneMode.values()[0];
         TuneMode mode1 = TuneMode.values()[1];
+        TuneMode mode2 = TuneMode.values()[2];
 
         telemetryM.addLine("select your tuning mode using the gamepad:");
         // display servo test modes in order of TestMode enum
         telemetryM.addLine("(A): " + mode0);
         telemetryM.addLine("(B): " + mode1);
+        telemetryM.addLine("(X): " + mode2);
 
         if (gamepad1.aWasReleased()) { mode = mode0; }
         if (gamepad1.bWasReleased()) { mode = mode1; }
+        if (gamepad1.xWasReleased()) { mode = mode2; }
 
         telemetryM.addLine("");
         telemetryM.addLine("current testing mode is: " + mode);
@@ -89,17 +97,20 @@ public class TurretTuner extends OpMode {
                         telemetryM.addLine("move the turret to exactly forward, and then press (A) to calibrate center");
                         if (gamepad1.aWasReleased()) {
                             turret.zero();
+                            turret.setRawServoPositions(0.5);
+                            startMoving();
                             calibrationState = CalibrationState.ZERO_CENTER;
                         }
                         break;
                     case ZERO_CENTER:
-                        Tunables.turretCenterOffset = turret.getPos();
+                        if (isTurretStopped()) {
+                            Tunables.turretCenterOffset = turret.getPos();
 
-                        // test turret left max
-                        turret.setRawServoPositions(1);
-                        startMoving();
-                        calibrationState = CalibrationState.MOVE_LEFT_MAX;
-
+                            // test turret left max
+                            turret.setRawServoPositions(1);
+                            startMoving();
+                            calibrationState = CalibrationState.MOVE_LEFT_MAX;
+                        }
                         break;
                     case MOVE_LEFT_MAX:
                         telemetryM.addLine("calibrating turret left max range...");
@@ -143,12 +154,18 @@ public class TurretTuner extends OpMode {
 
                         telemetryM.addLine("");
                         telemetryM.addLine("if these values are reliable after testing, then save them in Tunables.java!");
-                        testTurret();
                         break;
                 }
                 break;
             case TEST:
                 testTurret();
+                break;
+            case TEST_RAW:
+                double rawPos = Range.scale(gamepad1.right_stick_x, -1.0, 1.0, 0.0, 1.0);
+
+                turret.setRawServoPositions(rawPos);
+
+                telemetryM.addData("raw pos", rawPos);
                 break;
             case UNSELECTED:
                 throw new RuntimeException("make sure to select a tuning mode before starting!");
@@ -175,24 +192,33 @@ public class TurretTuner extends OpMode {
         if (gamepad1.dpad_up) inputPos = Math.toRadians(0);
         if (gamepad1.dpad_right) inputPos = Math.toRadians(90);
 
+        turret.update();
+
         turret.setDesiredPos(inputPos);
 
         telemetryM.addData("desired turret position", turret.getDesiredPos());
 
-        turret.update();
     }
 
     private void startMoving() {
         moveTimer.resetTimer();
-
+        startedMoving = false;
     }
     private boolean isTurretStopped() {
-        if (moveTimer.getElapsedTime() <= MIN_MOVE_TIME) {
-            return false; // wait for turret to start moving
-        } else if (moveTimer.getElapsedTime() >= MIN_MOVE_TIME) {
-            return turret.getVelocity() == 0; // wait for turret to  stop moving
+        if (!startedMoving) {
+            if (moveTimer.getElapsedTime() <= START_MOVE_MILLIS) {
+                return false; // wait for turret to start moving
+            } else if (turret.getVelocity() == 0) {
+                startedMoving = true;
+                moveTimer.resetTimer();
+            }
         } else {
-            return false; // still waiting for turret to stop moving
+            if (moveTimer.getElapsedTime() <= SETTLE_MILLIS || turret.getVelocity() != 0) {
+                return false;
+            } else {
+                return true;
+            }
         }
+        return false;
     }
 }

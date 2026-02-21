@@ -13,7 +13,7 @@ public class Hood {
     private double lastPos;
 
     public Hood(HardwareMap hw) {
-        servo = hw.get(Servo.class, "hood");
+        servo = hw.get(Servo.class, "hoodServo");
 
         servo.setPosition(Tunables.hoodMinimumPos);
         lastPos = Tunables.hoodMinimumPos; // force initial write

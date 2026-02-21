@@ -26,16 +26,6 @@ import com.pedropathing.util.Timer;
 
 
 public class Robot { // create our global class for our robot
-    public enum LaunchState { // these are the possible states our launch state machine can be in
-        START,
-        OPEN_UPPER_TRANSFER,
-        RAISE_LOWER_TRANSFER,
-        WAIT_FOR_SENSOR_HIT,
-        WAIT_FOR_EXIT,
-        WAIT_FOR_LOWER,
-        WAIT_FOR_TRANSFER
-    }
-
     public LynxModule controlHub;
     public LynxModule expansionHub;
 
@@ -51,20 +41,23 @@ public class Robot { // create our global class for our robot
     /** only these variables should change during runtime **/
 
     private LaunchSetpoints setpoints;
-    private LaunchState state;
     private Timer launchStateTimer;
     private Timer launchIntervalTimer;
+    private Timer firstShotDelayTimer;
     private int ballsRemaining = 0;
+    private boolean launching = false;
     private double lastLaunchInterval = 0; // measure last amount of time it took to launch balls in seconds
+    private double lastFirstShotDelay = 0; // last delay from issuing launch command to ball exiting in seconds
+    private boolean preLaunch = true;
 
     /** end vars that change **/
 
     public Robot(HardwareMap hw) { // create all of our hardware and initialize our class
         // initialize subsystems
+        intake = new Intake(hw);
         flywheel = new Flywheel(hw);
         hood = new Hood(hw);
-        turret = new Turret(hw);
-        intake = new Intake(hw);
+        turret = new Turret(hw, intake.getMotor()); // pass in intake motor to use for turret encoder
         transfer = new Transfer(hw);
 
         setpoints = new LaunchSetpoints(0, 0, 0);
@@ -88,84 +81,35 @@ public class Robot { // create our global class for our robot
         turret.setDesiredPos(setpoints.getTurretPos());
         turret.update();
 
-        if (ballsRemaining == 0) { // if we are done with balls or our launch isn't running fast enough
-            cancelLaunch();
-            return true; // we're done with launching balls
-        } else { // balls remaining > 0 && we are launching
-            switch (state) {
-                case START:
-                    intake.forward();
-                    launchStateTimer.resetTimer();
-                    //if (ballsRemaining > 1) intake.setPower(Tunables.launchingIntakePower); // hopefully allow lowerTransfer to go down
-                    if (!transfer.isUpperOpen()) {
-                        transfer.openUpper();
-                        setState(LaunchState.OPEN_UPPER_TRANSFER);
-                    } else {
-                        setState(LaunchState.RAISE_LOWER_TRANSFER);
-                    }
-                    break;
-                case OPEN_UPPER_TRANSFER:
-                    if (launchStateTimer.getElapsedTime() >= Tunables.openDelay) {
-                        setState(LaunchState.RAISE_LOWER_TRANSFER);
-                    }
-                    break;
-                case RAISE_LOWER_TRANSFER:
-                    transfer.raiseLower();
+        if (launching) {
+            if (launchIntervalTimer.getElapsedTime() <= Tunables.maxLaunchTime) {
+                intake.forward();
+                transfer.forward();
+                if (transfer.wasBallLaunched()) {
+                    ballsRemaining--;
+                }
 
-                    intake.hold();
-                    launchStateTimer.resetTimer();
-                    setState(LaunchState.WAIT_FOR_SENSOR_HIT);
-                    break;
-                case WAIT_FOR_SENSOR_HIT:
-                    if (transfer.isBallInUpper() // wait until we detect a ball in upper transfer (ball has been launched)
-                            || launchStateTimer.getElapsedTime() >= Tunables.maxPushDelay) { // or if that hasn't happened in a while, just go to the next launch
-                        launchStateTimer.resetTimer();
-                        setState(LaunchState.WAIT_FOR_EXIT);
+                if (ballsRemaining <= 0) {
+                    lastLaunchInterval = launchIntervalTimer.getElapsedTimeSeconds();
+                    launchIntervalTimer.resetTimer();
+                    if (preLaunch) {
+                        lastFirstShotDelay = launchIntervalTimer.getElapsedTimeSeconds();
+                        preLaunch = false;
                     }
-                    break;
-                case WAIT_FOR_EXIT:
-                    if (launchStateTimer.getElapsedTime() >= Tunables.extraPushDelay) {
-                        transfer.lowerLower();
-                        ballsRemaining -= 1; // we've launched a ball
-                        if (ballsRemaining == 0) { // we're done with launching
-                            setState(LaunchState.START);
-                            lastLaunchInterval = launchIntervalTimer.getElapsedTimeSeconds();
-                        }
-                        else {
-                            setState(LaunchState.WAIT_FOR_LOWER);
-                        }
-                        launchStateTimer.resetTimer(); // reset our timer
-                    }
-                    break;
-                case WAIT_FOR_LOWER:
-                    if (launchStateTimer.getElapsedTime() >= Tunables.lowerDelay) {
-                        setState(LaunchState.WAIT_FOR_TRANSFER);
-                        intake.forward();
-                        launchStateTimer.resetTimer();
-                    }
-                    break;
-                case WAIT_FOR_TRANSFER:
-                    if (ballsRemaining == 1) {
-                        if (launchStateTimer.getElapsedTime() < Tunables.lastTransferDelay && !transfer.isBallInLower()) {
-                            break;
-                        }
-                    } else {
-                        if (launchStateTimer.getElapsedTime() < Tunables.transferDelay && !transfer.isBallInLower()) {
-                            break;
-                        }
-                    }
-                    launchStateTimer.resetTimer();
-                    setState(LaunchState.START);
-                    break;
+                    endLaunch();
+                    return true;
+                } else {
+                    return false;
+                }
+            } else { // we have exceeded our max launch time
+                endLaunch();
             }
+        } else {
+            transfer.off();
+            return true; // done launching
         }
+        // code will never be reached but IDE gets mad
         return false;
-    }
-
-    private void setState(LaunchState newState) {
-        if (newState == LaunchState.START) { intake.forward(); }
-        state = newState;
-        launchStateTimer.resetTimer();
     }
 
     public double getSystemVoltage() { // return system current in volts
@@ -178,14 +122,6 @@ public class Robot { // create our global class for our robot
 
     public double getGoalDst(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
         return currentPosition.distanceFrom(goalPose) + Tunables.goalOffset; // use poses to find our distance easily :)
-    }
-
-    public double getTurretGoalHeading(@NonNull Pose currentPosition, @NonNull Pose goalPose) { // return turret heading to point towards goal in radians
-        double xDst = goalPose.getX() - currentPosition.getX();
-        double yDst = goalPose.getY() - currentPosition.getY();
-        double desiredAbsoluteHeading = Math.atan2(yDst, xDst);
-        return desiredAbsoluteHeading - currentPosition.getHeading() + Tunables.magicOffset;
-        //return desiredAbsoluteHeading - currentPosition.getHeading();
     }
 
     public void setAutomatedLaunchSetpoints(double d) { // given positions, use our functions to set our launch speed and hood position
@@ -222,13 +158,15 @@ public class Robot { // create our global class for our robot
         if (ballsRemaining > 3) ballsRemaining = 3;
         launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
         launchIntervalTimer.resetTimer();
-        state = LaunchState.START; // reset our state machine to the start
+        firstShotDelayTimer.resetTimer();
+        preLaunch = true;
+        launching = true;
     }
 
-    public void cancelLaunch() {
-        state = LaunchState.START;
+    public void endLaunch() {
         ballsRemaining = 0;
         transfer.reset();
+        launching = false;
     }
 
     public int getBallsRemaining() { return ballsRemaining; }
@@ -244,6 +182,9 @@ public class Robot { // create our global class for our robot
     public LaunchSetpoints getSetpoints() {
         return setpoints;
     }
+
+    public double getLastLaunchDelay() { return lastLaunchInterval; }
+    public double getFirstShotDelay() { return lastFirstShotDelay; }
 
     /** setter methods **/
 

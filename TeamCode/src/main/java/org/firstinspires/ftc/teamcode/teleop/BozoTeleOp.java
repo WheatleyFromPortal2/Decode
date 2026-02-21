@@ -35,6 +35,7 @@ public abstract class BozoTeleOp extends OpMode {
     private Follower follower;
     private Vision vision;
     private TimeProfiler timeProfiler;
+    @SuppressWarnings("FieldCanBeLocal")
     private Pose goalPose; // this will be set by the specific OpMode
     private Timer loopTimer; // measures the speed of our loop
     private boolean isAutomatedDrive = false; // whether our drive is manually controlled or following a path
@@ -108,7 +109,7 @@ public abstract class BozoTeleOp extends OpMode {
         }
         if (gamepad1.yWasReleased()) {
             if (robot.isLaunching()) { // if we release y while we're launching, it will cancel
-                robot.cancelLaunch();
+                robot.endLaunch();
                 follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
             } else { // if we're not already launching
                 follower.holdPoint(follower.getPose()); // hold our pose while we're launching
@@ -178,7 +179,8 @@ public abstract class BozoTeleOp extends OpMode {
         timeProfiler.start("launch");
 
         if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
-            setpoints = physics.getNeededStaticVelocity(follower.getPose(), getGoalPose());
+            //setpoints = physics.getNeededVelocityStatic(follower.getPose(), getGoalPose());
+            setpoints = physics.getNeededVelocityDynamic(follower.getPose(), follower.getVelocity(), getGoalPose(), robot.getFirstShotDelay());
 
             //double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
             //double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
@@ -265,7 +267,6 @@ public abstract class BozoTeleOp extends OpMode {
 
             // odo
             telemetryM.debug("current heading: " + follower.getHeading());
-            telemetryM.debug("odo goal target heading (deg): " + Math.toDegrees(robot.getTurretGoalHeading(follower.getPose(), getGoalPose())));
             telemetryM.debug("x: " + follower.getPose().getX());
             telemetryM.debug("y: " + follower.getPose().getY());
             //telemetryM.debug("goalPose x: " + goalPose.getX());

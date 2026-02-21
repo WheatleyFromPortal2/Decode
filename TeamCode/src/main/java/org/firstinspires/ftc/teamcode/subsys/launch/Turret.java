@@ -25,32 +25,20 @@ public class Turret {
 
     /** end vars that change **/
 
-    public Turret(HardwareMap hw) {
+    public Turret(HardwareMap hw, DcMotorEx encoder) {
         turret1 = hw.get(Servo.class, "turret1");
         turret2 = hw.get(Servo.class, "turret2");
         //turret1.setPwmEnable();
         //turret2.setPwmEnable();
 
-        encoder = hw.get(DcMotorEx.class, "turretEncoder");
+        this.encoder = encoder;
 
         resetEncoder();
     }
 
     public void update() {
         if (isPowered) {
-            //double newTurretServoPos = ((-desiredPos + Tunables.turretOffset) / (Tunables.turretMax * 2)) + 0.5;
-            double maxAdjusted = ((-desiredPos + Tunables.turretCenterOffset) / (Tunables.turretMaxRange * 2)) + 0.5;
-            /*
-            double turretAngle = Tunables.turretCenterOffset - desiredPos;
-            double preClamped = Range.clip(turretAngle, -Tunables.turretMaxRight, Tunables.turretMaxLeft);
-            double maxAdjusted = (preClamped + Tunables.turretMaxRight) / (Tunables.turretMaxLeft + Tunables.turretMaxRight);
-             */
-
-            if (Double.isNaN(maxAdjusted)) {
-                throw new IllegalStateException("turret position is NaN!");
-            }
-
-            double newTurretServoPos = Range.clip(maxAdjusted, 0.0, 1.0); // make sure we don't cause an exception
+            double newTurretServoPos = Range.scale(desiredPos, Tunables.turretMaxLeft, Tunables.turretMaxRight, 1.0, 0.0); // should be reversed
 
             if (newTurretServoPos == lastDesiredPos) {
                 // do nothing, save loop time

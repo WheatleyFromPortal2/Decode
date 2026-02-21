@@ -1,5 +1,7 @@
 package org.firstinspires.ftc.teamcode;
 
+import androidx.annotation.NonNull;
+
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
 
@@ -12,7 +14,7 @@ public class Physics {
 
     public Physics() {} // set up class
 
-    public LaunchSetpoints getNeededStaticVelocity(
+    public LaunchSetpoints getNeededVelocityStatic (
             Pose robotPose,
             Pose goalPose )
     {
@@ -43,10 +45,16 @@ public class Physics {
         double v = Math.sqrt((G * d * d) / denom);
         double RPM = velocityToRPM(v);
         setpoints.setRPM(RPM);
+
+        double desiredAbsoluteHeading = Math.atan2(dy, dx);
+        double turretRadians = desiredAbsoluteHeading - robotPose.getHeading();
+
+        setpoints.setTurretPos(turretRadians);
+
         return setpoints;
     }
 
-    public LaunchSetpoints getNeededVelocity(
+    public LaunchSetpoints getNeededVelocityDynamic (
             Pose robotPose,
             Vector robotVector,
             Pose goalPose,
@@ -100,6 +108,7 @@ public class Physics {
 
         double RPM = velocityToRPM(bestV);
         setpoints.setRPM(RPM);
+
         return setpoints;
     }
 
