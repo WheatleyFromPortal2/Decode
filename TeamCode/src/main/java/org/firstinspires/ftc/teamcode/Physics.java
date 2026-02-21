@@ -80,7 +80,7 @@ public class Physics {
 
         double theta = Math.atan(dy/dx);
         double phi = 0;
-        double num1 = 2 * Math.sin(ANGLE) * d - 0.762;
+        double num1 = 2 * Math.sin(ANGLE) * d - 2*h;
         double denom1 = d * d * G;
         double sqrt = Math.sqrt(num1/denom1);
         double num = robotVy * Math.cos((Math.PI/2) - theta) + robotVx * Math.cos(theta) - robotVy * Math.sin((Math.PI/2) - theta) - sqrt;
