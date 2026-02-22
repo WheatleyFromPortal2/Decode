@@ -229,7 +229,9 @@ public abstract class BozoTeleOp extends OpMode {
         // use .addData() for values to be graphed on Panels
 
         // warnings!
-        if (robot.intake.isReverse()) telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
+        if (robot.intake.isReverse()) {
+            telemetryM.addLine("WARNING: INTAKE REVERSED!!!"); // alert driver if intake is reversed
+        }
 
         // launch system
         if (isAutomatedLaunch) {

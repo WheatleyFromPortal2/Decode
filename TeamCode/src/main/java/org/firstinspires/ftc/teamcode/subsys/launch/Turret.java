@@ -19,7 +19,6 @@ public class Turret {
     //public static final double TURRET_SERVO_RATIO = 5.5 / 3; // ratio from turret1/2->turret
 
     /** vars that change **/
-    private boolean isPowered = false;
     private double lastDesiredPos = 0;
     private double desiredPos = 0;
 
@@ -28,8 +27,6 @@ public class Turret {
     public Turret(HardwareMap hw, DcMotorEx encoder) {
         turret1 = hw.get(Servo.class, "turret1");
         turret2 = hw.get(Servo.class, "turret2");
-        //turret1.setPwmEnable();
-        //turret2.setPwmEnable();
 
         this.encoder = encoder;
 
@@ -37,23 +34,21 @@ public class Turret {
     }
 
     public void update() {
-        if (isPowered) {
-            double newTurretServoPos = Range.scale(desiredPos, Tunables.turretMaxLeft, Tunables.turretMaxRight, 1.0, 0.0); // should be reversed
+        double newTurretServoPos = Range.scale(desiredPos, Tunables.turretMaxLeft, Tunables.turretMaxRight, 1.0, 0.0); // should be reversed
 
-            if (newTurretServoPos == lastDesiredPos) {
-                // do nothing, save loop time
-            } else {
-                turret1.setPosition(newTurretServoPos);
-                turret2.setPosition(newTurretServoPos);
-                lastDesiredPos = desiredPos;
-            }
+        if (newTurretServoPos == lastDesiredPos) {
+            // do nothing, save loop time
+        } else {
+            turret1.setPosition(newTurretServoPos);
+            turret2.setPosition(newTurretServoPos);
+            lastDesiredPos = desiredPos;
         }
     }
 
     /** internal methods **/
 
     private double ticksToRadians(double ticks) {
-        double encoderRevs = -ticks / TURRET_TICKS_PER_REV; // negate ticks because positive is ccw for radians 🤦
+        double encoderRevs = ticks / TURRET_TICKS_PER_REV; // don't negate ticks because encoder is mounted on the top now
         double turretRevs = encoderRevs / TURRET_ENCODER_RATIO;
         return turretRevs * 2 * Math.PI; // convert to radians
     }
@@ -86,7 +81,7 @@ public class Turret {
 
     public void setDesiredPos(double radians) { // set desired turret angle
         //if (!isPowered) on();
-        desiredPos = normalizeRadians(radians);
+        desiredPos = normalizeRadians(Range.clip(radians, Tunables.turretLimitLeft, Tunables.turretLimitRight));
     }
 
     /*
@@ -110,7 +105,6 @@ public class Turret {
 
     public void zero() { // fully reset everything
         lastDesiredPos = 0;
-        isPowered = true;
         resetEncoder();
         //off();
     }
