@@ -112,7 +112,7 @@ public abstract class BozoTeleOp extends OpMode {
                 robot.endLaunch();
                 follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
             } else { // if we're not already launching
-                follower.holdPoint(follower.getPose()); // hold our pose while we're launching
+                //follower.holdPoint(follower.getPose()); // hold our pose while we're launching
                 //isAutomatedDrive = true; i don't this is necessary
                 robot.launchBalls(3); // launch 3 balls
             }
@@ -127,7 +127,7 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         if (gamepad1.rightBumperWasReleased()) {
-            follower.holdPoint(follower.getPose()); // hold our pose while we're launching
+            //follower.holdPoint(follower.getPose()); // hold our pose while we're launching
             //isAutomatedDrive = true; i don't this is necessary
             robot.launchBalls(1);
         }
