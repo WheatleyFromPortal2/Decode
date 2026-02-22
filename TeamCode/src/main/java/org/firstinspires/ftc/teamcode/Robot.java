@@ -75,6 +75,7 @@ public class Robot { // create our global class for our robot
 
         launchStateTimer = new Timer(); // set up timer for the launch state machine
         launchIntervalTimer = new Timer();
+        firstShotDelayTimer = new Timer();
     }
 
     public boolean update() {

@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.hardware.Gamepad;
 
 @Configurable
 public class Tunables { // this should hold all of our constants
-    public static boolean isDebugging = false;
+    public static boolean isDebugging = true;
 
     /** Robot tunables (used in Robot.java) **/
 
@@ -74,11 +74,11 @@ public class Tunables { // this should hold all of our constants
     /** turret tunables (used in Turret.java) **/
     public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
     // calibrated 2-22-26
-    public static double turretMaxLeft = -2.0661; // max range that the turret can go left or right from servo center
+    public static double turretMaxLeft = -3.6254; // max range that the turret can go left or right from servo center
     // 1.837
-    public static double turretMaxRight = 2.04605;
+    public static double turretMaxRight = 3.600;
 
-    public static double turretLimitLeft = -Math.toRadians(90);
+    public static double turretLimitLeft = -Math.toRadians(90); // limit to 90deg
     public static double turretLimitRight = Math.toRadians(90);
 
     /** transfer tunables (used in Transfer.java) **/
@@ -110,6 +110,7 @@ public class Tunables { // this should hold all of our constants
     public static double initialManualLaunchRPM = 2350; // 2400 is a little too much
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
     public static double farZoneDataStart = 95; // if d > this, use far zone data
+    public static boolean isDynamicPhysics = true;
 
     /** Auto tunables (used in BozoAuto.java) **/
 

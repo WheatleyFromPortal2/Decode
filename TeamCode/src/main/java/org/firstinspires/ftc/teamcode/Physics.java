@@ -107,7 +107,7 @@ public class Physics {
 
         //Compute turret angle relative to robot
         double phi = Math.atan2(vShotY, vShotX);
-        setpoints.setTurretPos(phi);
+        setpoints.setTurretPos(-phi - robotPose.getHeading());
 
         //Compute shooter speed
         double vShot = Math.hypot(vShotX, vShotY);

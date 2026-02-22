@@ -179,8 +179,11 @@ public abstract class BozoTeleOp extends OpMode {
         timeProfiler.start("launch");
 
         if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
-            //setpoints = physics.getNeededVelocityStatic(follower.getPose(), getGoalPose());
-            setpoints = physics.getNeededVelocityDynamic(follower.getPose(), follower.getVelocity(), getGoalPose(), robot.getFirstShotDelay());
+            if (Tunables.isDynamicPhysics) {
+                setpoints = physics.getNeededVelocityDynamic(follower.getPose(), follower.getVelocity(), getGoalPose(), robot.getFirstShotDelay());
+            } else {
+                setpoints = physics.getNeededVelocityStatic(follower.getPose(), getGoalPose());
+            }
 
             //double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
             //double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
@@ -248,7 +251,7 @@ public abstract class BozoTeleOp extends OpMode {
 
         if (Tunables.isDebugging) {
             telemetryM.addData("hood pos", robot.getSetpoints().getHoodRadians());
-            telemetryM.addData("turret pos", robot.turret.getPos());
+            telemetryM.addData("setpoint turret pos", robot.getSetpoints().getTurretPos());
             telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
 
             // vision & distances
