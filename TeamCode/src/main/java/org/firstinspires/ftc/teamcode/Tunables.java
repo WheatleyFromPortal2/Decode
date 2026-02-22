@@ -71,10 +71,10 @@ public class Tunables { // this should hold all of our constants
 
     /** turret tunables (used in Turret.java) **/
     public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
-    // -1.95
-    public static double turretMaxLeft = -1.933; // max range that the turret can go left or right from servo center
+    // calibrated 2-22-26
+    public static double turretMaxLeft = -2.0661; // max range that the turret can go left or right from servo center
     // 1.837
-    public static double turretMaxRight = 1.869;
+    public static double turretMaxRight = 2.04605;
 
     public static double turretLimitLeft = -Math.toRadians(90);
     public static double turretLimitRight = Math.toRadians(90);
