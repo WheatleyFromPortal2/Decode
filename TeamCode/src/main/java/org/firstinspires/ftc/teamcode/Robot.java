@@ -44,14 +44,10 @@ public class Robot { // create our global class for our robot
     /** only these variables should change during runtime **/
 
     private LaunchSetpoints setpoints;
-    private Timer launchStateTimer;
-    private Timer launchIntervalTimer;
-    private Timer firstShotDelayTimer;
-    private int ballsRemaining = 0;
+    private Timer launchTimer;
     private boolean launching = false;
-    private double lastLaunchInterval = 0; // measure last amount of time it took to launch balls in seconds
-    private double lastFirstShotDelay = 0; // last delay from issuing launch command to ball exiting in seconds
-    private boolean preLaunch = true;
+    private boolean hasLaunchedFirst = false;
+    private double firstShotDelay = Tunables.staticShotDelay; // start with static
 
     /** end vars that change **/
 
@@ -73,9 +69,7 @@ public class Robot { // create our global class for our robot
         controlHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
         expansionHub.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO);
 
-        launchStateTimer = new Timer(); // set up timer for the launch state machine
-        launchIntervalTimer = new Timer();
-        firstShotDelayTimer = new Timer();
+        launchTimer = new Timer();
     }
 
     public boolean update() {
@@ -87,8 +81,6 @@ public class Robot { // create our global class for our robot
         if (launching) { light.orange(); }
         if (intake.isReverse()) { light.red(); }
 
-        light.update();
-
         // turret is more complex, so we need to set and then update
         turret.setDesiredPos(setpoints.getTurretPos());
         turret.update();
@@ -97,36 +89,24 @@ public class Robot { // create our global class for our robot
         else { transfer.off(); }
 
         if (launching) {
-            if (launchIntervalTimer.getElapsedTime() <= Tunables.maxLaunchTime) {
-                intake.forward();
+            light.orange();
+            if (launchTimer.getElapsedTime() >= Tunables.maxLaunchTime) {
+                endLaunch();
+                return true;
+            } else {
+                if (!hasLaunchedFirst && transfer.wasBallLaunched()) {
+                    firstShotDelay = launchTimer.getElapsedTimeSeconds();
+                    hasLaunchedFirst = true;
+                }
                 transfer.forward();
                 transfer.open();
-
-                if (transfer.wasBallLaunched()) {
-                    ballsRemaining--;
-                }
-
-                if (ballsRemaining <= 0) {
-                    lastLaunchInterval = launchIntervalTimer.getElapsedTimeSeconds();
-                    light.white();
-                    launchIntervalTimer.resetTimer();
-                    if (preLaunch) {
-                        lastFirstShotDelay = launchIntervalTimer.getElapsedTimeSeconds();
-                        preLaunch = false;
-                    }
-                    endLaunch();
-                    return true;
-                } else {
-                    return false;
-                }
-            } else { // we have exceeded our max launch time
-                endLaunch();
+                intake.forward();
+                return false;
             }
         } else {
-            return true; // done launching
+            light.blue();
+            return true;
         }
-        // code will never be reached but IDE gets mad
-        return false;
     }
 
     public double getSystemVoltage() { // return system current in volts
@@ -137,61 +117,17 @@ public class Robot { // create our global class for our robot
         return (controlHub.getCurrent(CurrentUnit.AMPS) + expansionHub.getCurrent(CurrentUnit.AMPS));
     }
 
-    public double getGoalDst(Pose currentPosition, Pose goalPose) { // get our distance from the goal in inches
-        return currentPosition.distanceFrom(goalPose) + Tunables.goalOffset; // use poses to find our distance easily :)
-    }
-
-    public void setAutomatedLaunchSetpoints(double d) { // given positions, use our functions to set our launch speed and hood position
-        if (!isLaunching()) { // don't update if we're launching or if
-            double RPM = 0;
-            double hoodPos = 0;
-            if (d < Tunables.farZoneDataStart) { // use close zone data
-                RPM = -0.00943691 * Math.pow(d, 2) +12.47649 * d + 1772.38054 + Tunables.closeAutoRPMOffset;
-                // from Desmos data: 2-5-26 (removing outliers)
-                // R^2 = 0.973 using linear regression
-
-                hoodPos = 0.00000256939 * Math.pow(d, 3) - 0.000531448 * Math.pow(d, 2) + 0.0367024 * d - 0.675026;
-                // from Desmos data: 2-5-26 (removing outliers)
-                // R^2 = 0.6066 using cubic regression
-            } else { // use far zone data
-                RPM = 0.0498139 * Math.pow(d, 2) - 1.32898 * d + 2370.65436 + Tunables.farAutoRPMOffset;
-                // from Desmos data: 2-5-26 (removing outliers)
-                // R^2 = 0.9822 using quadratic regression
-
-                hoodPos = 0.22;
-                // from Desmos data: 2-5-26 (removing outliers)
-                // at this distance, we should always be using the lowest angle
-            }
-
-            setpoints.setRPM(RPM);
-            setpoints.setHoodRadians(hoodPos);
-        }
-    }
-
     /** ball launching methods **/
 
-    public void launchBalls(int balls) { // sets to launch this many balls
-        ballsRemaining += balls;
-        if (ballsRemaining > 3) ballsRemaining = 3;
-        launchStateTimer.resetTimer(); // reset launch state timer (it may be off if cancelled)
-        launchIntervalTimer.resetTimer();
-        firstShotDelayTimer.resetTimer();
-        preLaunch = true;
+    public void launch() {
         launching = true;
+        hasLaunchedFirst = false;
+        launchTimer.resetTimer();
     }
 
     public void endLaunch() {
-        ballsRemaining = 0;
-        transfer.reset();
         launching = false;
-    }
-
-    public int getBallsRemaining() { return ballsRemaining; }
-
-    public double getLastLaunchInterval() { return lastLaunchInterval; }
-
-    public boolean isLaunching() {
-        return ballsRemaining > 0;
+        transfer.close();
     }
 
     /** getter methods **/
@@ -200,8 +136,13 @@ public class Robot { // create our global class for our robot
         return setpoints;
     }
 
-    public double getLastLaunchDelay() { return lastLaunchInterval; }
-    public double getFirstShotDelay() { return lastFirstShotDelay; }
+    public boolean isLaunching() {
+        return launching;
+    }
+
+    public double getFirstShotDelay() {
+        return firstShotDelay;
+    }
 
     /** setter methods **/
 

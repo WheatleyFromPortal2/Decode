@@ -107,16 +107,6 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.bWasReleased()) { // toggle automated launch
             isAutomatedLaunch = !isAutomatedLaunch;
         }
-        if (gamepad1.yWasReleased()) {
-            if (robot.isLaunching()) { // if we release y while we're launching, it will cancel
-                robot.endLaunch();
-                follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
-            } else { // if we're not already launching
-                //follower.holdPoint(follower.getPose()); // hold our pose while we're launching
-                //isAutomatedDrive = true; i don't this is necessary
-                robot.launchBalls(3); // launch 3 balls
-            }
-        }
 
         if (gamepad1.leftBumperWasReleased()) {
             if (!isAutomatedLaunch) {
@@ -129,7 +119,7 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.rightBumperWasReleased()) {
             //follower.holdPoint(follower.getPose()); // hold our pose while we're launching
             //isAutomatedDrive = true; i don't this is necessary
-            robot.launchBalls(1);
+            robot.launch();
         }
         if (gamepad1.startWasReleased()) { // if we press the start button, swap between robot and field centric
             isRobotCentric = !isRobotCentric;
@@ -201,26 +191,8 @@ public abstract class BozoTeleOp extends OpMode {
         // TODO: refactor this to use fused auto-aim
         lastFollowerHeading = follower.getHeading();
 
-        timeProfiler.start("rumble");
-        switch (robot.getBallsRemaining()) { // haptic feedback based on how many balls are in the robot
-            case 0:
-                gamepad1.stopRumble(); // don't rumble if we don't have any balls
-                break;
-            case 1:
-                gamepad1.runRumbleEffect(Tunables.rumble1);
-                break;
-            case 2:
-                gamepad1.runRumbleEffect(Tunables.rumble2);
-                break;
-            case 3:
-                gamepad1.runRumbleEffect(Tunables.rumble3);
-                break;
-        }
-
-        boolean updateLaunchStatus = robot.update(); // idk if running it directly with the && might cause it to be skipped
-        if (updateLaunchStatus && !follower.isTeleopDrive()) { // check if we're done with holding position
-            follower.startTeleOpDrive();
-        }
+        timeProfiler.start("update launch");
+        robot.update(); // idk if running it directly with the && might cause it to be skipped
 
         timeProfiler.start("telemetry");
         updateTelemetry();
@@ -252,7 +224,6 @@ public abstract class BozoTeleOp extends OpMode {
         if (Tunables.isDebugging) {
             telemetryM.addData("hood pos", robot.getSetpoints().getHoodRadians());
             telemetryM.addData("setpoint turret pos", robot.getSetpoints().getTurretPos());
-            telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
 
             // vision & distances
             telemetryM.addData("last vision goal dst", vision.getLastGoalDistance());

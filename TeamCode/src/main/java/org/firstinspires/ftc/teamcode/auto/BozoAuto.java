@@ -177,7 +177,7 @@ public abstract class BozoAuto extends OpMode {
         switch (state) {
             case START:
                 follower.followPath(scorePreload);
-                robot.launchBalls(3);
+                robot.launch();
                 setPathState(State.TRAVEL_TO_LAUNCH);
                 break;
             case TRAVEL_TO_LAUNCH:
@@ -188,12 +188,12 @@ public abstract class BozoAuto extends OpMode {
                     /* if we're holding point, we shouldn't have to disable motors
                     follower.pausePathFollowing();
                     follower.deactivateAllPIDFs(); */
-                    robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
+                    robot.launch(); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
                     setPathState(State.START_LAUNCH); // let's launch
                 }
                 break;
             case START_LAUNCH:
-                robot.launchBalls(3);
+                robot.launch();
                 setPathState(State.LAUNCH);
                 break;
             case LAUNCH:
@@ -404,7 +404,6 @@ public abstract class BozoAuto extends OpMode {
 
         // launch system
         telemetryM.addData("launch RPM", robot.flywheel.getRPM());
-        telemetryM.addData("ballsRemaining", robot.getBallsRemaining());
 
         // odo
         telemetryM.addData("x", follower.getPose().getX());
@@ -417,6 +416,5 @@ public abstract class BozoAuto extends OpMode {
 
     public void updateHandoff() {
         HandoffState.pose = follower.getPose();
-        HandoffState.ballsRemaining = robot.getBallsRemaining();
     }
 }
