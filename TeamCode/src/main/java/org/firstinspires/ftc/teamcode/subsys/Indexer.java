@@ -32,6 +32,10 @@ public class Indexer {
         setKickerPosFast(Tunables.indexerKickerUp);
     }
 
+    public void kickerChute() {
+        setKickerPosFast(Tunables.indexerKickerChute);
+    }
+
     public void blockerClosed() {
         setBlockerPosFast(Tunables.indexerBlockerClosed);
     }
