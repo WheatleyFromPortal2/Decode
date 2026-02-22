@@ -54,7 +54,9 @@ public class Physics {
         return setpoints;
     }
 
-    public LaunchSetpoints getNeededVelocityDynamic (
+
+
+    public LaunchSetpoints getNeededVelocityDynamic(
             Pose robotPose,
             Vector robotVector,
             Pose goalPose,
@@ -62,56 +64,58 @@ public class Physics {
     {
         LaunchSetpoints setpoints = new LaunchSetpoints(0, 0, 0);
 
-        // convert from inches to meters
+        // Convert positions and velocities from inches to meters
         double robotX = inchesToMeters(robotPose.getX());
         double robotY = inchesToMeters(robotPose.getY());
-
         double goalX = inchesToMeters(goalPose.getX());
         double goalY = inchesToMeters(goalPose.getY());
 
-        // Pedro Pathing vectors are also stored in inches and thus need to be converted
         double robotVx = inchesToMeters(robotVector.getXComponent());
         double robotVy = inchesToMeters(robotVector.getYComponent());
 
         final double G = 9.81;
-        final double ANGLE = Math.PI / 3.0;
+        final double ANGLE = Math.PI / 3.0; // 60 degrees
         setpoints.setHoodRadians(ANGLE);
 
-        //SHOT DELAY TUNE NOW
+        //Predict robot position at firing time
         double fireX = robotX + robotVx * SHOT_DELAY;
         double fireY = robotY + robotVy * SHOT_DELAY;
 
+        //Compute horizontal displacement to goal
         double dx = goalX - fireX;
         double dy = goalY - fireY;
         double d = Math.hypot(dx, dy);
         double h = GOAL_Z - SHOOTER_Z;
 
-        double theta = Math.atan(dy/dx);
-        double phi = 0;
-        double num1 = 2 * Math.sin(ANGLE) * d - 2*h;
-        double denom1 = d * d * G;
-        double sqrt = Math.sqrt(num1/denom1);
-        double num = robotVy * Math.cos((Math.PI/2) - theta) + robotVx * Math.cos(theta) - robotVy * Math.sin((Math.PI/2) - theta) - sqrt;
-        double denom = robotVx * Math.sin(theta);
-        phi = Math.acos(num / denom);
-
-        if (phi >= Math.PI)
-        {
-            phi = 2 * Math.PI - phi;
+        //Compute required projectile speed ignoring robot motion
+        double cosAngle = Math.cos(ANGLE);
+        double denom = 2 * cosAngle * cosAngle * (d * Math.tan(ANGLE) - h);
+        if (denom <= 0) {
+            // No physical solution possible
+            return setpoints;
         }
+        double vReq = Math.sqrt(G * d * d / denom);
 
+        //Compute required field-frame velocity vector
+        double thetaField = Math.atan2(dy, dx);
+        double vReqX = vReq * Math.cos(thetaField);
+        double vReqY = vReq * Math.sin(thetaField);
+
+        //Compute required velocity relative to robot
+        double vShotX = vReqX - robotVx;
+        double vShotY = vReqY - robotVy;
+
+        //Compute turret angle relative to robot
+        double phi = Math.atan2(vShotY, vShotX);
         setpoints.setTurretPos(phi);
 
-        double num2 = -(robotVy * Math.sin((Math.PI/2) - theta)) + robotVx * Math.sin(theta);
-        double denom2 = Math.sin(phi);
-        double bestV = num2/denom2;
-
-        double RPM = velocityToRPM(bestV);
+        //Compute shooter speed
+        double vShot = Math.hypot(vShotX, vShotY);
+        double RPM = velocityToRPM(vShot);
         setpoints.setRPM(RPM);
 
         return setpoints;
     }
-
     private double velocityToRPM(double velocity)
     {
         // calibrated 2-13-26
