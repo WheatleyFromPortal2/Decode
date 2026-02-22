@@ -122,7 +122,6 @@ public class Tunables { // this should hold all of our constants
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
     public static double maxGrabVelocity = 50; // max velocity while grabbing balls in inches/second
     public static double clearMaxPower = 0.8;
-    public static double magicOffset = 0.12;
 
     /** Vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
@@ -135,4 +134,5 @@ public class Tunables { // this should hold all of our constants
     /** physics tunables (used in Physics.java) **/
 
     public static double physicsRPMOffset = 0;
+    public static double staticShotDelay = .14;
 }

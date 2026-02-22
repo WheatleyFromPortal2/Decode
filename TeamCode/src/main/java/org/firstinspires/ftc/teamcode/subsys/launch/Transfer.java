@@ -118,7 +118,7 @@ public class Transfer {
         }
     }
 
-    private void close() {
+    public void close() {
         if (isUpperOpen) {
             servo.setPosition(Tunables.transferServoClosed);
             isUpperOpen = false;

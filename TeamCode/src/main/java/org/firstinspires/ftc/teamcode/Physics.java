@@ -60,9 +60,11 @@ public class Physics {
             Pose robotPose,
             Vector robotVector,
             Pose goalPose,
-            double SHOT_DELAY)
+            double shotDelay)
     {
         LaunchSetpoints setpoints = new LaunchSetpoints(0, 0, 0);
+
+        shotDelay = Tunables.staticShotDelay;
 
         // Convert positions and velocities from inches to meters
         double robotX = inchesToMeters(robotPose.getX());
@@ -78,8 +80,8 @@ public class Physics {
         setpoints.setHoodRadians(ANGLE);
 
         //Predict robot position at firing time
-        double fireX = robotX + robotVx * SHOT_DELAY;
-        double fireY = robotY + robotVy * SHOT_DELAY;
+        double fireX = robotX + robotVx * shotDelay;
+        double fireY = robotY + robotVy * shotDelay;
 
         //Compute horizontal displacement to goal
         double dx = goalX - fireX;
