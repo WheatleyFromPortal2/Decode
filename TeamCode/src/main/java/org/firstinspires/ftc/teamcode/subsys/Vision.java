@@ -68,7 +68,7 @@ public class Vision {
 
    public boolean updateFullPos(double odoHeadingRadians, double turretHeadingRadians) { // update our vision
         checkPipelineReadiness(Pipeline.FULL_POS);
-        seedLimelightHeading(odoHeadingRadians, turretHeadingRadians);
+        //seedLimelightHeading(odoHeadingRadians, turretHeadingRadians);
 
         LLResult result = limelight.getLatestResult();
 
@@ -187,16 +187,15 @@ public class Vision {
            so:
             x: r * cos(a)
             y: r * sin(a)
-         */
-        /*
+        */
+
         double camOffsetX = Tunables.limelightTurretRadius * Math.sin(limelightHeadingRadians);
         double camOffsetY = Tunables.limelightTurretRadius * Math.cos(limelightHeadingRadians);
 
         double fieldX = camOffsetX + centeredX;
         double fieldY = camOffsetY + centeredY;
-        */
 
-        return new Pose(rawX, rawY, odoHeadingRadians);
+        return new Pose(fieldX, fieldY, odoHeadingRadians);
 
         // use our pinpoint's compass for heading, it is good enough until Kalman Filter
         //return new Pose(fieldX, fieldY, odoHeadingRadians);

@@ -115,7 +115,6 @@ public class Tunables { // this should hold all of our constants
     // offsets for translating from limelight->field position
     // TODO: calibrate these
     //public static double limelightOffsetZ = 0;
-    public static double maxLimelightHeadingError = Math.toRadians(5); // if our limelight reports a heading that differs by more than this, discard that measurement
     public static double turretOffsetX = 0;
     public static double turretOffsetY = 0;
     public static double limelightTurretRadius = 0; // how far limelight is mounted from center of turret in inches
