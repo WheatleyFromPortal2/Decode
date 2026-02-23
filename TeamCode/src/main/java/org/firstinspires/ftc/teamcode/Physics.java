@@ -29,10 +29,9 @@ public class Physics {
         double goalY = inchesToMeters(goalPose.getY());
 
         final double G = 9.81;
-        //final double ANGLE = Math.PI / 3.0; // 60 degrees
-        double ANGLE = dToHood(robotPose.distanceFrom(goalPose));
+        final double ANGLE = Math.PI / 3.0; // 60 degrees
 
-        setpoints.setHoodRadians(ANGLE);
+        setpoints.setHoodRadians(dToHood(robotPose.distanceFrom(goalPose)));
 
         double dx = goalX - robotX;
         double dy = goalY - robotY;
@@ -79,10 +78,9 @@ public class Physics {
         double robotVy = inchesToMeters(robotVector.getYComponent());
 
         final double G = 9.81;
-        //final double ANGLE = Math.PI / 3.0; // 60 degrees
-        double ANGLE = dToHood(robotPose.distanceFrom(goalPose));
+        final double ANGLE = Math.PI / 3.0; // 60 degrees
 
-        setpoints.setHoodRadians(ANGLE);
+        setpoints.setHoodRadians(dToHood(robotPose.distanceFrom(goalPose)));
 
         //Predict robot position at firing time
         double fireX = robotX + robotVx * shotDelay;
