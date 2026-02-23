@@ -37,7 +37,7 @@ public class Hood {
     }
 
     public double getRadians() {
-        return posToRadians(getPos());
+        return posToRadians(lastPos);
     }
 
     public double getAbsolutePos() {
@@ -63,10 +63,10 @@ public class Hood {
     }
 
     private double radiansToPos(double radians) {
-        return Range.scale(radians, Tunables.hoodMinimumRadians, Tunables.hoodMaximumRadians, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos);
+        return Range.scale(radians, Tunables.hoodMinimumRadians, Tunables.hoodMaximumRadians, Tunables.hoodMaximumPos, Tunables.hoodMinimumPos); // reverse to correct
     }
 
     private double posToRadians(double pos) {
-        return Range.scale(pos, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos, Tunables.hoodMinimumRadians, Tunables.hoodMaximumRadians);
+        return Range.scale(pos, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos, Tunables.hoodMaximumRadians, Tunables.hoodMinimumRadians); // reverse to correct
     }
 }
