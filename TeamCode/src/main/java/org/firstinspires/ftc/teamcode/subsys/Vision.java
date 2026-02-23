@@ -19,6 +19,7 @@ public class Vision {
         OBELISK, // pipeline 0
         BLUE_TEAM, // pipeline 1
         RED_TEAM, // pipeline 2
+        FULL_POS
     }
     double lastGoalTx, lastGoalDistance, lastGoalTa;
     boolean isBlue; // whether we are blue or red team
