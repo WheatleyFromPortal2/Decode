@@ -11,8 +11,6 @@ public class Tunables { // this should hold all of our constants
     /** Robot tunables (used in Robot.java) **/
 
     // automatic launch calc offsets
-    public static double closeAutoRPMOffset = 0; // add this many RPMs to auto rpm
-    public static double farAutoRPMOffset = 90; // manually calibrated 2-7-26
 
     // launch delays
     public static int maxLaunchTime = 500; // max amount of time to complete one launch cycle
@@ -63,10 +61,10 @@ public class Tunables { // this should hold all of our constants
 
     /** hood tunables (used in Hood.java) **/
 
-    public static double hoodMinimumPos = 0.32; // calibrated 1-22-26
-    public static double hoodMinimumRadians = Math.toRadians(50); // calibrated 2-14-26
-    public static double hoodMaximumPos = 0.54; // calibrated 1-22-26
-    public static double hoodMaximumRadians = Math.toRadians(72); // calibrated 2-14-26
+    public static double hoodMinimumPos = 0.35; // calibrated 2-23-26
+    public static double hoodMinimumRadians = Math.toRadians(48); // calibrated 2-23-26
+    public static double hoodMaximumPos = 0.55; // calibrated 2-23-26
+    public static double hoodMaximumRadians = Math.toRadians(72); // calibrated 2-23-26
     public static double hoodWriteMargin = 0.01; // if our hood position change is less than this, don't waste time with a write
     // angles: 0.22 = 50deg; 0.00917 = 19deg
     // just use a map and save lowest/highest deg vals
@@ -135,4 +133,5 @@ public class Tunables { // this should hold all of our constants
 
     public static double physicsRPMOffset = 0;
     public static double staticShotDelay = .14;
+    public static double angleCutoff = 120; // if inches more than this
 }

@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 
 import com.pedropathing.geometry.Pose;
 import com.pedropathing.math.Vector;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
 
@@ -28,7 +29,9 @@ public class Physics {
         double goalY = inchesToMeters(goalPose.getY());
 
         final double G = 9.81;
-        final double ANGLE = Math.PI / 3.0;
+        //final double ANGLE = Math.PI / 3.0; // 60 degrees
+        double ANGLE = dToHood(robotPose.distanceFrom(goalPose));
+
         setpoints.setHoodRadians(ANGLE);
 
         double dx = goalX - robotX;
@@ -76,7 +79,9 @@ public class Physics {
         double robotVy = inchesToMeters(robotVector.getYComponent());
 
         final double G = 9.81;
-        final double ANGLE = Math.PI / 3.0; // 60 degrees
+        //final double ANGLE = Math.PI / 3.0; // 60 degrees
+        double ANGLE = dToHood(robotPose.distanceFrom(goalPose));
+
         setpoints.setHoodRadians(ANGLE);
 
         //Predict robot position at firing time
@@ -122,6 +127,20 @@ public class Physics {
     {
         // calibrated 2-13-26
         return (velocity + 0.475726) / 0.00246641 + Tunables.physicsRPMOffset;
+    }
+
+    private double dToHood(double d) {
+        double angle;
+
+        if (d <= Tunables.angleCutoff) {
+            angle = -0.00000655745 * Math.pow(d, 3) + 0.00157414 * Math.pow(d, 2) - 0.125675 * d + 4.29347;
+        } else {
+            angle = Tunables.hoodMinimumRadians;
+        }
+
+        angle = Range.clip(angle, Tunables.hoodMinimumRadians, Tunables.hoodMaximumRadians);
+
+        return angle;
     }
 
     private double inchesToMeters(double inches) {
