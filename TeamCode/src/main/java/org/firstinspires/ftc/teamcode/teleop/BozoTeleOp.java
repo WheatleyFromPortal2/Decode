@@ -137,26 +137,28 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.dpadLeftWasReleased()) setpoints.decrementRPM(Tunables.adjustRPM / 2.0); // decrement by half of adjustRPM (in TPS)
 
         if (!isAutomatedDrive) {
-            double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
-            // slow mode is built in using slowModeMultiplier controlled by left trigger
-            if (isRobotCentric) { // we are controlling relative to the robot
-                follower.setTeleOpDrive(
-                        -gamepad1.left_stick_y * slowModeMultiplier,
-                        -gamepad1.left_stick_x * slowModeMultiplier,
-                        -gamepad1.right_stick_x * Tunables.robotCentricTurnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
-                        true // true = robot centric; false = field centric
-                );
-            } else { // we are controlling relative to the field
-                // we need to modify our x input to be in accordance with the driver's control position
-                double flipControl;
-                if (isBlueTeam()) flipControl = -1; // blue team needs flipped
-                else flipControl = 1; // red team doesn't need flip
-                follower.setTeleOpDrive(
-                        -gamepad1.left_stick_y * slowModeMultiplier * flipControl,
-                        -gamepad1.left_stick_x * slowModeMultiplier * flipControl,
-                        -gamepad1.right_stick_x * Tunables.fieldCentricTurnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
-                        false // true = robot centric; false = field centric
-                );
+            if (!robot.isLaunching()) { // constant movement while launching
+                double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
+                // slow mode is built in using slowModeMultiplier controlled by left trigger
+                if (isRobotCentric) { // we are controlling relative to the robot
+                    follower.setTeleOpDrive(
+                            -gamepad1.left_stick_y * slowModeMultiplier,
+                            -gamepad1.left_stick_x * slowModeMultiplier,
+                            -gamepad1.right_stick_x * Tunables.robotCentricTurnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                            true // true = robot centric; false = field centric
+                    );
+                } else { // we are controlling relative to the field
+                    // we need to modify our x input to be in accordance with the driver's control position
+                    double flipControl;
+                    if (isBlueTeam()) flipControl = -1; // blue team needs flipped
+                    else flipControl = 1; // red team doesn't need flip
+                    follower.setTeleOpDrive(
+                            -gamepad1.left_stick_y * slowModeMultiplier * flipControl,
+                            -gamepad1.left_stick_x * slowModeMultiplier * flipControl,
+                            -gamepad1.right_stick_x * Tunables.fieldCentricTurnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                            false // true = robot centric; false = field centric
+                    );
+                }
             }
         } else { // we're in automated drive
             if (gamepad1.leftBumperWasReleased() // if the user presses the left bumper again, cancel
@@ -182,7 +184,7 @@ public abstract class BozoTeleOp extends OpMode {
         } else { // set our launch velocity and hood angle manually
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
-                setpoints.setHoodRadians(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos));
+                setpoints.setHoodRadians(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumRadians, Tunables.hoodMaximumRadians));
             }
         }
 
@@ -218,11 +220,11 @@ public abstract class BozoTeleOp extends OpMode {
             telemetryM.addData("desired flywheel RPM", setpoints.getRPM()); // make sure to convert from TPS->RPM
             telemetryM.addData("actual flywheel RPM", robot.flywheel.getRPM());
             if (isHoodLocked) { telemetryM.debug("hood LOCKED"); }
-            telemetryM.addData("hood pos", robot.hood.getPos());
+            telemetryM.addData("hood pos degrees", Math.toDegrees(robot.hood.getRadians()));
         }
 
         if (Tunables.isDebugging) {
-            telemetryM.addData("hood pos", robot.getSetpoints().getHoodRadians());
+            telemetryM.addData("hood pos radians", robot.getSetpoints().getHoodRadians());
             telemetryM.addData("setpoint turret pos", robot.getSetpoints().getTurretPos());
 
             // vision & distances
