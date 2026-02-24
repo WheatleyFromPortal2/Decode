@@ -71,10 +71,10 @@ public class Tunables { // this should hold all of our constants
 
     /** turret tunables (used in Turret.java) **/
     public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
-    // calibrated 2-22-26
-    public static double turretMaxLeft = -3.6254; // max range that the turret can go left or right from servo center
+    // calibrated 2-24-26
+    public static double turretMaxLeft = -3.5122; // max range that the turret can go left or right from servo center
     // 1.837
-    public static double turretMaxRight = 3.600;
+    public static double turretMaxRight = 3.57668;
 
     public static double turretLimitLeft = -Math.toRadians(90); // limit to 90deg
     public static double turretLimitRight = Math.toRadians(90);
@@ -86,9 +86,9 @@ public class Tunables { // this should hold all of our constants
 
     // servo position where upper transfer prevents balls from passing into launch
     // put this at just enough to stop balls but not enough that it gets stuck on launch
-    public static double transferServoClosed = 0.10; // recalibrated 2-20-26
+    public static double transferServoClosed = 0.00; // recalibrated 2-20-26
     // servo position where upper transfer allows balls to pass into launch
-    public static double transferServoOpen = 0.34; // recalibrated 2-17-25
+    public static double transferServoOpen = 0.32; // recalibrated 2-17-25
 
     /** indexer tunables (used in Indexer.java) **/
 
