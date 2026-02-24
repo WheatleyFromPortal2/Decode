@@ -30,27 +30,33 @@ it may take a second for the control hub to show up in Android Studio
 
 # hardware map
 
-driver station config name: `v3`
+driver station config name: `v3 index`
 
 ## control hub
 
 ### I²C ports/buses
 
-| port/bus  | device type            | location                    | verbatim name         |
-|:----------|:-----------------------|-----------------------------|:----------------------|
-| `0`       | *unused*               | *unused*                    | *unused*              |
-| `1`       | Pinpoint Odo Computer  | left side under control hub | `odo`                 |
-| `2`       | *unused*               | *unused*                    | *unused*              |
-| `3`       | *unused*               | *unused*                    | *unused*              |
+| port/bus  | device type                  | location                    | verbatim name |
+|:----------|:-----------------------------|-----------------------------|:--------------|
+| `0`       | *unused*                     | *unused*                    | *unused*      |
+| `1`       | Pinpoint Odo Computer        | left side under control hub | `odo`         |
+| `2`       | Brushland Color Sensor (I2C) | left side of intake         | `color`       |
+| `3`       | *unused*                     | *unused*                    | *unused*      |
+
+the Brushland Labs color sensor should only be plugged into I2C for configuration. During competition it should be plugged into digital port 6/7.
 
 ### digital ports
 
-| port  | device type    | location               | verbatim name         |
-|:------|:---------------|------------------------|:----------------------|
-| `0`   | *unused*       | *unused*               | *unused*              |
-| `1`   | Digital Device | side of turret         | `upperTransferSensor` |
-| `2`   | *unused*       | *unused*               | *unused*              |
-| `3`   | Digital Device | side of lower transfer | `lowerTransferSensor` |
+| port  | device type    | location               | verbatim name           |
+|:------|:---------------|------------------------|:------------------------|
+| `0`   | *unused*       | *unused*               | *unused*                |
+| `1`   | Digital Device | side of turret         | `upperTransferSensor`   |
+| `2`   | *unused*       | *unused*               | *unused*                |
+| `3`   | Digital Device | side of lower transfer | `lowerTransferSensor`   |
+| `4`   | *unused*       | *unused*               | *unused*                |
+| `5`   | *unused*       | *unused*               | *unused*                |
+| `6`   | Digital Device | Brushland color sensor | `purple`                |
+| `7`   | Digital Device | Brushland color sensor | `green`                 |
 
 the cable for upper transfer plugs into the `0/1` digital port, but the sensor must be configured as using `port 1`
 
@@ -85,7 +91,7 @@ make sure to connect every motor with the correct polarity; the reversing should
 |:-------------|------------------|:--------------|
 | `0`          | Full Range Servo | `hoodServo`   |
 | `1`          | Servo            | `sorterServo` |
-| `2`          | *unused*         | *unused*      |
+| `2`          | Servo            | `light`       |
 | `3`          | *unused*         | *unused*      |
 | `4`          | *unused*         | *unused*      |
 | `5`          | *unused*         | *unused*      |
@@ -126,7 +132,7 @@ our turret encoder should be plugged into our intake motor encoder port, we shou
 
 | servo port   | servo type | verbatim name   |
 |:-------------|------------|:----------------|
-| `0`          | Servo      | `intakeServo`   |
+| `0`          | Servo      | `kickerServo`   |
 | `1`          | Servo      | `transferServo` |
 | `2`          | Servo      | `turret1`       |
 | `3`          | Servo      | `turret2`       |

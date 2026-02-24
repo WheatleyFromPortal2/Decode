@@ -35,6 +35,8 @@ public class Transfer {
         motor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
         motor.setMode(DcMotorEx.RunMode.RUN_WITHOUT_ENCODER);
 
+        close();
+
         lowerTransferSensor = hw.get(DigitalChannel.class, "lowerTransferSensor");
         upperTransferSensor = hw.get(DigitalChannel.class, "upperTransferSensor");
 
@@ -89,7 +91,6 @@ public class Transfer {
 
     public void off() {
         if (state != State.OFF) {
-            close();
             motor.setPower(0);
             state = State.OFF;
         }
@@ -97,7 +98,6 @@ public class Transfer {
 
     public void forward() {
         if (state != State.FORWARD) {
-            open();
             motor.setPower(Tunables.transferMotorForwardPower);
             state = State.FORWARD;
         }
@@ -111,14 +111,14 @@ public class Transfer {
         }
     }
 
-    private void open() {
+    public void open() {
         if (!isUpperOpen) {
             servo.setPosition(Tunables.transferServoOpen);
             isUpperOpen = true;
         }
     }
 
-    private void close() {
+    public void close() {
         if (isUpperOpen) {
             servo.setPosition(Tunables.transferServoClosed);
             isUpperOpen = false;

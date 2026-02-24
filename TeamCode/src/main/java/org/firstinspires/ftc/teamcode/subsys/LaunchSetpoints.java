@@ -5,23 +5,23 @@ public class LaunchSetpoints {
     public static final double LAUNCH_RATIO = 1; // motor->flywheel ratio (output rotations / motor rotations)
 
     private double TPS;
-    private double hoodPos;
+    private double hoodRadians;
     private double turretPos;
 
     public LaunchSetpoints(double startingTPS, double startingHoodPos, double startingTurretPos ) {
         TPS = startingTPS;
-        hoodPos = startingHoodPos;
+        hoodRadians = startingHoodPos;
         turretPos = startingTurretPos;
     }
 
     public LaunchSetpoints copy() {
-        return new LaunchSetpoints(TPS, hoodPos, turretPos);
+        return new LaunchSetpoints(TPS, hoodRadians, turretPos);
     }
 
     /** getter **/
 
-    public double getHoodPos() {
-        return hoodPos;
+    public double getHoodRadians() {
+        return hoodRadians;
     }
 
     public double getTurretPos() {
@@ -44,8 +44,8 @@ public class LaunchSetpoints {
 
     /** setter **/
 
-    public void setHoodPos(double newHoodPos) {
-        hoodPos = newHoodPos;
+    public void setHoodRadians(double newHoodPos) {
+        hoodRadians = newHoodPos;
     }
 
     public void setTurretPos(double newTurretPos) {

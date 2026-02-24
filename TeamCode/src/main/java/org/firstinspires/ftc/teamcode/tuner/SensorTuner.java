@@ -5,6 +5,7 @@ package org.firstinspires.ftc.teamcode.tuner;
 import com.bylazar.telemetry.PanelsTelemetry;
 import com.bylazar.telemetry.TelemetryManager;
 import com.pedropathing.util.Timer;
+import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 
@@ -21,12 +22,28 @@ public class SensorTuner extends LinearOpMode {
         Transfer transfer = new Transfer(hardwareMap);
         Intake intake = new Intake(hardwareMap);
 
+        RevColorSensorV3 color = hardwareMap.get(RevColorSensorV3.class, "color");
+        color.enableLed(true);
+
+        transfer.open();
+
         TelemetryManager telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // set up our Panels telemetry manager
         Timer functionTimer = new Timer();
+
+        int ballLaunches = 0;
 
         waitForStart();
 
         while (opModeIsActive()) {
+            if (transfer.wasBallLaunched()) { ballLaunches++; }
+            telemetryM.addData("ball launches", ballLaunches);
+            telemetryM.addLine("---Brushland I2C light readings---");
+            telemetryM.addData("I2C raw light detected", color.getRawLightDetected());
+            telemetryM.addData("red", color.red());
+            telemetryM.addData("green", color.green());
+            telemetryM.addData("blue", color.blue());
+            telemetryM.addData("distance (mm)", color.getDistance(DistanceUnit.MM));
+
             telemetryM.debug("---sensor endpoints---");
             telemetryM.addData("intakeSensorOpen", Tunables.intakeSensorOpen);
 
