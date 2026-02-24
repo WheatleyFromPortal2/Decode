@@ -42,9 +42,8 @@ public class Constants {
             .yVelocity(60.498); // lateral velocity tuner (it goes to the left!)
 
     public static PinpointConstants localizerConstants = new PinpointConstants()
-            .forwardPodY(158) // this is in mm
-            .strafePodX(135) // this is in mm
-            .distanceUnit(DistanceUnit.MM) // let's keep this in metric 👍
+            .forwardPodY(5.5625) // inches
+            .strafePodX(-5.280) // inches
             .hardwareMapName("odo") // from README.md
             .encoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_SWINGARM_POD)
             .forwardEncoderDirection(GoBildaPinpointDriver.EncoderDirection.REVERSED)
