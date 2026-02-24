@@ -131,7 +131,7 @@ public class Tunables { // this should hold all of our constants
 
     /** physics tunables (used in Physics.java) **/
 
-    public static double physicsRPMOffset = 100;
-    public static double staticShotDelay = .5;
+    public static double physicsRPMOffset = 50;
+    public static double staticShotDelay = 0.6;
     public static double angleCutoff = 120; // if inches more than this
 }
