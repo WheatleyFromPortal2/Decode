@@ -93,10 +93,13 @@ public class Robot { // create our global class for our robot
 
         if (launching) {
             light.orange();
-            if (launchTimer.getElapsedTime() >= Tunables.maxLaunchTime) {
+            if (!transfer.isBallInLower() && launchTimer.getElapsedTime() >= Tunables.maxLaunchTime) {
                 endLaunch();
                 return true;
             } else {
+                if (transfer.isBallInLower()) {
+                    launchTimer.resetTimer();
+                }
                 if (!hasLaunchedFirst && transfer.wasBallLaunched()) {
                     firstShotDelay = launchTimer.getElapsedTimeSeconds();
                     hasLaunchedFirst = true;
