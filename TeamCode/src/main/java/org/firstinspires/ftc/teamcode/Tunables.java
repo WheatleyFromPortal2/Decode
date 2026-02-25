@@ -138,12 +138,7 @@ public class Tunables { // this should hold all of our constants
 
     public static double modelCovariance = 4.0; // odo noise
     public static double dataCovariance = 1.0; // vision noise
-
     public static double maxVisionVariance = 20; // reject vision estimates with a euclidean distance difference greater than this from odo
-
-    /** Hybrid distance: blend vision (ta) with Pinpoint odo so neither dominates when wrong **/
-    public static double visionDistanceWeight = 0.5; // 0 = pure odo, 1 = pure vision, 0.5 = equal blend
-    public static double maxVisionOdoDeviation = 20; // if vision and odo differ by more than this (inches), clamp vision toward odo to limit area glitches
 
     /** physics tunables (used in Physics.java) **/
 
