@@ -136,13 +136,13 @@ public class Tunables { // this should hold all of our constants
 
     /** fusion tunables (used in Fusion.java) **/
 
-    public static double modelCovariance = 4.0; // odo noise
-    public static double dataCovariance = 1.0; // vision noise
+    public static double modelCovariance = 10.0; // odo noise
+    public static double dataCovariance = 100.0; // vision noise
     public static double maxVisionVariance = 20; // reject vision estimates with a euclidean distance difference greater than this from odo
 
     /** physics tunables (used in Physics.java) **/
 
     public static double physicsRPMOffset = 50;
-    public static double staticShotDelay = 0.6;
+    public static double staticShotDelay = 0.1;
     public static double angleCutoff = 120; // if inches more than this
 }

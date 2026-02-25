@@ -6,6 +6,8 @@ import com.pedropathing.geometry.Pose;
 
 import org.firstinspires.ftc.teamcode.Tunables;
 
+import java.util.Arrays;
+
 public class Fusion {
     /*
     - take in data from Pedro Pathing estimated position and Limelight position
@@ -64,11 +66,15 @@ public class Fusion {
         lastOdoY = startingPose.getY();
 
         // start variance must not be = 0
-        xFilter.reset(startingPose.getX(), 0.01, 1.0);
-        yFilter.reset(startingPose.getY(), 0.01, 1.0);
+        xFilter.reset(startingPose.getX(), 0.01, 0.0);
+        yFilter.reset(startingPose.getY(), 0.01, 0.0);
     }
 
     public Pose getState() {
         return new Pose(xFilter.getState(), yFilter.getState());
+    }
+
+    public String getStatus() {
+        return Arrays.toString(xFilter.output()) + Arrays.toString(yFilter.output());
     }
 }
