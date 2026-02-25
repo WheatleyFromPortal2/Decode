@@ -43,9 +43,6 @@ public class Robot { // create our global class for our robot
     public Indexer indexer;
     public Light light;
 
-    public Fusion fusion;
-    public Vision vision;
-
 
     /** only these variables should change during runtime **/
 
@@ -66,9 +63,6 @@ public class Robot { // create our global class for our robot
         transfer = new Transfer(hw);
         light = new Light(hw);
         indexer = new Indexer(hw);
-
-        vision = new Vision(hw);
-        fusion = new Fusion(HandoffState.pose);
 
         setpoints = new LaunchSetpoints(0, 0, 0);
 

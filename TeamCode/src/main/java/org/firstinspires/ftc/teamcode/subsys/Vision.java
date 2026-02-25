@@ -66,7 +66,7 @@ public class Vision {
     }
 
 
-   public boolean updateFullPos(double odoHeadingRadians, double turretHeadingRadians) { // update our vision
+   public Pose updateFullPos(double odoHeadingRadians, double turretHeadingRadians) { // update our vision
         checkPipelineReadiness(Pipeline.FULL_POS);
         //seedLimelightHeading(odoHeadingRadians, turretHeadingRadians);
 
@@ -74,10 +74,9 @@ public class Vision {
 
         if (result != null && result.isValid() && !Double.isNaN(result.getTa())) { // if our result is good
             staleTimer.resetTimer(); // reset our staleness timer
-            //lastBotPose = translateLLPoseToField(result.getBotpose_MT2(), odoHeadingRadians, turretHeadingRadians);
             lastBotPose = translateLLPoseToField(result.getBotpose(), odoHeadingRadians, turretHeadingRadians);
-            return true; // we actually have a good result
-        } else { return false; } // we haven't gotten any new results
+            return lastBotPose;
+        } else { return null; } // we haven't gotten any new results
     }
 
     public boolean updateObelisk() { // super simple update, only checks for pattern IDs; doesn't worry about full robot position

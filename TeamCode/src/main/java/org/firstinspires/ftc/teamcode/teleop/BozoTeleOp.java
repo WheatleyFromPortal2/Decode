@@ -10,6 +10,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.teamcode.HandoffState;
 import org.firstinspires.ftc.teamcode.Physics;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsys.Fusion;
 import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
 import org.firstinspires.ftc.teamcode.subsys.TimeProfiler;
 import org.firstinspires.ftc.teamcode.Tunables;
@@ -34,6 +35,7 @@ public abstract class BozoTeleOp extends OpMode {
     private Physics physics;
     private Follower follower;
     private Vision vision;
+    private Fusion fusion;
     private TimeProfiler timeProfiler;
     @SuppressWarnings("FieldCanBeLocal")
     private Pose goalPose; // this will be set by the specific OpMode
@@ -61,6 +63,7 @@ public abstract class BozoTeleOp extends OpMode {
         physics = new Physics();
         vision = new Vision(hardwareMap);
         vision.startPipeline(Vision.Pipeline.FULL_POS);
+        fusion = new Fusion(HandoffState.pose);
         follower = Constants.createFollower(hardwareMap);
 
         follower.setPose(HandoffState.pose);
@@ -91,15 +94,13 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void loop() {
-        timeProfiler.start("PIDF");
-        timeProfiler.start("vision");
-        vision.updateFullPos(follower.getHeading(), robot.turret.getPos());
-        timeProfiler.stop();
-        loopTimer.resetTimer();
         timeProfiler.start("follower");
         follower.update(); // update our Pedro Pathing follower
+        timeProfiler.start("vision");
+        Pose fusionPose = updateFusion().withHeading(follower.getHeading()); // need to get heading from odo
+        timeProfiler.stop();
+        loopTimer.resetTimer();
         //robot.updateBalls(); // update how many balls we have in our intake
-        timeProfiler.start("update launch");
         timeProfiler.start("buttons");
         if (gamepad1.aWasReleased()) { // toggle intake
             robot.intake.toggle();
@@ -172,9 +173,9 @@ public abstract class BozoTeleOp extends OpMode {
 
         if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
             if (Tunables.isDynamicPhysics) {
-                setpoints = physics.getNeededVelocityDynamic(follower.getPose(), follower.getVelocity(), getGoalPose(), robot.getFirstShotDelay());
+                setpoints = physics.getNeededVelocityDynamic(fusionPose, follower.getVelocity(), getGoalPose(), robot.getFirstShotDelay());
             } else {
-                setpoints = physics.getNeededVelocityStatic(follower.getPose(), getGoalPose());
+                setpoints = physics.getNeededVelocityStatic(fusionPose, getGoalPose());
             }
 
             //double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
@@ -195,7 +196,7 @@ public abstract class BozoTeleOp extends OpMode {
         // TODO: fix to use absolute combined positioning from vision
         lastFollowerHeading = follower.getHeading();
 
-        timeProfiler.start("update launch");
+        timeProfiler.start("robot update");
         robot.update(); // idk if running it directly with the && might cause it to be skipped
 
         timeProfiler.start("telemetry");
@@ -226,14 +227,19 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         if (Tunables.isDebugging) {
+            // vision & distances
+            if (vision.getLastBotPose() == null) {
+                telemetryM.debug("vision null");
+            } else {
+                telemetryM.addData("last vision x", vision.getLastBotPose().getX());
+                telemetryM.addData("last vision y", vision.getLastBotPose().getY());
+            }
+            telemetryM.addData("fusion x", fusion.getState().getX());
+            telemetryM.addData("fusion y", fusion.getState().getY());
+            telemetryM.debug("vision stale?: " + vision.isStale());
+
             telemetryM.addData("hood pos radians", robot.getSetpoints().getHoodRadians());
             telemetryM.addData("setpoint turret pos", robot.getSetpoints().getTurretPos());
-
-            // vision & distances
-            telemetryM.addData("last vision goal dst", vision.getLastGoalDistance());
-            telemetryM.addData("odo goal dst", follower.getPose().distanceFrom(getGoalPose()));
-            telemetryM.debug("vision stale?: " + vision.isStale());
-            telemetryM.debug("lastTx: " + vision.getLastGoalTx());
 
             // state
             telemetryM.debug("automated drive?: " + isAutomatedDrive);
@@ -247,8 +253,8 @@ public abstract class BozoTeleOp extends OpMode {
 
             // odo
             telemetryM.debug("current heading: " + follower.getHeading());
-            telemetryM.debug("x: " + follower.getPose().getX());
-            telemetryM.debug("y: " + follower.getPose().getY());
+            telemetryM.addData("odo x", follower.getPose().getX());
+            telemetryM.addData("odo y", follower.getPose().getY());
             //telemetryM.debug("goalPose x: " + goalPose.getX());
             //telemetryM.debug("goalPose y: " + goalPose.getY());
 
@@ -258,5 +264,11 @@ public abstract class BozoTeleOp extends OpMode {
 
         telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
         telemetryM.update(telemetry); // needed to pass in telemetry object to also update on driver station
+    }
+
+    public Pose updateFusion() {
+        Pose lastBotPose = vision.updateFullPos(follower.getHeading(), robot.turret.getPos());
+        fusion.update(follower.getPose(), lastBotPose);
+        return fusion.getState();
     }
 }

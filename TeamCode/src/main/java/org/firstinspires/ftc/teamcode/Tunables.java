@@ -136,10 +136,10 @@ public class Tunables { // this should hold all of our constants
 
     /** fusion tunables (used in Fusion.java) **/
 
-    public static double modelCovariance = 0.05; // odo noise
-    public static double dataCovariance = 0.01; // vision noise
+    public static double modelCovariance = 4.0; // odo noise
+    public static double dataCovariance = 1.0; // vision noise
 
-    public static double maxVisionVariance = 10; // reject vision estimates with a euclidean distance difference greater than this from odo
+    public static double maxVisionVariance = 20; // reject vision estimates with a euclidean distance difference greater than this from odo
 
     /** Hybrid distance: blend vision (ta) with Pinpoint odo so neither dominates when wrong **/
     public static double visionDistanceWeight = 0.5; // 0 = pure odo, 1 = pure vision, 0.5 = equal blend
