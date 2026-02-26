@@ -78,8 +78,9 @@ public class Tunables { // this should hold all of our constants
     // 1.837
     public static double turretMaxRight = 3.57668;
 
-    public static double turretLimitLeft = -Math.toRadians(90); // limit to 90deg
-    public static double turretLimitRight = Math.toRadians(90);
+    //these are in radians
+    public static double turretLimitLeft = -2;
+    public static double turretLimitRight = 2;
 
     /** transfer tunables (used in Transfer.java) **/
 
