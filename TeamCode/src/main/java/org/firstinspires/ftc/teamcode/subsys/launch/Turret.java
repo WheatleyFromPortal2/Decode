@@ -15,8 +15,8 @@ public class Turret {
     private DcMotorEx encoder;
 
     private static final int TURRET_TICKS_PER_REV = 1024; // tested 1-13-26
-    public static final double TURRET_ENCODER_RATIO = 5.5; // ratio from turretEncoder->turret
-    //public static final double TURRET_SERVO_RATIO = 5.5 / 3; // ratio from turret1/2->turret
+    //public static final double TURRET_ENCODER_RATIO = 5.5; // ratio from turretEncoder->turret
+    public static final double TURRET_ENCODER_RATIO = (double) 110 / 35;
 
     /** vars that change **/
     private double lastDesiredPos = 0;

@@ -2,17 +2,17 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.bylazar.configurables.annotations.Configurable;
+import com.pedropathing.control.KalmanFilterParameters;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 @Configurable
 public class Tunables { // this should hold all of our constants
-    public static boolean isDebugging = false;
+    public static boolean isDebugging = true;
 
     /** Robot tunables (used in Robot.java) **/
 
     // automatic launch calc offsets
-    public static double closeAutoRPMOffset = 0; // add this many RPMs to auto rpm
-    public static double farAutoRPMOffset = 90; // manually calibrated 2-7-26
 
     // launch delays
     public static int maxLaunchTime = 500; // max amount of time to complete one launch cycle
@@ -64,20 +64,22 @@ public class Tunables { // this should hold all of our constants
 
     /** hood tunables (used in Hood.java) **/
 
-    public static double hoodMinimumPos = 0.32; // calibrated 1-22-26
-    public static double hoodMinimumRadians = Math.toRadians(50); // calibrated 2-14-26
-    public static double hoodMaximumPos = 0.54; // calibrated 1-22-26
-    public static double hoodMaximumRadians = Math.toRadians(72); // calibrated 2-14-26
+    public static double hoodMinimumPos = 0.35; // calibrated 2-23-26
+    public static double hoodMinimumRadians = Math.toRadians(48); // calibrated 2-23-26
+    public static double hoodMaximumPos = 0.55; // calibrated 2-23-26
+    public static double hoodMaximumRadians = Math.toRadians(72); // calibrated 2-23-26
     public static double hoodWriteMargin = 0.01; // if our hood position change is less than this, don't waste time with a write
+    // angles: 0.22 = 50deg; 0.00917 = 19deg
+    // just use a map and save lowest/highest deg vals
 
     /** turret tunables (used in Turret.java) **/
     public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
-    // -1.95
-    public static double turretMaxLeft = -1.933; // max range that the turret can go left or right from servo center
+    // calibrated 2-24-26
+    public static double turretMaxLeft = -3.5122; // max range that the turret can go left or right from servo center
     // 1.837
-    public static double turretMaxRight = 1.869;
+    public static double turretMaxRight = 3.57668;
 
-    public static double turretLimitLeft = -Math.toRadians(90);
+    public static double turretLimitLeft = -Math.toRadians(90); // limit to 90deg
     public static double turretLimitRight = Math.toRadians(90);
 
     /** transfer tunables (used in Transfer.java) **/
@@ -87,14 +89,14 @@ public class Tunables { // this should hold all of our constants
 
     // servo position where upper transfer prevents balls from passing into launch
     // put this at just enough to stop balls but not enough that it gets stuck on launch
-    public static double transferServoClosed = 0.10; // recalibrated 2-20-26
+    public static double transferServoClosed = 0.00; // recalibrated 2-20-26
     // servo position where upper transfer allows balls to pass into launch
-    public static double transferServoOpen = 0.34; // recalibrated 2-17-25
+    public static double transferServoOpen = 0.32; // recalibrated 2-17-25
 
     /** indexer tunables (used in Indexer.java) **/
 
     public static double indexerKickerIntake = 0.99; // get balls from intake (down)
-    public static double indexerKickerUp = 0.887; // move balls to chute
+    public static double indexerKickerUp = 0.858; // move balls to chute
     public static double indexerKickerChute = 0.674; // get balls from chute
 
     public static double indexerBlockerClosed = 0.5;
@@ -108,25 +110,45 @@ public class Tunables { // this should hold all of our constants
 
     /** TeleOp tunables (used in BozoTeleOp.java) **/
 
-    public static double turnRateMultiplier = 0.75; // always have our turns 75% speed
+    public static double fieldCentricTurnRateMultiplier = 0.75; // what to multiply turn input while doing field centric control
+    public static double robotCentricTurnRateMultiplier = 0.4; // what to multiply turn input while doing robot centric control
     public static int adjustRPM = 50; // driver increments/decrements by adjustRPM
     public static double initialManualLaunchRPM = 2350; // 2400 is a little too much
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
     public static double farZoneDataStart = 95; // if d > this, use far zone data
+    public static boolean isDynamicPhysics = true;
 
-    /** Auto tunables (used in BozoAuto.java) **/
+    /** auto tunables (used in BozoAuto.java) **/
 
     public static double scoreRPM = 2250; // RPM to set for launching (stolen from teleop)
-    public static double scoreHoodPos = 0.171; // hood position for launching in auto
+    public static double scoreHoodRadians = Math.toRadians(60); // hood position for launching in auto
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double clearTime = 1000; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
     public static double maxGrabVelocity = 50; // max velocity while grabbing balls in inches/second
     public static double clearMaxPower = 0.8;
-    public static double magicOffset = 0.12;
 
-    /** Vision tunables (used in Vision.java) **/
+    /** vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
     public static double goalOffset = -30; // TODO:
+
+    // offsets for translating from limelight->field position
+    // TODO: calibrate these
+    //public static double limelightOffsetZ = 0;
+    public static double turretOffsetX = 0;
+    public static double turretOffsetY = 0;
+    public static double limelightTurretRadius = 0; // how far limelight is mounted from center of turret in inches
+
+    /** fusion tunables (used in Fusion.java) **/
+
+    public static double modelCovariance = 10.0; // odo noise
+    public static double dataCovariance = 100.0; // vision noise
+    public static double maxVisionVariance = 20; // reject vision estimates with a euclidean distance difference greater than this from odo
+
+    /** physics tunables (used in Physics.java) **/
+
+    public static double physicsRPMOffset = 50;
+    public static double staticShotDelay = 0.1;
+    public static double angleCutoff = 120; // if inches more than this
 }

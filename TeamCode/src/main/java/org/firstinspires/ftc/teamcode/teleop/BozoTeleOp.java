@@ -8,7 +8,9 @@ import com.bylazar.gamepad.GamepadManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 import org.firstinspires.ftc.teamcode.HandoffState;
+import org.firstinspires.ftc.teamcode.Physics;
 import org.firstinspires.ftc.teamcode.Robot;
+import org.firstinspires.ftc.teamcode.subsys.Fusion;
 import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
 import org.firstinspires.ftc.teamcode.subsys.TimeProfiler;
 import org.firstinspires.ftc.teamcode.Tunables;
@@ -30,9 +32,12 @@ import com.qualcomm.robotcore.util.Range;
 // this class will never be run as a TeleOp, and will always be extended by either RedTeleOp or BlueTeleOp
 public abstract class BozoTeleOp extends OpMode {
     private Robot robot;
+    private Physics physics;
     private Follower follower;
     private Vision vision;
+    private Fusion fusion;
     private TimeProfiler timeProfiler;
+    @SuppressWarnings("FieldCanBeLocal")
     private Pose goalPose; // this will be set by the specific OpMode
     private Timer loopTimer; // measures the speed of our loop
     private boolean isAutomatedDrive = false; // whether our drive is manually controlled or following a path
@@ -55,8 +60,10 @@ public abstract class BozoTeleOp extends OpMode {
         loopTimer.resetTimer();
 
         robot = new Robot(hardwareMap);
-        vision = new Vision(hardwareMap, isBlueTeam());
-        vision.start();
+        physics = new Physics();
+        vision = new Vision(hardwareMap);
+        vision.startPipeline(Vision.Pipeline.FULL_POS);
+        fusion = new Fusion(HandoffState.pose);
         follower = Constants.createFollower(hardwareMap);
 
         follower.setPose(HandoffState.pose);
@@ -87,32 +94,19 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void loop() {
-        robot.setSetpoints(setpoints);
-        timeProfiler.start("PIDF");
-        timeProfiler.start("vision");
-        vision.update();
-        timeProfiler.stop();
-        loopTimer.resetTimer();
         timeProfiler.start("follower");
         follower.update(); // update our Pedro Pathing follower
+        timeProfiler.start("vision");
+        Pose fusionPose = updateFusion().withHeading(follower.getHeading()); // need to get heading from odo
+        timeProfiler.stop();
+        loopTimer.resetTimer();
         //robot.updateBalls(); // update how many balls we have in our intake
-        timeProfiler.start("update launch");
         timeProfiler.start("buttons");
         if (gamepad1.aWasReleased()) { // toggle intake
             robot.intake.toggle();
         }
         if (gamepad1.bWasReleased()) { // toggle automated launch
             isAutomatedLaunch = !isAutomatedLaunch;
-        }
-        if (gamepad1.yWasReleased()) {
-            if (robot.isLaunching()) { // if we release y while we're launching, it will cancel
-                robot.cancelLaunch();
-                follower.startTeleOpDrive(Tunables.useBrakes); // stop holding pose
-            } else { // if we're not already launching
-                follower.holdPoint(follower.getPose()); // hold our pose while we're launching
-                //isAutomatedDrive = true; i don't this is necessary
-                robot.launchBalls(3); // launch 3 balls
-            }
         }
 
         if (gamepad1.leftBumperWasReleased()) {
@@ -124,9 +118,9 @@ public abstract class BozoTeleOp extends OpMode {
         }
 
         if (gamepad1.rightBumperWasReleased()) {
-            follower.holdPoint(follower.getPose()); // hold our pose while we're launching
+            //follower.holdPoint(follower.getPose()); // hold our pose while we're launching
             //isAutomatedDrive = true; i don't this is necessary
-            robot.launchBalls(1);
+            robot.launch();
         }
         if (gamepad1.startWasReleased()) { // if we press the start button, swap between robot and field centric
             isRobotCentric = !isRobotCentric;
@@ -144,26 +138,28 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.dpadLeftWasReleased()) setpoints.decrementRPM(Tunables.adjustRPM / 2.0); // decrement by half of adjustRPM (in TPS)
 
         if (!isAutomatedDrive) {
-            double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
-            // slow mode is built in using slowModeMultiplier controlled by left trigger
-            if (isRobotCentric) { // we are controlling relative to the robot
-                follower.setTeleOpDrive(
-                        -gamepad1.left_stick_y * slowModeMultiplier,
-                        -gamepad1.left_stick_x * slowModeMultiplier,
-                        -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
-                        true // true = robot centric; false = field centric
-                );
-            } else { // we are controlling relative to the field
-                // we need to modify our x input to be in accordance with the driver's control position
-                double flipControl;
-                if (isBlueTeam()) flipControl = -1; // blue team needs flipped
-                else flipControl = 1; // red team doesn't need flip
-                follower.setTeleOpDrive(
-                        -gamepad1.left_stick_y * slowModeMultiplier * flipControl,
-                        -gamepad1.left_stick_x * slowModeMultiplier * flipControl,
-                        -gamepad1.right_stick_x * Tunables.turnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
-                        false // true = robot centric; false = field centric
-                );
+            if (!robot.isLaunching()) { // constant movement while launching
+                double slowModeMultiplier = (gamepad1.left_trigger - 1) * -1; // amount to multiply for by slow mode
+                // slow mode is built in using slowModeMultiplier controlled by left trigger
+                if (isRobotCentric) { // we are controlling relative to the robot
+                    follower.setTeleOpDrive(
+                            -gamepad1.left_stick_y * slowModeMultiplier,
+                            -gamepad1.left_stick_x * slowModeMultiplier,
+                            -gamepad1.right_stick_x * Tunables.robotCentricTurnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                            true // true = robot centric; false = field centric
+                    );
+                } else { // we are controlling relative to the field
+                    // we need to modify our x input to be in accordance with the driver's control position
+                    double flipControl;
+                    if (isBlueTeam()) flipControl = -1; // blue team needs flipped
+                    else flipControl = 1; // red team doesn't need flip
+                    follower.setTeleOpDrive(
+                            -gamepad1.left_stick_y * slowModeMultiplier * flipControl,
+                            -gamepad1.left_stick_x * slowModeMultiplier * flipControl,
+                            -gamepad1.right_stick_x * Tunables.fieldCentricTurnRateMultiplier * slowModeMultiplier, // reduce speed by our turn rate
+                            false // true = robot centric; false = field centric
+                    );
+                }
             }
         } else { // we're in automated drive
             if (gamepad1.leftBumperWasReleased() // if the user presses the left bumper again, cancel
@@ -176,47 +172,32 @@ public abstract class BozoTeleOp extends OpMode {
         timeProfiler.start("launch");
 
         if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
-            if (vision.isStale()) { // if it has been a while since our last vision reading
-                double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
-
-                double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
-                robot.setAutomatedLaunchSetpoints(goalDst);
+            if (Tunables.isDynamicPhysics) {
+                setpoints = physics.getNeededVelocityDynamic(fusionPose, follower.getVelocity(), getGoalPose(), robot.getFirstShotDelay());
             } else {
-                robot.setAutomatedLaunchSetpoints(vision.getLastGoalDistance());
+                setpoints = physics.getNeededVelocityStatic(fusionPose, getGoalPose());
             }
-        } else { // set our launch velocity and hood angle manually
 
+            //double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
+            //double neededHoodPos = robot.getTurretGoalHeading(follower.getPose(), getGoalPose());
+            //robot.setAutomatedLaunchSetpoints(goalDst);
+            //robot.setAutomatedLaunchSetpoints(vision.getLastGoalDistance());
+        } else { // set our launch velocity and hood angle manually
             if (!isHoodLocked) { // only if we don't have our hood position locked
                 // set our hood position manually using right stick y by mapping it between our hood min/max
-                setpoints.setHoodPos(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumPos, Tunables.hoodMaximumPos));
+                setpoints.setHoodRadians(Range.scale(-gamepad1.right_stick_y, -1, 1, Tunables.hoodMinimumRadians, Tunables.hoodMaximumRadians));
             }
         }
 
         robot.setSetpoints(setpoints);
 
         // TODO: refactor this to use fused auto-aim
+        // turret control
+        // TODO: fix to use absolute combined positioning from vision
         lastFollowerHeading = follower.getHeading();
 
-        timeProfiler.start("rumble");
-        switch (robot.getBallsRemaining()) { // haptic feedback based on how many balls are in the robot
-            case 0:
-                gamepad1.stopRumble(); // don't rumble if we don't have any balls
-                break;
-            case 1:
-                gamepad1.runRumbleEffect(Tunables.rumble1);
-                break;
-            case 2:
-                gamepad1.runRumbleEffect(Tunables.rumble2);
-                break;
-            case 3:
-                gamepad1.runRumbleEffect(Tunables.rumble3);
-                break;
-        }
-
-        boolean updateLaunchStatus = robot.update(); // idk if running it directly with the && might cause it to be skipped
-        if (updateLaunchStatus && !follower.isTeleopDrive()) { // check if we're done with holding position
-            follower.startTeleOpDrive();
-        }
+        timeProfiler.start("robot update");
+        robot.update(); // idk if running it directly with the && might cause it to be skipped
 
         timeProfiler.start("telemetry");
         updateTelemetry();
@@ -235,24 +216,30 @@ public abstract class BozoTeleOp extends OpMode {
         // launch system
         if (isAutomatedLaunch) {
             telemetryM.addLine("launch is in AUTOMATED control");
+            telemetryM.addData("desired RPM", robot.getSetpoints().getRPM());
+            telemetryM.addData("desired hood pos", robot.getSetpoints().getHoodRadians());
         } else {
             telemetryM.addLine("launch is in MANUAL control");
             telemetryM.addData("desired flywheel RPM", setpoints.getRPM()); // make sure to convert from TPS->RPM
             telemetryM.addData("actual flywheel RPM", robot.flywheel.getRPM());
             if (isHoodLocked) { telemetryM.debug("hood LOCKED"); }
-            telemetryM.addData("hood pos", robot.hood.getPos());
+            telemetryM.addData("hood pos degrees", Math.toDegrees(robot.hood.getRadians()));
         }
 
         if (Tunables.isDebugging) {
-            telemetryM.addData("hood pos", setpoints.getHoodPos());
-            telemetryM.addData("turret pos", robot.turret.getPos());
-            telemetryM.addData("ballsRemaining", robot.getBallsRemaining()); // display balls remaining to driver
-
             // vision & distances
-            telemetryM.addData("last vision goal dst", vision.getLastGoalDistance());
-            telemetryM.addData("odo goal dst", follower.getPose().distanceFrom(getGoalPose()));
+            if (vision.getLastBotPose() == null) {
+                telemetryM.debug("vision null");
+            } else {
+                telemetryM.addData("last vision x", vision.getLastBotPose().getX());
+                telemetryM.addData("last vision y", vision.getLastBotPose().getY());
+            }
+            telemetryM.addData("fusion x", fusion.getState().getX());
+            telemetryM.addData("fusion y", fusion.getState().getY());
             telemetryM.debug("vision stale?: " + vision.isStale());
-            telemetryM.debug("lastTx: " + vision.getLastGoalTx());
+
+            telemetryM.addData("hood pos radians", robot.getSetpoints().getHoodRadians());
+            telemetryM.addData("setpoint turret pos", robot.getSetpoints().getTurretPos());
 
             // state
             telemetryM.debug("automated drive?: " + isAutomatedDrive);
@@ -266,9 +253,8 @@ public abstract class BozoTeleOp extends OpMode {
 
             // odo
             telemetryM.debug("current heading: " + follower.getHeading());
-            telemetryM.debug("odo goal target heading (deg): " + Math.toDegrees(robot.getTurretGoalHeading(follower.getPose(), getGoalPose())));
-            telemetryM.debug("x: " + follower.getPose().getX());
-            telemetryM.debug("y: " + follower.getPose().getY());
+            telemetryM.addData("odo x", follower.getPose().getX());
+            telemetryM.addData("odo y", follower.getPose().getY());
             //telemetryM.debug("goalPose x: " + goalPose.getX());
             //telemetryM.debug("goalPose y: " + goalPose.getY());
 
@@ -278,5 +264,11 @@ public abstract class BozoTeleOp extends OpMode {
 
         telemetryM.addData("loop time (millis)", loopTimer.getElapsedTime()); // we want to be able to graph this
         telemetryM.update(telemetry); // needed to pass in telemetry object to also update on driver station
+    }
+
+    public Pose updateFusion() {
+        Pose lastBotPose = vision.updateFullPos(follower.getHeading(), robot.turret.getPos());
+        fusion.update(follower.getPose(), lastBotPose);
+        return fusion.getState();
     }
 }

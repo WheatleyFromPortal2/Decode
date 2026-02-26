@@ -9,7 +9,6 @@ import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierCurve;
 import com.pedropathing.geometry.BezierLine;
 import com.pedropathing.geometry.Pose;
-import com.pedropathing.math.Vector;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -178,7 +177,7 @@ public abstract class BozoAuto extends OpMode {
         switch (state) {
             case START:
                 follower.followPath(scorePreload);
-                robot.launchBalls(3);
+                robot.launch();
                 setPathState(State.TRAVEL_TO_LAUNCH);
                 break;
             case TRAVEL_TO_LAUNCH:
@@ -189,12 +188,12 @@ public abstract class BozoAuto extends OpMode {
                     /* if we're holding point, we shouldn't have to disable motors
                     follower.pausePathFollowing();
                     follower.deactivateAllPIDFs(); */
-                    robot.launchBalls(3); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
+                    robot.launch(); // set up to launch 3 balls, it should not start launching until we call robot.updateLaunch()
                     setPathState(State.START_LAUNCH); // let's launch
                 }
                 break;
             case START_LAUNCH:
-                robot.launchBalls(3);
+                robot.launch();
                 setPathState(State.LAUNCH);
                 break;
             case LAUNCH:
@@ -362,7 +361,7 @@ public abstract class BozoAuto extends OpMode {
         LaunchSetpoints setpoints = new LaunchSetpoints(0, 0, 0);
         setpoints.setRPM(Tunables.scoreRPM);
         setpoints.setTurretPos(config.scoreTurretPos);
-        setpoints.setHoodPos(Tunables.scoreHoodPos);
+        setpoints.setHoodRadians(Tunables.scoreHoodRadians);
         robot.setSetpoints(setpoints);
 
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
@@ -405,7 +404,6 @@ public abstract class BozoAuto extends OpMode {
 
         // launch system
         telemetryM.addData("launch RPM", robot.flywheel.getRPM());
-        telemetryM.addData("ballsRemaining", robot.getBallsRemaining());
 
         // odo
         telemetryM.addData("x", follower.getPose().getX());
@@ -418,6 +416,5 @@ public abstract class BozoAuto extends OpMode {
 
     public void updateHandoff() {
         HandoffState.pose = follower.getPose();
-        HandoffState.ballsRemaining = robot.getBallsRemaining();
     }
 }
