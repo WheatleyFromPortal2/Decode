@@ -142,6 +142,9 @@ public class Tunables { // this should hold all of our constants
 
     /** physics tunables (used in Physics.java) **/
 
+    // both of these must be in meters
+    public static double shootZ = 0.4064; // calibrated 2-13-26
+    public static double goalZ = 0.7874; // calibrated 2-13-26
     public static double physicsRPMOffset = 50;
     public static double staticShotDelay = 0.1;
     public static double angleCutoff = 120; // if inches more than this

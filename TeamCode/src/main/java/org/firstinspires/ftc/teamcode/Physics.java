@@ -9,9 +9,6 @@ import com.qualcomm.robotcore.util.Range;
 import org.firstinspires.ftc.teamcode.subsys.LaunchSetpoints;
 
 public class Physics {
-    // both of these must be in meters
-    private final double SHOOTER_Z = .4064; // calibrated 2-13-26
-    private final double GOAL_Z = 0.7874; // calibrated 2-13-26
 
     public Physics() {} // set up class
 
@@ -36,7 +33,7 @@ public class Physics {
         double dx = goalX - robotX;
         double dy = goalY - robotY;
         double d = Math.hypot(dx, dy);
-        double h = GOAL_Z - SHOOTER_Z;
+        double h = Tunables.goalZ - Tunables.shootZ;
 
         double cos = Math.cos(ANGLE);
         double tan = Math.tan(ANGLE);
@@ -90,7 +87,7 @@ public class Physics {
         double dx = goalX - fireX;
         double dy = goalY - fireY;
         double d = Math.hypot(dx, dy);
-        double h = GOAL_Z - SHOOTER_Z;
+        double h = Tunables.goalZ - Tunables.shootZ;
 
         //Compute required projectile speed ignoring robot motion
         double cosAngle = Math.cos(ANGLE);
