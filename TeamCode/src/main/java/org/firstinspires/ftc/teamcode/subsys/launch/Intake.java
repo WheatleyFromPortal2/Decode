@@ -132,6 +132,17 @@ public class Intake {
         }
     }
 
+    public void toggleReverse() {
+        switch (state) {
+            case REVERSE:
+                forward();
+                break;
+            default:
+                reverse();
+                break;
+        }
+    }
+
     public void hold() {
         if (state != State.HOLD) {
             motor.setPower(Tunables.intakeHoldPower);

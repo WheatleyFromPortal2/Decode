@@ -44,7 +44,6 @@ public abstract class BozoTeleOp extends OpMode {
     private boolean isAutomatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
     private GamepadManager gamepadManager;
-    private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
     private LaunchSetpoints setpoints;
     private boolean isHoodLocked = true; // whether we want to change our hood with our right stick y
@@ -102,9 +101,15 @@ public abstract class BozoTeleOp extends OpMode {
         loopTimer.resetTimer();
         //robot.updateBalls(); // update how many balls we have in our intake
         timeProfiler.start("buttons");
+
         if (gamepad1.aWasReleased()) { // toggle intake
             robot.intake.toggle();
         }
+
+        if (gamepad1.xWasReleased()) {
+            robot.intake.toggleReverse();
+        }
+
         if (gamepad1.bWasReleased()) { // toggle automated launch
             isAutomatedLaunch = !isAutomatedLaunch;
         }
@@ -125,7 +130,6 @@ public abstract class BozoTeleOp extends OpMode {
         if (gamepad1.startWasReleased()) { // if we press the start button, swap between robot and field centric
             isRobotCentric = !isRobotCentric;
         }
-        if (gamepad1.xWasReleased()) isIntakeReversed = !isIntakeReversed; // reverse intake to eject/unclog
         if (gamepad1.backWasReleased()) { // reset field-centric heading
             Pose headingPose = follower.getPose();
             headingPose = headingPose.setHeading(Math.toRadians(90)); // the driver must point toward the top of the field (goals) to recalibrate the heading
