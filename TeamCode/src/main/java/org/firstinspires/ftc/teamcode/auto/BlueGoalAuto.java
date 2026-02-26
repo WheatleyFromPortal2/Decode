@@ -10,6 +10,6 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 public class BlueGoalAuto extends BlueAuto {
     @Override
     public Pose getStartPose() {
-        return new Pose(32, 132.4, Math.toRadians(90)); // Start Pose of our robot.
+        return new Pose(30, 132, Math.toRadians(90)); // Start Pose of our robot.
     }
 }

@@ -15,7 +15,7 @@ public class Tunables { // this should hold all of our constants
     // automatic launch calc offsets
 
     // launch delays
-    public static int maxLaunchTime = 500; // max amount of time to complete one launch cycle
+    public static int maxLaunchTime = 1000; // max amount of time to complete one launch cycle
 
 
     // rumble effects
