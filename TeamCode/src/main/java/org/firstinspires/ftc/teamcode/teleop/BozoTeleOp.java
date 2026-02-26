@@ -4,6 +4,9 @@
 
 package org.firstinspires.ftc.teamcode.teleop;
 
+import com.arcrobotics.ftclib.gamepad.GamepadEx;
+import com.arcrobotics.ftclib.gamepad.GamepadKeys;
+import com.bylazar.gamepad.Gamepad;
 import com.bylazar.gamepad.GamepadManager;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
@@ -44,6 +47,7 @@ public abstract class BozoTeleOp extends OpMode {
     private boolean isAutomatedLaunch = true; // whether our launch speed is manually controlled or based off of distance from goal
     private TelemetryManager telemetryM;
     private GamepadManager gamepadManager;
+    private GamepadEx gpad1;
     private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
     private LaunchSetpoints setpoints;
@@ -52,8 +56,9 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void init() {
-        gamepadManager = new GamepadManager();
-        gamepad1 = gamepadManager.asCombinedFTCGamepad(gamepad1);
+//        gamepadManager = new GamepadManager();
+//        gamepad1 = gamepadManager.asCombinedFTCGamepad(gamepad1);
+        gpad1 = new GamepadEx(gamepad1);
 
         // create timers and reset them
         loopTimer = new Timer();
@@ -94,6 +99,7 @@ public abstract class BozoTeleOp extends OpMode {
 
     @Override
     public void loop() {
+        gpad1.readButtons();
         timeProfiler.start("follower");
         follower.update(); // update our Pedro Pathing follower
         timeProfiler.start("vision");
@@ -102,14 +108,14 @@ public abstract class BozoTeleOp extends OpMode {
         loopTimer.resetTimer();
         //robot.updateBalls(); // update how many balls we have in our intake
         timeProfiler.start("buttons");
-        if (gamepad1.aWasReleased()) { // toggle intake
+        if (gpad1.wasJustPressed(GamepadKeys.Button.A)) { // toggle intake
             robot.intake.toggle();
         }
-        if (gamepad1.bWasReleased()) { // toggle automated launch
+        if (gpad1.wasJustPressed(GamepadKeys.Button.B)) { // toggle automated launch
             isAutomatedLaunch = !isAutomatedLaunch;
         }
 
-        if (gamepad1.leftBumperWasReleased()) {
+        if (gpad1.wasJustPressed(GamepadKeys.Button.LEFT_BUMPER)) {
             if (!isAutomatedLaunch) {
                 isHoodLocked = !isHoodLocked; // toggle whether our hood is locked
             } else { // in normal operation mode
@@ -117,25 +123,29 @@ public abstract class BozoTeleOp extends OpMode {
             }
         }
 
-        if (gamepad1.rightBumperWasReleased()) {
+        if (gpad1.isDown(GamepadKeys.Button.RIGHT_BUMPER)) {
             //follower.holdPoint(follower.getPose()); // hold our pose while we're launching
             //isAutomatedDrive = true; i don't this is necessary
             robot.launch();
         }
-        if (gamepad1.startWasReleased()) { // if we press the start button, swap between robot and field centric
+        if (gpad1.wasJustPressed(GamepadKeys.Button.START)) { // if we press the start button, swap between robot and field centric
             isRobotCentric = !isRobotCentric;
         }
-        if (gamepad1.xWasReleased()) isIntakeReversed = !isIntakeReversed; // reverse intake to eject/unclog
+        if (gpad1.wasJustPressed(GamepadKeys.Button.X)) {
+            robot.intake.reverse();
+        }
+            //isIntakeReversed = !isIntakeReversed; // reverse intake to eject/unclog
+
         if (gamepad1.backWasReleased()) { // reset field-centric heading
             Pose headingPose = follower.getPose();
             headingPose = headingPose.setHeading(Math.toRadians(90)); // the driver must point toward the top of the field (goals) to recalibrate the heading
             follower.setPose(headingPose); // see if this works
         }
 
-        if (gamepad1.dpadUpWasReleased()) setpoints.incrementRPM(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
-        if (gamepad1.dpadDownWasReleased()) setpoints.decrementRPM(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
-        if (gamepad1.dpadRightWasReleased()) setpoints.incrementRPM(Tunables.adjustRPM / 2.0); // increment by half of adjustRPM (in TPS)
-        if (gamepad1.dpadLeftWasReleased()) setpoints.decrementRPM(Tunables.adjustRPM / 2.0); // decrement by half of adjustRPM (in TPS)
+        if (gpad1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) setpoints.incrementRPM(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
+        if (gpad1.wasJustPressed(GamepadKeys.Button.DPAD_DOWN)) setpoints.decrementRPM(Tunables.adjustRPM); // decrement by adjustRPM (in TPS)
+        if (gpad1.wasJustPressed(GamepadKeys.Button.DPAD_RIGHT)) setpoints.incrementRPM(Tunables.adjustRPM / 2.0); // increment by half of adjustRPM (in TPS)
+        if (gpad1.wasJustPressed(GamepadKeys.Button.DPAD_LEFT)) setpoints.decrementRPM(Tunables.adjustRPM / 2.0); // decrement by half of adjustRPM (in TPS)
 
         if (!isAutomatedDrive) {
             if (!robot.isLaunching()) { // constant movement while launching
@@ -237,6 +247,8 @@ public abstract class BozoTeleOp extends OpMode {
             telemetryM.addData("fusion x", fusion.getState().getX());
             telemetryM.addData("fusion y", fusion.getState().getY());
             telemetryM.debug("vision stale?: " + vision.isStale());
+
+            telemetryM.addData("intake state", robot.intake.getState());
 
             telemetryM.addData("hood pos radians", robot.getSetpoints().getHoodRadians());
             telemetryM.addData("setpoint turret pos", robot.getSetpoints().getTurretPos());

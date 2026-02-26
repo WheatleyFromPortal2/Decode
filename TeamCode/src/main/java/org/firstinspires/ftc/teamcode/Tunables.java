@@ -41,7 +41,7 @@ public class Tunables { // this should hold all of our constants
 
     /** intake tunables (used in Intake.java) **/
 
-    public static boolean intakeUsePowerSave = true;
+    public static boolean intakeUsePowerSave = false;
     public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
     public static int intakePowerSaveWaitInterval = 100; // how often to check for a stalled intake while running
     public static int intakePowerSaveCheckInterval = 100; // how often to update intake power/velocity check in millis

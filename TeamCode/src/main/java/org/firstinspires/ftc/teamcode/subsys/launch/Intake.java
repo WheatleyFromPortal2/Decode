@@ -50,8 +50,10 @@ public class Intake {
     public void update() { // need to continuously update for power save function and caching
         switch (state) {
             case OFF:
+                off();
                 break;
             case FORWARD:
+                forward();
                 if (Tunables.intakeUsePowerSave) {
                     if (powerSaveCheckTimer.getElapsedTime() >= Tunables.intakePowerSaveCheckInterval) {
                         // now we check which of our power save triggers hit
@@ -81,12 +83,14 @@ public class Intake {
                 }
                 break;
             case HOLD:
+                hold();
                 if (Tunables.intakeHoldPower != lastIntakeHoldPower) {
                     motor.setPower(Tunables.intakeHoldPower);
                     lastIntakeHoldPower = Tunables.intakeHoldPower;
                 }
                 break;
             case REVERSE:
+                reverse();
                 break;
         }
     }
@@ -110,17 +114,10 @@ public class Intake {
     }
 
     public void toggle() {
-        switch (state) {
-            case OFF:
-                forward();
-            case FORWARD:
-                off();
-            case REVERSE:
-                forward();
-            case POWER_SAVE:
-                forward();
-            case HOLD:
-                forward();
+        if (state!=State.FORWARD) {
+            state = State.FORWARD;
+        } else {
+            state = State.OFF;
         }
     }
 
@@ -179,5 +176,9 @@ public class Intake {
 
     public DcMotorEx getMotor() { // get our intake motor whose encoder is used by Turret.java
         return motor;
+    }
+
+    public State getState() {
+        return state;
     }
 }

@@ -79,6 +79,7 @@ public class Robot { // create our global class for our robot
         // update static
         flywheel.setpointUpdate(setpoints.getTPS());
         hood.setRadians(setpoints.getHoodRadians());
+        intake.update();
 
         // light overrides
         if (launching) { light.orange(); }
