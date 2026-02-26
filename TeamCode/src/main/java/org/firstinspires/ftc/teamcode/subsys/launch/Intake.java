@@ -113,14 +113,22 @@ public class Intake {
         switch (state) {
             case OFF:
                 forward();
+                break;
             case FORWARD:
                 off();
+                break;
             case REVERSE:
                 forward();
+                break;
             case POWER_SAVE:
                 forward();
+                break;
             case HOLD:
                 forward();
+                break;
+            default:
+                forward();
+                break;
         }
     }
 
