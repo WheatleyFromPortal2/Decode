@@ -10,14 +10,12 @@ import java.util.Arrays;
 
 public class Fusion {
     /*
-    - take in data from Pedro Pathing estimated position and Limelight position
-    - use Kalman filter to intelligently combine
-    - return result
+    1. take in data from Pedro Pathing estimated position and Limelight position
+    2. if vision data exists, check it for errors and even reject
+    3. use Kalman filter to intelligently combine
+    4. return result
 
     - we shouldn't need to update Pedro Pathing's position, since our TeleOp will just rely upon this and auto uses odo only
-    - need to test whether this still works during a failure with the limelight
-        - may need to add code to detect bad data from limelight and reject it
-        - maybe have a maximum allowed error from vision?
      */
     private KalmanFilter xFilter;
     private KalmanFilter yFilter;
