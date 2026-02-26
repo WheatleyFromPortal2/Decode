@@ -17,6 +17,7 @@ public class Tunables { // this should hold all of our constants
     // launch delays
     public static int maxLaunchTime = 500; // max amount of time to complete one launch cycle
 
+    public static int ballCount = 0;
 
     // rumble effects
     private static int delay1 = 200; // ms delay for 1ball
@@ -98,6 +99,11 @@ public class Tunables { // this should hold all of our constants
 
     public static double indexerBlockerClosed = 0.5;
     public static double indexerBlockerOpen = 0.0;
+
+    public static int purpleBot = 100;
+    public static int purpleTop = 100;
+
+    public static int indexWait = 750;
 
 
     /** TeleOp tunables (used in BozoTeleOp.java) **/
