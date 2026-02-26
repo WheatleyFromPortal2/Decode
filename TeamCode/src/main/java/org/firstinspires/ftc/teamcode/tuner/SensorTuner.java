@@ -8,6 +8,7 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.hardware.rev.RevColorSensorV3;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.NormalizedRGBA;
 
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.teamcode.Robot;
@@ -36,12 +37,13 @@ public class SensorTuner extends LinearOpMode {
 
         while (opModeIsActive()) {
             if (transfer.wasBallLaunched()) { ballLaunches++; }
+            NormalizedRGBA colors = color.getNormalizedColors();
             telemetryM.addData("ball launches", ballLaunches);
-            telemetryM.addLine("---Brushland I2C light readings---");
+            telemetryM.addLine("---I2C light readings---");
             telemetryM.addData("I2C raw light detected", color.getRawLightDetected());
-            telemetryM.addData("red", color.red());
-            telemetryM.addData("green", color.green());
-            telemetryM.addData("blue", color.blue());
+            telemetryM.addData("red", colors.red);
+            telemetryM.addData("green", colors.green);
+            telemetryM.addData("blue", colors.blue);
             telemetryM.addData("distance (mm)", color.getDistance(DistanceUnit.MM));
 
             telemetryM.debug("---sensor endpoints---");

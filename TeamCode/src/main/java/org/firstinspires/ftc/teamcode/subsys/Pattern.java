@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.subsys;
 
 import com.qualcomm.hardware.rev.RevColorSensorV3;
-import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DigitalChannel;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
@@ -13,7 +12,7 @@ import java.util.Deque;
 import java.util.Queue;
 
 public class Pattern {
-    public enum ball {
+    public enum Ball {
         PURPLE,
         GREEN
     }
@@ -27,8 +26,8 @@ public class Pattern {
     private State status;
     private boolean cache = false;
 
-    Queue<ball> queue;
-    Deque<ball> cached;
+    Queue<Ball> queue;
+    Deque<Ball> cached;
     Indexer indexer;
 
     private DigitalChannel upIndex;
@@ -37,7 +36,7 @@ public class Pattern {
     private RevColorSensorV3 color;
     private ElapsedTime time;
 
-    public Pattern(Queue<ball> queue, Indexer indexer, HardwareMap hw) {
+    public Pattern(Queue<Ball> queue, Indexer indexer, HardwareMap hw) {
         this.queue = queue;
         this.indexer = indexer;
         upIndex = hw.get(DigitalChannel.class, "upIndex");
@@ -51,11 +50,11 @@ public class Pattern {
     }
 
     public void update() {
-        ball target = queue.poll();
+        Ball target = queue.poll();
         switch (status) {
             case IDLE:
                 cache=false;
-                ball cd = cached.poll();
+                Ball cd = cached.poll();
                 if (cd!=null && cd==target) {
                     status = State.SORT;
                     break;
@@ -68,9 +67,10 @@ public class Pattern {
                 }
                 break;
             case READ:
-                ball current = color();
+                Ball current = color();
                 if (target==null || target==current) {
                     cache = false;
+                    queue.remove();
                 } else {
                     cache = true;
                     cached.addFirst(current);
@@ -94,6 +94,10 @@ public class Pattern {
         }
     }
 
+    public void setPattern(Queue<Ball> queue) {
+        this.queue=queue;
+    }
+
     public boolean upIndex() {
         return upIndex.getState();
     }
@@ -106,12 +110,12 @@ public class Pattern {
         return middleIndex.getState();
     }
 
-    public ball color() {
+    public Ball color() {
         int p = color.red();
         if (p > Tunables.purpleBot && p < Tunables.purpleTop) {
-            return ball.PURPLE;
+            return Ball.PURPLE;
         } else {
-            return ball.GREEN;
+            return Ball.GREEN;
         }
     }
 }

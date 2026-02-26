@@ -29,18 +29,22 @@ public class IndexerTest extends LinearOpMode {
                 intake.hold();
             }
 
+            if (gamepad1.y) {
+                intake.reverse();
+            }
+
             if (gamepad1.left_bumper) {
                 indexer.blockerClosed();
+            } else if (gamepad1.dpad_right) {
+                indexer.blockerUp();
             } else {
                 indexer.blockerOpen();
             }
 
-            if (gamepad1.left_trigger>0.1 && !gamepad1.right_bumper) {
-                indexer.kickerChute();
-            }
-
             if (gamepad1.right_bumper) {
                 indexer.kickerUp();
+            } else if (gamepad1.dpad_left) {
+                indexer.kickerChute();
             } else {
                 indexer.kickerDown();
             }

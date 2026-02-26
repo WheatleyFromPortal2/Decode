@@ -95,15 +95,16 @@ public class Tunables { // this should hold all of our constants
 
     /** indexer tunables (used in Indexer.java) **/
 
-    public static double indexerKickerIntake = 0.99; // get balls from intake (down)
-    public static double indexerKickerUp = 0.858; // move balls to chute
-    public static double indexerKickerChute = 0.674; // get balls from chute
+    public static double indexerKickerIntake = 0.98; // get balls from intake (down)
+    public static double indexerKickerUp = 0.85; // move balls to chute
+    public static double indexerKickerChute = 0.65; // get balls from chute
 
-    public static double indexerBlockerClosed = 0.5;
-    public static double indexerBlockerOpen = 0.0;
+    public static double indexerBlockerClosed = 0.45;
+    public static double indexerBlockerOpen = 0.75;
+    public static double indexerBlockerUp = 0.1;
 
-    public static int purpleBot = 100;
-    public static int purpleTop = 100;
+    public static float purpleBot = 100;
+    public static float purpleTop = 100;
 
     public static int indexWait = 750;
 

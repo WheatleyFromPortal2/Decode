@@ -44,6 +44,10 @@ public class Indexer {
         setBlockerPosFast(Tunables.indexerBlockerOpen);
     }
 
+    public void blockerUp() {
+        setBlockerPosFast(Tunables.indexerBlockerUp);
+    }
+
     public void setKickerPosFast(double newPos) {
         newPos = Range.clip(newPos, 0.0, 1.0);
         if (newPos != lastKickerPos) { // only write to hardware if new position
