@@ -189,7 +189,6 @@ public abstract class BozoAuto extends OpMode {
                     follower.deactivateAllPIDFs(); */
                     setPathState(State.START_LAUNCH); // let's launch
                 }
-                robot.update(); // get turret moving
                 break;
             case START_LAUNCH:
                 robot.launch();
@@ -295,7 +294,9 @@ public abstract class BozoAuto extends OpMode {
                 }
                 break;
             case GO_TO_END: // travels to the end
-                robot.turret.setDesiredPos(0); // lock turret in middle
+                LaunchSetpoints endSetpoints = new LaunchSetpoints(0, 0, 0); // disable everything and lock turret to middle
+                robot.setSetpoints(endSetpoints); // lock turret in middle
+
                 if(!follower.isBusy()) {
                     setPathState(State.END);
                 }
@@ -384,7 +385,7 @@ public abstract class BozoAuto extends OpMode {
     // everything else should automatically disable, but we should probably reset our servos just in case
     @Override
     public void stop() {
-        updateHandoff(); // update our hand off when we stop
+        updateHandoff(); // update our handoff when we stop
         // moving servos doesn't really work because stopping the OpMode disables servo power
     }
 
