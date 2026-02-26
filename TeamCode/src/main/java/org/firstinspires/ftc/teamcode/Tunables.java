@@ -2,8 +2,6 @@ package org.firstinspires.ftc.teamcode;
 
 
 import com.bylazar.configurables.annotations.Configurable;
-import com.pedropathing.control.KalmanFilterParameters;
-import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 @Configurable
@@ -15,7 +13,7 @@ public class Tunables { // this should hold all of our constants
     // automatic launch calc offsets
 
     // launch delays
-    public static int maxLaunchTime = 1000; // max amount of time to complete one launch cycle
+    public static int maxLaunchTime = 500; // max amount of time to complete one launch cycle
 
 
     // rumble effects
@@ -42,9 +40,9 @@ public class Tunables { // this should hold all of our constants
 
     public static boolean intakeUsePowerSave = false;
     public static double intakeSensorOpen = 210; // amount of mm's the intake sensor should report if there is no ball
-    public static int intakePowerSaveWaitInterval = 100; // how often to check for a stalled intake while running
-    public static int intakePowerSaveCheckInterval = 100; // how often to update intake power/velocity check in millis
-    public static double intakePowerSaveTriggerAmps = 4; // if we are drawing more amsp than this, trigger power save
+    public static int intakePowerSaveWaitInterval = 30; // how often to check for a stalled intake while running
+    public static int intakePowerSaveCheckInterval = 30; // how often to update intake power/velocity check in millis
+    public static double intakePowerSaveTriggerAmps = 8; // if we are drawing more amsp than this, trigger power save
     public static double intakePowerSaveTriggerVelocity = 0; // if we have a tps less than this, trigger power save
     public static double intakeHoldPower = 0.05; // minimum power for balls to not fall out of intake
 
@@ -113,16 +111,26 @@ public class Tunables { // this should hold all of our constants
     public static double farZoneDataStart = 95; // if d > this, use far zone data
     public static boolean isDynamicPhysics = true;
 
-    /** auto tunables (used in BozoAuto.java) **/
+    /** bozo auto tunables (used in BozoAuto.java) **/
 
-    public static double scoreRPM = 2250; // RPM to set for launching (stolen from teleop)
-    public static double scoreHoodRadians = Math.toRadians(60); // hood position for launching in auto
+    public static double bozoScoreRPM = 2100; // RPM to set for launching (stolen from teleop)
+    public static double bozoScoreHoodRadians = Math.toRadians(60); // hood position for launching in auto
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double clearTime = 1000; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
     public static double maxGrabVelocity = 50; // max velocity while grabbing balls in inches/second
     public static double clearMaxPower = 0.8;
+
+    /** far auto tunables (used in FarAuto.java) **/
+
+    public static double farScoreRPM = 3500;
+    public static double farScoreHoodRadians = Math.toRadians(-60);
+
+    // delays (all in millis)
+    public static double launchDelay1 = 0;
+    public static double launchDelay2 = 0;
+    public static double launchDelay3 = 0;
 
     /** vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
@@ -137,7 +145,7 @@ public class Tunables { // this should hold all of our constants
 
     /** fusion tunables (used in Fusion.java) **/
 
-    public static double modelCovariance = 10.0; // odo noise
+    public static double modelCovariance = 100.0; // odo noise
     public static double dataCovariance = 100.0; // vision noise
     public static double maxVisionVariance = 20; // reject vision estimates with a euclidean distance difference greater than this from odo
 
@@ -146,7 +154,7 @@ public class Tunables { // this should hold all of our constants
     // both of these must be in meters
     public static double shootZ = 0.4064; // calibrated 2-13-26
     public static double goalZ = 0.7874; // calibrated 2-13-26
-    public static double physicsRPMOffset = 50;
-    public static double staticShotDelay = 0.1;
+    public static double physicsRPMOffset = 200;
+    public static double staticShotDelay = 0.2;
     public static double angleCutoff = 120; // if inches more than this
 }
