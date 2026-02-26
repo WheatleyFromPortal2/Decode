@@ -229,7 +229,6 @@ public abstract class BozoAuto extends OpMode {
                 break;
             case TRAVEL_TO_BALLS: // travel to the start position of the balls, but don't grab them yet
                 if(!follower.isBusy()) {
-                    robot.intake.forward(); // re-enable intake to pickup balls
                     switch (ballTripletsScored) { // this should always be between 3 and 0
                         case 1:
                             follower.followPath(grabPickup1);

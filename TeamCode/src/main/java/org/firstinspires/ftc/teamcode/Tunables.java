@@ -128,6 +128,8 @@ public class Tunables { // this should hold all of our constants
     public static double clearTime = 1000; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
     public static double maxGrabVelocity = 50; // max velocity while grabbing balls in inches/second
+    public static double maxSortVelocity = 5; //max velocity while sorting
+    public static double sortTime = 1;
     public static double clearMaxPower = 0.8;
 
     /** vision tunables (used in Vision.java) **/
