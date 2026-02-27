@@ -66,7 +66,7 @@ public abstract class FarAuto extends OpMode {
             case START:
                 LaunchSetpoints setpoints = new LaunchSetpoints(0,
                         Tunables.hoodMinimumRadians, // use the lowest hood angle possible
-                        getTurretPos());
+                        startPose.getHeading() - getTurretPos());
 
                 setpoints.setRPM(Tunables.farScoreRPM);
 
