@@ -13,7 +13,7 @@ public class RedTeleOp extends BozoTeleOp {
     @Override
     public Pose getGoalPose() { // return our goal pose
         // because the buildConfig() function is protected, we cannot call it here - possibly replace separate variables
-        return new Pose (144, 144); // taken from RedAuto.java
+        return new Pose (134, 134);
     }
 
 }

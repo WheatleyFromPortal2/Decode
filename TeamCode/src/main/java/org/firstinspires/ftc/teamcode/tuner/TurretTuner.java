@@ -17,7 +17,7 @@ import org.firstinspires.ftc.teamcode.subsys.launch.Turret;
 @TeleOp(name="TurretTuner", group="Tuner")
 public class TurretTuner extends OpMode {
     private int START_MOVE_MILLIS = 100; // minimum millis to wait for turret to move
-    private int SETTLE_MILLIS = 1000; // time to wait for turret to settle
+    private int SETTLE_MILLIS = 2000; // time to wait for turret to settle
 
     private enum TuneMode { // order matters for display
         CALIBRATE,
@@ -85,6 +85,9 @@ public class TurretTuner extends OpMode {
         telemetryM.addLine("");
         telemetryM.addLine("current testing mode is: " + mode);
 
+        telemetryM.addData("turret max left", Tunables.turretMaxLeft);
+        telemetryM.addData("turret max right", Tunables.turretMaxRight);
+
         telemetryM.update(telemetry);
     }
 
@@ -113,7 +116,7 @@ public class TurretTuner extends OpMode {
                             Tunables.turretCenterOffset = turret.getPos();
 
                             // test turret left max
-                            turret.setRawServoPositions(1);
+                            turret.setRawServoPositions(Tunables.turretLimitLeft);
                             startMoving();
                             calibrationState = CalibrationState.MOVE_LEFT_MAX;
                         }
@@ -133,7 +136,7 @@ public class TurretTuner extends OpMode {
                         telemetryM.addLine("centering turret");
                         if (isTurretStopped()) {
                             // test turret left max
-                            turret.setRawServoPositions(0);
+                            turret.setRawServoPositions(Tunables.turretLimitRight);
                             startMoving();
                             calibrationState = CalibrationState.MOVE_RIGHT_MAX;
                         }
@@ -156,8 +159,6 @@ public class TurretTuner extends OpMode {
                     case END:
                         telemetryM.addLine("turret calibration complete!");
                         telemetryM.addData("turret center offset", Tunables.turretCenterOffset);
-                        telemetryM.addData("turret max left", Tunables.turretMaxLeft);
-                        telemetryM.addData("turret max right", Tunables.turretMaxRight);
 
                         telemetryM.addLine("");
                         telemetryM.addLine("if these values are reliable after testing, then save them in Tunables.java!");
@@ -182,6 +183,9 @@ public class TurretTuner extends OpMode {
         telemetryM.addData("turret position", turret.getPos());
         telemetryM.addData("turret velocity", turret.getVelocity());
 
+        telemetryM.addData("turret max left", Tunables.turretMaxLeft);
+        telemetryM.addData("turret max right", Tunables.turretMaxRight);
+
         telemetryM.addData("turret offset", Tunables.turretCenterOffset);
 
         telemetryM.update(telemetry);
@@ -192,7 +196,7 @@ public class TurretTuner extends OpMode {
         telemetryM.addLine("use the right stick to tune positions");
         telemetryM.addLine("you may also hold down the dpad to move the turret");
 
-        double inputPos = Range.scale(gamepad1.right_stick_y, -1, 1, -2 * Math.PI, 2 * Math.PI);
+        double inputPos = Range.scale(gamepad1.right_stick_y, -1.0, 1.0, Tunables.turretMaxLeft, Tunables.turretMaxRight);
 
         if (gamepad1.dpad_down) inputPos = Math.toRadians(180);
         if (gamepad1.dpad_left) inputPos = Math.toRadians(-90);
@@ -201,11 +205,12 @@ public class TurretTuner extends OpMode {
 
         turret.update();
 
+        if (gamepad1.aWasReleased()) turret.zero();
+
         turret.setDesiredPos(inputPos);
 
         telemetryM.addData("desired turret position", turret.getDesiredPos());
-        telemetryM.addData("turret error (deg", Math.toDegrees(turret.getDesiredPos() - inputPos));
-
+        telemetryM.addData("turret error (deg", Math.toDegrees(turret.getPos() - inputPos));
     }
 
     private void startMoving() {

@@ -34,11 +34,14 @@ public class Turret {
     }
 
     public void update() {
-        double newTurretServoPos = Range.scale(desiredPos, Tunables.turretMaxLeft, Tunables.turretMaxRight, 1.0, 0.0); // should be reversed
+        //double newTurretServoPos = Range.scale(desiredPos, Tunables.turretMaxLeft, Tunables.turretMaxRight, Tunables.turretLimitLeft, Tunables.turretLimitRight);
 
-        if (newTurretServoPos == lastDesiredPos) {
+        if (desiredPos == lastDesiredPos) {
             // do nothing, save loop time
         } else {
+            double newTurretServoPos = Range.scale(desiredPos, Tunables.turretMaxRight, Tunables.turretMaxLeft, Tunables.turretLimitRight, Tunables.turretLimitLeft);
+            newTurretServoPos = Range.clip(newTurretServoPos, Tunables.turretLimitLeft, Tunables.turretLimitRight);
+
             turret1.setPosition(newTurretServoPos);
             turret2.setPosition(newTurretServoPos);
             lastDesiredPos = desiredPos;
@@ -81,7 +84,7 @@ public class Turret {
 
     public void setDesiredPos(double radians) { // set desired turret angle
         //if (!isPowered) on();
-        desiredPos = normalizeRadians(Range.clip(radians, Tunables.turretLimitLeft, Tunables.turretLimitRight));
+        desiredPos = normalizeRadians(radians);
     }
 
     /*

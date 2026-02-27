@@ -121,7 +121,7 @@ public class Physics {
     private double velocityToRPM(double velocity)
     {
         // calibrated 2-13-26
-        return (velocity + 0.475726) / 0.00246641 + Tunables.physicsRPMOffset;
+        return ((velocity + 0.475726) / 0.00246641) * Tunables.physicsRPMMultiplier + Tunables.physicsRPMOffset;
     }
 
     private double dToHood(double d) {

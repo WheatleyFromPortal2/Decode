@@ -74,14 +74,15 @@ public class Tunables {
 
     /** turret tunables (used in Turret.java) **/
     public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
-    // calibrated 2-24-26
-    public static double turretMaxLeft = -3.5122; // max range that the turret can go left or right from servo center
-    // 1.837
-    public static double turretMaxRight = 3.57668;
 
-    //these are in radians
-    public static double turretLimitLeft = -2;
-    public static double turretLimitRight = 2;
+    // calibrated 2-27-26
+    public static double turretMaxLeft = 1.761;
+    // 1.837
+    public static double turretMaxRight = -1.723;
+
+    // max servo positions
+    public static double turretLimitLeft = 0.25;
+    public static double turretLimitRight = 0.75;
 
     /** transfer tunables (used in Transfer.java) **/
 
@@ -119,6 +120,7 @@ public class Tunables {
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
     public static double farZoneDataStart = 95; // if d > this, use far zone data
     public static boolean isDynamicPhysics = true;
+    public static boolean usingKalman = false;
 
     /** bozo auto tunables (used in BozoAuto.java) **/
 
@@ -184,7 +186,8 @@ public class Tunables {
     // both of these must be in meters
     public static double shootZ = 0.4064; // calibrated 2-13-26
     public static double goalZ = 0.7874; // calibrated 2-13-26
-    public static double physicsRPMOffset = 200;
+    public static double physicsRPMMultiplier = 1.1;
+    public static double physicsRPMOffset = 0;
     public static double staticShotDelay = 0.2;
     public static double angleCutoff = 120; // if inches more than this
 

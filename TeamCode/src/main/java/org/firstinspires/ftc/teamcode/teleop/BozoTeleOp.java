@@ -181,10 +181,18 @@ public abstract class BozoTeleOp extends OpMode {
         timeProfiler.start("launch");
 
         if (isAutomatedLaunch) { // set our launch velocity and hood angle automatically
-            if (Tunables.isDynamicPhysics) {
-                setpoints = physics.getNeededVelocityDynamic(fusionPose, follower.getVelocity(), getGoalPose(), robot.getFirstShotDelay());
+            Pose physicsPose;
+
+            if (Tunables.usingKalman) {
+                physicsPose = fusionPose;
             } else {
-                setpoints = physics.getNeededVelocityStatic(fusionPose, getGoalPose());
+                physicsPose = follower.getPose();
+            }
+
+            if (Tunables.isDynamicPhysics) {
+                setpoints = physics.getNeededVelocityDynamic(physicsPose, follower.getVelocity(), getGoalPose(), robot.getFirstShotDelay());
+            } else {
+                setpoints = physics.getNeededVelocityStatic(physicsPose, getGoalPose());
             }
 
             //double goalDst = robot.getGoalDst(follower.getPose(), getGoalPose()); // get goal distance using odo
