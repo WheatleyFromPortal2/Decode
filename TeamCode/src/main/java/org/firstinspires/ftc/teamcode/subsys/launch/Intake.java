@@ -115,9 +115,9 @@ public class Intake {
 
     public void toggle() {
         if (state!=State.FORWARD) {
-            state = State.FORWARD;
+            forward();
         } else {
-            state = State.OFF;
+            off();
         }
     }
 
