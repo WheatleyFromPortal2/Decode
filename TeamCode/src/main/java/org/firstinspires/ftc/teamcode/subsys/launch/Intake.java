@@ -114,7 +114,7 @@ public class Intake {
     }
 
     public void toggle() {
-        if (state!=State.FORWARD) {
+        if (state != State.FORWARD) {
             forward();
         } else {
             off();
@@ -144,7 +144,7 @@ public class Intake {
     private void enablePowerSave() {
         state = State.POWER_SAVE;
         powerSaveWaitTimer.resetTimer();
-        motor.setPower(0); // save power
+        motor.setPower(Tunables.intakeHoldPower); // save power
     }
 
     /** getter methods **/

@@ -48,7 +48,6 @@ public abstract class BozoTeleOp extends OpMode {
     private TelemetryManager telemetryM;
     private GamepadManager gamepadManager;
     private GamepadEx gpad1;
-    private boolean isIntakeReversed = false; // 1 is for intake; -1 is for emergency eject/unclog
     private boolean isRobotCentric = false; // allow driver to disable field-centric control if something goes wrong
     private LaunchSetpoints setpoints;
     private boolean isHoodLocked = true; // whether we want to change our hood with our right stick y
