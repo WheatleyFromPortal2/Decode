@@ -166,7 +166,7 @@ public class Intake {
     private void enablePowerSave() {
         state = State.POWER_SAVE;
         powerSaveWaitTimer.resetTimer();
-        motor.setPower(0); // save power
+        motor.setPower(Tunables.intakeHoldPower); // save power
     }
 
     /** getter methods **/

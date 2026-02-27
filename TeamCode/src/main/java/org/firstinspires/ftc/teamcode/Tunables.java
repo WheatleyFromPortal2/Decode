@@ -44,7 +44,7 @@ public class Tunables { // this should hold all of our constants
     public static int intakePowerSaveCheckInterval = 30; // how often to update intake power/velocity check in millis
     public static double intakePowerSaveTriggerAmps = 8; // if we are drawing more amsp than this, trigger power save
     public static double intakePowerSaveTriggerVelocity = 0; // if we have a tps less than this, trigger power save
-    public static double intakeHoldPower = 0.05; // minimum power for balls to not fall out of intake
+    public static double intakeHoldPower = 0.75; // minimum power for balls to not fall out of intake
 
     /** launch tunables (used in Launch.java) **/
 
