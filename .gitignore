@@ -1,3 +1,6 @@
+# scouting files
+*.csv
+
 # Built application files
 *.apk
 *.aar
