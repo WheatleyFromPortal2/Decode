@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.subsys;
 
-import com.pedropathing.control.KalmanFilter;
+import android.annotation.SuppressLint;
+
 import com.pedropathing.control.KalmanFilterParameters;
 import com.pedropathing.geometry.Pose;
+import com.qualcomm.robotcore.util.Range;
 
 import org.firstinspires.ftc.teamcode.Tunables;
 
@@ -23,15 +25,18 @@ public class Fusion {
     private double lastOdoX;
     private double lastOdoY;
 
+    private int visionRejectedCount = 0;
+
     public Fusion(Pose startingPose) {
-        // x/y noise should be identical
-        KalmanFilterParameters xParams = new KalmanFilterParameters(Tunables.modelCovariance, Tunables.dataCovariance);
-        KalmanFilterParameters yParams = new KalmanFilterParameters(Tunables.modelCovariance, Tunables.dataCovariance);
+        resetFilters(startingPose);
+    }
 
-        xFilter = new KalmanFilter(xParams);
-        yFilter = new KalmanFilter(yParams);
+    public void resetFilters(Pose startingPose) {
+        xFilter = new KalmanFilter(startingPose.getX(), Tunables.fusionInitialVariance);
+        yFilter = new KalmanFilter(startingPose.getY(), Tunables.fusionInitialVariance);
 
-        resetPos(startingPose);
+        lastOdoX = startingPose.getX();
+        lastOdoY = startingPose.getY();
     }
 
     public void update(Pose odoPose, Pose visionPose) { // visionPose may be null
@@ -41,31 +46,31 @@ public class Fusion {
         lastOdoX = odoPose.getX();
         lastOdoY = odoPose.getY();
 
-        if (!isReasonable(odoPose, visionPose)) {
-            // our vision data is not reliable - base only off of odo
-            xFilter.update(dx, xFilter.getState());
-            yFilter.update(dy, yFilter.getState());
-        } else {
-            // vision data is reliable, update our filters
-            xFilter.update(dx, visionPose.getX());
-            yFilter.update(dy, visionPose.getY());
+        /** predict step (must always happen **/
+        // adjust noise with odometry distance traveled
+        double Qx = Tunables.fusionProcessNoiseBase + Tunables.fusionProcessNoisePerInch * Math.abs(dx);
+
+        double Qy = Tunables.fusionProcessNoiseBase + Tunables.fusionProcessNoisePerInch * Math.abs(dy);
+
+        xFilter.predict(dx, Qx);
+        yFilter.predict(dy, Qy);
+
+        /** correct step (only if vision is accurate+valid **/
+        if (visionPose != null) {
+            if (visionPose.roughlyEquals(getState(), Tunables.fusionMaxVisionError)) {
+                xFilter.correct(visionPose.getX(), Tunables.fusionVisionVariance);
+                yFilter.correct(visionPose.getY(), Tunables.fusionVisionVariance);
+            } else {
+                visionRejectedCount++;
+            }
         }
     }
 
-    private boolean isReasonable(Pose odoPose, Pose visionPose) {
+    private boolean isReasonable(Pose odoPose, Pose visionPose, double reasonability) {
         // make sure vision isn't null (bad reading)
         if (visionPose == null) { return false; }
         // check if vision is reasonably close to odo
-        return getState().distanceFrom(visionPose) < Tunables.maxVisionVariance;
-    }
-
-    public void resetPos(Pose startingPose) {
-        lastOdoX = startingPose.getX();
-        lastOdoY = startingPose.getY();
-
-        // start variance must not be = 0
-        xFilter.reset(startingPose.getX(), 0.01, 0.0);
-        yFilter.reset(startingPose.getY(), 0.01, 0.0);
+        return getState().distanceFrom(visionPose) < reasonability;
     }
 
     public Pose getState() {
@@ -73,6 +78,60 @@ public class Fusion {
     }
 
     public String getStatus() {
-        return Arrays.toString(xFilter.output()) + Arrays.toString(yFilter.output());
+        return "x filter: " + xFilter.getDebugString() +
+                "\ny filter:" + yFilter.getDebugString() +
+                "\nvision rejected count: " + visionRejectedCount;
     }
-}
+
+    private class KalmanFilter {
+        private double x;   // state
+        private double P;   // covariance
+
+        // Debug values
+        private double lastK;
+        private double lastInnovation;
+        private double lastQ;
+        private double lastR;
+
+        public KalmanFilter(double initialState, double initialVariance) {
+            this.x = initialState;
+            this.P = initialVariance;
+        }
+
+        public void predict(double u, double Q) {
+            x += u;
+            P += Q;
+
+            P *= 1.001; // prevent slow collapse
+
+            // clamp P to prevent covariance collapse
+            P = Range.clip(P, Tunables.fusionMinVariance, Tunables.fusionMaxVariance);
+
+            lastQ = Q;
+        }
+
+        public void correct(double z, double R) {
+            double y = z - x;          // innovation
+            double S = P + R;
+            double K = P / S;
+
+            x += K * y;
+            P *= (1 - K);
+
+            // store debug values
+            lastInnovation = y;
+            lastK = K;
+            lastR = R;
+        }
+
+        public double getState() { return x; }
+        public double getVariance() { return P; }
+
+        @SuppressLint("DefaultLocale")
+        public String getDebugString() {
+            return String.format(
+                    "x=%.2f P=%.3f K=%.3f innov=%.2f Q=%.4f R=%.2f",
+                    x, P, lastK, lastInnovation, lastQ, lastR
+            );
+        }
+    }}

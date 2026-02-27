@@ -145,9 +145,15 @@ public class Tunables { // this should hold all of our constants
 
     /** fusion tunables (used in Fusion.java) **/
 
-    public static double modelCovariance = 100.0; // odo noise
-    public static double dataCovariance = 100.0; // vision noise
-    public static double maxVisionVariance = 20; // reject vision estimates with a euclidean distance difference greater than this from odo
+    public static double fusionInitialVariance = 5;
+    public static double fusionMaxVisionError = 20; // don't use vision if it differs by more inches than this
+    public static double fusionProcessNoiseBase = 0.005; // odo slips very little
+    public static double fusionProcessNoisePerInch = 0.01; // pinpoint is pretty accurate
+    public static double fusionVisionVariance = 4.0;
+
+    // prevent variance collapse
+    public static double fusionMinVariance = 0.5;
+    public static double fusionMaxVariance = 30;
 
     /** physics tunables (used in Physics.java) **/
 
