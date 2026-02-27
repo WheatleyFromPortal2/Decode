@@ -13,9 +13,9 @@ public abstract class RedAuto extends BozoAuto { // these positions override the
     public static Pose pickup1StartPose = new Pose(86, 85, Math.toRadians(0));
     public static Pose pickup1EndPose = new Pose(126, 85, Math.toRadians(0));
     public static Pose pickup2StartPose = new Pose(86, 56, Math.toRadians(0));
-    public static Pose pickup2EndPose = new Pose(136, 56, Math.toRadians(0));
+    public static Pose pickup2EndPose = new Pose(138, 56, Math.toRadians(0));
     public static Pose pickup3StartPose = new Pose(86, 35, Math.toRadians(0));
-    public static Pose pickup3EndPose = new Pose(136, 35, Math.toRadians(0));
+    public static Pose pickup3EndPose = new Pose(138, 35, Math.toRadians(0));
     public static Pose releasePose = new Pose(129, 74, Math.toRadians(90));
     public static Pose endPose = new Pose(104, 65, Math.toRadians(90));
     public static double scoreTurretPos = -0.91; // because our servos are misaligned, this must be diff from BlueAuto.java.

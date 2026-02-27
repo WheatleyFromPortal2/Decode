@@ -28,7 +28,7 @@ public abstract class BozoAuto extends OpMode {
     protected AutoConfig config;
     protected abstract AutoConfig buildConfig();
     protected abstract Pose getStartPose();
-    Robot robot;
+    private Robot robot;
     private Follower follower;
     private Timer stateTimer, loopTimer;
     private TelemetryManager telemetryM; // create our telemetry object
@@ -197,7 +197,7 @@ public abstract class BozoAuto extends OpMode {
             case LAUNCH:
                 if (robotUpdateStatus) { // we're done with launching balls
                     ballTripletsScored++; // increment the amount of triplets that we have scored if we have a successful launch
-                    robot.intake.off(); // save power
+                    //robot.intake.off(); // save power
                     /* if we're holding point, we shouldn't have to re-enable motors
                     follower.activateAllPIDFs();
                     follower.resumePathFollowing(); */
@@ -359,14 +359,15 @@ public abstract class BozoAuto extends OpMode {
 
         buildPaths(); // this will create our paths from our predefined variables
         LaunchSetpoints setpoints = new LaunchSetpoints(0, 0, 0);
-        setpoints.setRPM(Tunables.scoreRPM);
+        setpoints.setRPM(Tunables.bozoScoreRPM);
         setpoints.setTurretPos(config.scoreTurretPos);
-        setpoints.setHoodRadians(Tunables.scoreHoodRadians);
+        setpoints.setHoodRadians(Tunables.bozoScoreHoodRadians);
         robot.setSetpoints(setpoints);
 
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
 
         sendTelemetry(true); // begin our full telemetry, so in Panels we can set all graphs to true
+        telemetryM.update(telemetry);
         // this lets us observe our telemetry graphs from the start
     }
 
@@ -391,10 +392,13 @@ public abstract class BozoAuto extends OpMode {
 
     public void sendTelemetry(boolean sendInitTime) {
         // sendInitTime = true; is only for init()
-        if (sendInitTime) telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
+        if (sendInitTime) {
+            telemetryM.addLine("INIT COMPLETE: READY TO START");
+            telemetryM.debug("init time (millis): " + loopTimer.getElapsedTime()); // i don't think addData works in init()
+        } else { // don't send warnings at init
+            if (!robot.flywheel.isWithinMargin()) telemetryM.debug("WARNING: LAUNCH OUT OF MARGIN");
+        }
 
-        // warnings!
-        if (robot.flywheel.isWithinMargin()) telemetryM.debug("WARNING: LAUNCH OUT OF MARGIN");
 
         // state
         telemetryM.debug("path state: " + state);
