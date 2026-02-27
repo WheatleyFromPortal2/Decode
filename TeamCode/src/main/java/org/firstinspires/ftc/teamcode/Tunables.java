@@ -1,3 +1,7 @@
+/** class that holds all of our constants that we want to be able to tune quickly
+ * all values in are milliseconds unless otherwise stated
+ */
+
 package org.firstinspires.ftc.teamcode;
 
 
@@ -5,12 +9,10 @@ import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 @Configurable
-public class Tunables { // this should hold all of our constants
+public class Tunables {
     public static boolean isDebugging = true;
 
     /** Robot tunables (used in Robot.java) **/
-
-    // automatic launch calc offsets
 
     // launch delays
     public static int maxLaunchTime = 500; // max amount of time to complete one launch cycle
@@ -125,7 +127,20 @@ public class Tunables { // this should hold all of our constants
     /** far auto tunables (used in FarAuto.java) **/
 
     public static double farScoreRPM = 3500;
+    // hood position is always set to minimum angle since we're so far
     public static double farScoreHoodRadians = Math.toRadians(-60);
+
+    // auto cycle and delay configuration
+    public static int farCycles = 3; // how many times to cycle through (1 = only score preload)
+    // array that holds all of our waits before launches
+    // this array may be longer than farCycles but must never be shorter
+    public static int[] farLaunchWaits = {
+            0, // wait before 1st launch
+            0, // wait before 2nd launch
+            0, // wait before 3rd launch
+            0  // wait before 4th launch
+    };
+
 
     // delays (all in millis)
     public static double launchDelay1 = 0;
