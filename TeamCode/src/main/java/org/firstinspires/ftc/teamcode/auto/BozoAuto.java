@@ -51,14 +51,13 @@ public abstract class BozoAuto extends OpMode {
 
     private final int maxBallTriplets = 4; // amount of ball triplets we will try to score before going to end
 
-    /** these are the **only variables** that should change throughout the auto **/
+    /** these are the **only variables** that should change during runtime **/
 
     State state = State.START; // set PathState to start
     private int ballTripletsScored = 0; // start with 0, increment at the end of each LAUNCH cycle
 
     /** end vars that can change **/
 
-    // example paths
     private PathChain // some of these can probably just be Paths, but whatever
             scorePreload,
             startPickup1,
@@ -75,7 +74,7 @@ public abstract class BozoAuto extends OpMode {
             getClear,
             goToEnd;
 
-    public void buildPaths() {
+    private void buildPaths() {
         // this path goes from the starting point to our scoring point
         scorePreload = follower.pathBuilder()
                 .addPath(new BezierCurve(startPose, config.scorePose)) // test if this works
@@ -168,7 +167,7 @@ public abstract class BozoAuto extends OpMode {
     }
 
     // isn't as flexible as https://state-factory.gitbook.io/state-factory, but it should be good enough for now
-    public void autonomousPathUpdate(boolean robotUpdateStatus) {
+    private void autoPathUpdate(boolean robotUpdateStatus) {
             /* You could check for
             - Follower State: "if(!follower.isBusy()) {}"
             - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
@@ -302,7 +301,7 @@ public abstract class BozoAuto extends OpMode {
                 }
                 break;
             case END:
-                robot.intake.forward(); // turn off intake
+                robot.intake.forward(); // turn on intake
                 updateHandoff();
                 follower.deactivateAllPIDFs(); // stop the follower
                 requestOpModeStop(); // request to stop our OpMode so it auto transfers to TeleOp
@@ -310,9 +309,9 @@ public abstract class BozoAuto extends OpMode {
         }
     }
 
-    /** These change the states of the paths and actions. It will also reset the timers of the individual switches **/
-    private void setPathState(State pState) {
-        state = pState;
+    /** These changes our path state while also resetting its timer **/
+    private void setPathState(State newState) {
+        state = newState;
         stateTimer.resetTimer();
     }
 
@@ -320,13 +319,12 @@ public abstract class BozoAuto extends OpMode {
     @Override
     public void loop() {
         loopTimer.resetTimer();
-        // These loop the movements of the robot, these must be called continuously in order to work
-        follower.update();
 
+        follower.update(); // update our follower before anything else
 
         updateHandoff();
 
-        autonomousPathUpdate(robot.update()); // update our state machine and run its actions
+        autoPathUpdate(robot.update()); // update our state machine and run its actions
 
         if (Tunables.isDebugging) {
             sendTelemetry(false); // we don't want to send our init time now that our OpMode is running
@@ -367,8 +365,8 @@ public abstract class BozoAuto extends OpMode {
         follower.setStartingPose(startPose); // this will set our starting pose from our getStartPose() function
 
         sendTelemetry(true); // begin our full telemetry, so in Panels we can set all graphs to true
-        telemetryM.update(telemetry);
         // this lets us observe our telemetry graphs from the start
+        telemetryM.update(telemetry);
     }
 
     /** This method is called continuously after Init while waiting for "play". **/
@@ -383,11 +381,15 @@ public abstract class BozoAuto extends OpMode {
         setPathState(State.START);
     }
 
-    // everything else should automatically disable, but we should probably reset our servos just in case
+    // everything else should automatically disable, but we still want to update our handoff
     @Override
     public void stop() {
         updateHandoff(); // update our handoff when we stop
         // moving servos doesn't really work because stopping the OpMode disables servo power
+    }
+
+    public void updateHandoff() {
+        HandoffState.pose = follower.getPose();
     }
 
     public void sendTelemetry(boolean sendInitTime) {
@@ -416,9 +418,5 @@ public abstract class BozoAuto extends OpMode {
 
         // timing
         telemetryM.debug("OpMode time (seconds): " + getRuntime());
-    }
-
-    public void updateHandoff() {
-        HandoffState.pose = follower.getPose();
     }
 }
