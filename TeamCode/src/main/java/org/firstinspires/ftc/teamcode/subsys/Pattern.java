@@ -41,7 +41,7 @@ public class Pattern {
     private boolean C113 = false;
     private boolean C123 = false;
     private boolean C2 = false;
-    private boolean intake;
+    private boolean intake = false;
     private StateMachine cacher;
 //    private boolean cache = false;
 //
@@ -87,6 +87,7 @@ public class Pattern {
                 .onExit(() -> {
                     robot.intake.hold();
                     C0 = false;
+                    intake = false;
                 })
                 .transitionTimed(Tunables.sortTime*3, State.IDLE)
                 .state(State.C112)
@@ -101,16 +102,21 @@ public class Pattern {
                 .onEnter(() -> {
                     robot.indexer.kickerDown();
                     robot.indexer.blockerClosed();
-                    robot.transfer.off();
+                    robot.transfer.forward();
+                })
+                .onExit(()-> {
+//                    robot.indexer.kickerChute();
+                    robot.indexer.blockerUp();
+                    robot.intake.off();
+                    robot.transfer.forward();
                 })
                 .transitionTimed(Tunables.sortTime*1)
                 .state(State.C112_2)
-                .onExit(()-> {
-                    robot.indexer.kickerChute();
-                    robot.indexer.blockerUp();
-                    robot.intake.hold();
-                    robot.transfer.forward();
+                .onEnter(() -> robot.intake.forward())
+                .onExit(() -> {
+                    robot.intake.off();
                     C112 = false;
+                    intake = false;
                 })
                 .transitionTimed(Tunables.sortTime*1, State.IDLE)
                 .state(State.C113)
@@ -125,15 +131,15 @@ public class Pattern {
                 .onEnter(() -> {
                     robot.indexer.kickerDown();
                     robot.indexer.blockerClosed();
-                    robot.transfer.off();
+                    robot.transfer.forward();
                 })
                 .onExit(() -> {
                     robot.indexer.blockerUp();
-                    robot.intake.hold();
-                    robot.transfer.forward();
+                    robot.intake.off();
                     C113 = false;
+                    intake = false;
                 })
-                .transitionTimed(Tunables.sortTime*2)
+                .transitionTimed(Tunables.sortTime*2, State.IDLE)
                 .state(State.C123)
                 .onEnter(() -> {
                     robot.intake.forward();
@@ -158,8 +164,9 @@ public class Pattern {
                 .onExit(() -> {
                     robot.indexer.blockerUp();
                     robot.transfer.forward();
-                    robot.intake.hold();
+                    robot.intake.off();
                     C123 = false;
+                    intake = false;
                 })
                 .transitionTimed(Tunables.sortTime*1, State.IDLE)
                 .state(State.C2)
@@ -167,6 +174,7 @@ public class Pattern {
                     robot.indexer.kickerUp();
                     robot.indexer.blockerOpen();
                     robot.transfer.reverse();
+                    robot.intake.forward();
                 })
                 .transitionTimed(Tunables.sortTime*2)
                 .state(State.C2_1)
@@ -177,16 +185,23 @@ public class Pattern {
                 })
                 .onExit(() -> {
                     robot.indexer.blockerUp();
-                    robot.intake.hold();
+                    robot.intake.off();
                     robot.transfer.forward();
                     C2 = false;
+                    intake = false;
                 })
                 .transitionTimed(Tunables.sortTime*1, State.IDLE)
                 .build();
+
+        cacher.start();
     }
 
     public void update() {
         cacher.update();
+    }
+
+    public String getState() {
+        return cacher.getState().toString();
     }
 
     public void input(String code) {

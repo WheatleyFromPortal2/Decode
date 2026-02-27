@@ -96,12 +96,12 @@ public class Tunables { // this should hold all of our constants
     /** indexer tunables (used in Indexer.java) **/
 
     public static double indexerKickerIntake = 0.98; // get balls from intake (down)
-    public static double indexerKickerUp = 0.85; // move balls to chute
+    public static double indexerKickerUp = 0.87; // move balls to chute
     public static double indexerKickerChute = 0.65; // get balls from chute
 
     public static double indexerBlockerClosed = 0.45;
     public static double indexerBlockerOpen = 0.75;
-    public static double indexerBlockerUp = 0.1;
+    public static double indexerBlockerUp = 0.11;
 
     public static float purpleBot = 100;
     public static float purpleTop = 100;
@@ -129,7 +129,7 @@ public class Tunables { // this should hold all of our constants
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
     public static double maxGrabVelocity = 50; // max velocity while grabbing balls in inches/second
     public static double maxSortVelocity = 5; //max velocity while sorting
-    public static double sortTime = 1;
+    public static double sortTime = 0.75;
     public static double clearMaxPower = 0.8;
 
     /** vision tunables (used in Vision.java) **/
@@ -154,4 +154,6 @@ public class Tunables { // this should hold all of our constants
     public static double physicsRPMOffset = 50;
     public static double staticShotDelay = 0.1;
     public static double angleCutoff = 120; // if inches more than this
+
+    public static String patternT = "C0";
 }
