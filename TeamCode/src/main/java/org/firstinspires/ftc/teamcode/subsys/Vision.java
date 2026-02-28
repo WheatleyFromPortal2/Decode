@@ -60,8 +60,9 @@ public class Vision {
             throw new RuntimeException("make sure to call vision.start()!");
         }
         if (getPipeline() != pipeline) {
-            String error = "you tried to update using pipeline: " + getPipeline() + ", but pipeline: " + pipeline + " was expected!";
-            throw new RuntimeException(error);
+            //String error = "you tried to update using pipeline: " + getPipeline() + ", but pipeline: " + pipeline + " was expected!";
+            //throw new RuntimeException(error);
+            setPipeline(pipeline);
         }
     }
 

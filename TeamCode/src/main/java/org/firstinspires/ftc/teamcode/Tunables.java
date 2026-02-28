@@ -55,15 +55,15 @@ public class Tunables {
     /** turret tunables (used in Turret.java) **/
     public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
 
-    public static double turretP = 0.15;
+    public static double turretP = 0.12;
     public static double turretI = 0.00;
-    public static double turretD = 0.011;
+    public static double turretD = 0.01;
     public static double turretF = 0;
     public static double turretPIDFMargin = Math.toRadians(10);
 
     // calibrated 2-87-26
-    public static double turretMaxLeft = 1.77;
-    public static double turretMaxRight = -1.77;
+    public static double turretMaxLeft = 2;
+    public static double turretMaxRight = -2;
 
     // max servo positions
     public static double turretLimitLeft = 0.25;
@@ -111,7 +111,7 @@ public class Tunables {
 
     public static double lastReverse = 300;
     public static double reverseTime = 200;
-    public static double bozoScoreRPM = 2100; // RPM to set for launching (stolen from teleop)
+    public static double bozoScoreRPM = 2150; // RPM to set for launching (stolen from teleop)
     public static double bozoScoreHoodRadians = Math.toRadians(60); // hood position for launching in auto
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
@@ -171,8 +171,8 @@ public class Tunables {
     // both of these must be in meters
     public static double shootZ = 0.4064; // calibrated 2-13-26
     public static double goalZ = 0.7874; // calibrated 2-13-26
-    public static double physicsRPMMultiplier = 1.15;
-    public static double physicsRPMOffset = 0;
+    public static double physicsRPMMultiplier = 1.1;
+    public static double physicsRPMOffset = 50;
     public static double staticShotDelay = 0.2;
     public static double angleCutoff = 120; // if inches more than this
 
