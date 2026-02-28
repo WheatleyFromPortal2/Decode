@@ -106,7 +106,7 @@ public class Robot { // create our global class for our robot
                     hasLaunchedFirst = true;
                 }
 
-                intake.forward();
+                //intake.forward();
                 transfer.forward();
                 transfer.open();
 

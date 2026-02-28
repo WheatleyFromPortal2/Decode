@@ -200,7 +200,14 @@ public class Vision {
     /** getter methods **/
 
     public Pose getLastBotPose() { return lastBotPose; }
-    public Triplet getLastTriplet() { return lastTriplet; }
+    public Triplet getLastTriplet() {
+        if (Tunables.tripletOverride == Triplet.UNKNOWN) {
+            // normal
+            return lastTriplet;
+        } else {
+            return Tunables.tripletOverride;
+        }
+    }
     public boolean isStale() { return staleTimer.getElapsedTime() >= Tunables.maxVisionStaleness; }
     public double getStaleness() { return staleTimer.getElapsedTime(); }
     public LLStatus getStatus() { return limelight.getStatus(); }

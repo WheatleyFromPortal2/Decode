@@ -213,7 +213,11 @@ public abstract class BozoAuto extends OpMode {
                 }
                 break;
             case LAUNCH:
-                robot.intake.forward();
+                if (stateTimer.getElapsedTime() >= Tunables.lastReverse && !Tunables.dumbPattern) {
+                    robot.intake.reverse();
+                } else {
+                    robot.intake.forward();
+                }
 
                 if (robotUpdateStatus) { // we're done with launching balls
                     ballTripletsScored++; // increment the amount of triplets that we have scored if we have a successful launch
@@ -361,6 +365,7 @@ public abstract class BozoAuto extends OpMode {
 
         pattern.update();
 
+        robot.intake.forward();
         autoPathUpdate(robot.update()); // update our state machine and run its actions
 
         if (Tunables.isDebugging) {

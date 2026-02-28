@@ -8,9 +8,11 @@ package org.firstinspires.ftc.teamcode;
 import com.bylazar.configurables.annotations.Configurable;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
+import org.firstinspires.ftc.teamcode.subsys.Vision;
+
 @Configurable
 public class Tunables {
-    public static boolean isDebugging = true;
+    public static boolean isDebugging = false;
 
     /** Robot tunables (used in Robot.java) **/
 
@@ -53,10 +55,9 @@ public class Tunables {
     /** turret tunables (used in Turret.java) **/
     public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
 
-    // calibrated 2-27-26
-    public static double turretMaxLeft = 1.761;
-    // 1.837
-    public static double turretMaxRight = -1.723;
+    // calibrated 2-87-26
+    public static double turretMaxLeft = 1.77;
+    public static double turretMaxRight = -1.77;
 
     // max servo positions
     public static double turretLimitLeft = 0.25;
@@ -102,6 +103,7 @@ public class Tunables {
 
     /** bozo auto tunables (used in BozoAuto.java) **/
 
+    public static double lastReverse = 300;
     public static double reverseTime = 200;
     public static double bozoScoreRPM = 2100; // RPM to set for launching (stolen from teleop)
     public static double bozoScoreHoodRadians = Math.toRadians(60); // hood position for launching in auto
@@ -136,6 +138,7 @@ public class Tunables {
 
 
     /** vision tunables (used in Vision.java) **/
+    public static Vision.Triplet tripletOverride = Vision.Triplet.UNKNOWN;
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
 
     // offsets for translating from limelight->field position
@@ -162,7 +165,7 @@ public class Tunables {
     // both of these must be in meters
     public static double shootZ = 0.4064; // calibrated 2-13-26
     public static double goalZ = 0.7874; // calibrated 2-13-26
-    public static double physicsRPMMultiplier = 1.1;
+    public static double physicsRPMMultiplier = 1.15;
     public static double physicsRPMOffset = 0;
     public static double staticShotDelay = 0.2;
     public static double angleCutoff = 120; // if inches more than this
