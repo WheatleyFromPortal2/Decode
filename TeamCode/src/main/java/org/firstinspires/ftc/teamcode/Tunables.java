@@ -47,7 +47,7 @@ public class Tunables {
     public static int intakePowerSaveCheckInterval = 30; // how often to update intake power/velocity check in millis
     public static double intakePowerSaveTriggerAmps = 8; // if we are drawing more amsp than this, trigger power save
     public static double intakePowerSaveTriggerVelocity = 0; // if we have a tps less than this, trigger power save
-    public static double intakeHoldPower = 0.75; // minimum power for balls to not fall out of intake
+    public static double intakeHoldPower = 0.0; // minimum power for balls to not fall out of intake
 
     /** launch tunables (used in Launch.java) **/
 
@@ -124,16 +124,20 @@ public class Tunables {
 
     /** bozo auto tunables (used in BozoAuto.java) **/
 
+    public static double reverseTime = 200;
     public static double bozoScoreRPM = 2100; // RPM to set for launching (stolen from teleop)
     public static double bozoScoreHoodRadians = Math.toRadians(60); // hood position for launching in auto
     public static double scoreEndTime = 0.3; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double grabEndTime = 0.8; // this defines how long Pedro Pathing should wait until reaching its target heading, lower values are more precise but run the risk of oscillations
     public static double clearTime = 1000; // amount of ms to wait for clear
     public static double launchDistanceMargin = 2; // must be within this amount of inches to shoot
-    public static double maxGrabVelocity = 50; // max velocity while grabbing balls in inches/second
+    public static double grabPowerMultiplier = 0.34; // max velocity while grabbing balls in inches/second
     public static double maxSortVelocity = 5; //max velocity while sorting
-    public static double sortTime = 0.65;
+    public static double sortTime = 0.75;
     public static double clearMaxPower = 0.8;
+
+    public static double startLaunchDelay1 = 100;
+    public static double startLaunchDelay2 = 100;
 
     /** far auto tunables (used in FarAuto.java) **/
 

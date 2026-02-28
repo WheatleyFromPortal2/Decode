@@ -37,11 +37,12 @@ public class Pattern {
         C2_1
     }
 
-    private boolean C0 = false;
+    public boolean C0 = false;
     private boolean C112 = false;
     private boolean C113 = false;
     private boolean C123 = false;
     private boolean C2 = false;
+    public String lastState = "boo";
     private boolean intake = false;
     private StateMachine cacher;
 //    private boolean cache = false;
@@ -206,6 +207,7 @@ public class Pattern {
     }
 
     public void inputString(String code) {
+        lastState=code;
         switch(code) {
             case "C0":
                 C0=true;
@@ -246,7 +248,8 @@ public class Pattern {
                         inputString("C112");
                         break;
                     case PPG:
-                        inputString("C113");
+                        //inputString("C2");
+                        inputString("C0"); // play it safe
                         break;
                 }
                 break;
@@ -259,14 +262,15 @@ public class Pattern {
                         inputString("C0");
                         break;
                     case PPG:
-                        inputString("C123");
+                        inputString("C113");
                         break;
                 }
                 break;
             case PPG:
                 switch (outputTriplet) {
                     case GPP:
-                        inputString("C2");
+                        //inputString("C2");
+                        inputString("C0"); // play it safe
                         break;
                     case PGP:
                         inputString("C113");

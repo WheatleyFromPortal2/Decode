@@ -87,8 +87,10 @@ public class Robot { // create our global class for our robot
         turret.setDesiredPos(setpoints.getTurretPos());
         turret.update();
 
+        /*
         if (!transfer.isBallInLower()) { transfer.forward(); }
         else { transfer.off(); }
+         */
 
         if (launching) {
             light.orange();
@@ -103,9 +105,11 @@ public class Robot { // create our global class for our robot
                     firstShotDelay = launchTimer.getElapsedTimeSeconds();
                     hasLaunchedFirst = true;
                 }
+
+                intake.forward();
                 transfer.forward();
                 transfer.open();
-                intake.forward();
+
                 return false;
             }
         } else {
