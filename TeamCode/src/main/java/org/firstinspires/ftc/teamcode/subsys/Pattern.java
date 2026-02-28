@@ -19,6 +19,7 @@ public class Pattern {
         PURPLE,
         GREEN
     }
+
     private enum State {
         IDLE,
         IDLE2,
@@ -204,7 +205,7 @@ public class Pattern {
         return cacher.getState().toString();
     }
 
-    public void input(String code) {
+    public void inputString(String code) {
         switch(code) {
             case "C0":
                 C0=true;
@@ -227,6 +228,53 @@ public class Pattern {
                 intake=true;
                 break;
             default:
+                break;
+        }
+    }
+
+    public void inputTriplets(Vision.Triplet inputTriplet, Vision.Triplet outputTriplet) {
+        if (outputTriplet == Vision.Triplet.UNKNOWN) {
+            inputString("C0"); // maximize speed
+        }
+        switch (inputTriplet) {
+            case GPP:
+                switch (outputTriplet) {
+                    case GPP:
+                        inputString("C0");
+                        break;
+                    case PGP:
+                        inputString("C112");
+                        break;
+                    case PPG:
+                        inputString("C113");
+                        break;
+                }
+                break;
+            case PGP:
+                switch (outputTriplet) {
+                    case GPP:
+                        inputString("C112");
+                        break;
+                    case PGP:
+                        inputString("C0");
+                        break;
+                    case PPG:
+                        inputString("C123");
+                        break;
+                }
+                break;
+            case PPG:
+                switch (outputTriplet) {
+                    case GPP:
+                        inputString("C2");
+                        break;
+                    case PGP:
+                        inputString("C113");
+                        break;
+                    case PPG:
+                        inputString("C0");
+                        break;
+                }
                 break;
         }
     }
