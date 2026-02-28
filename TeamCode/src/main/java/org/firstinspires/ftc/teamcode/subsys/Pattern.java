@@ -235,7 +235,7 @@ public class Pattern {
     }
 
     public void inputTriplets(Vision.Triplet inputTriplet, Vision.Triplet outputTriplet) {
-        if (outputTriplet == Vision.Triplet.UNKNOWN) {
+        if (outputTriplet == Vision.Triplet.UNKNOWN || Tunables.dumbPattern) {
             inputString("C0"); // maximize speed
         }
         switch (inputTriplet) {

@@ -195,5 +195,7 @@ public class Tunables {
     public static double staticShotDelay = 0.2;
     public static double angleCutoff = 120; // if inches more than this
 
+    /** pattern tunables **/
+    public static boolean dumbPattern = true;
     public static String patternT = "C0";
 }
