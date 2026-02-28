@@ -96,6 +96,7 @@ public class Flywheel {
     }
 
     public boolean isWithinMargin() {
+        if (lastSetpointTPS == 0 || getTPS() == 0) { return false; }
         return Math.abs(lastSetpointTPS - getTPS()) < Tunables.flywheelMargin;
     }
 

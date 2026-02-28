@@ -64,17 +64,12 @@ public abstract class FarAuto extends OpMode {
     private void autoPathUpdate(boolean robotUpdateStatus) {
         switch (state) {
             case START:
-                LaunchSetpoints setpoints = new LaunchSetpoints(0,
-                        Tunables.hoodMinimumRadians, // use the lowest hood angle possible
-                        startPose.getHeading() - getTurretPos());
-
-                setpoints.setRPM(Tunables.farScoreRPM);
-
-                robot.setSetpoints(setpoints);
-                robot.launch();
                 robot.intake.forward();
+                robot.transfer.close();
 
-                setPathState(State.WAIT_LAUNCH);
+                if (robot.flywheel.isWithinMargin()) {
+                    setPathState(State.WAIT_LAUNCH);
+                }
                 break;
             case WAIT_LAUNCH:
                 int wait;
@@ -161,6 +156,17 @@ public abstract class FarAuto extends OpMode {
 
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry(); // this gets our telemetryM object so we can write telemetry to Panels
         robot = new Robot(hardwareMap);
+
+        LaunchSetpoints setpoints = new LaunchSetpoints(0,
+                Tunables.hoodMinimumRadians, // use the lowest hood angle possible
+                getTurretPos() - startPose.getHeading());
+
+        setpoints.setRPM(Tunables.farScoreRPM);
+        robot.turret.setDesiredPos(setpoints.getTurretPos());
+        robot.turret.update();
+
+        robot.setSetpoints(setpoints);
+        robot.launch();
 
         telemetryM.debug("creating follower... (this may take a while)");
         telemetryM.update(telemetry);

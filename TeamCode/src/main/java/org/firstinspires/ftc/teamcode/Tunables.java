@@ -60,7 +60,7 @@ public class Tunables {
 
     public static double maxFlywheelBreaking = 0.05; // max amount of breaking (negative power) to apply to launch motors
     public static double flywheelQuickStartThreshold = 500; // if TPS diff is greater than this, set full power (~1000rpm)
-    public static double flywheelMargin = 100; // margin in TPS for flywheel to be considered "within range" of shooting
+    public static double flywheelMargin = 10; // margin in TPS for flywheel to be considered "within range" of shooting
 
     /** hood tunables (used in Hood.java) **/
 
@@ -141,12 +141,12 @@ public class Tunables {
 
     /** far auto tunables (used in FarAuto.java) **/
 
-    public static double farScoreRPM = 3500;
+    public static double farScoreRPM = 3200;
     // hood position is always set to minimum angle since we're so far
     public static double farScoreHoodRadians = Math.toRadians(-60);
 
     // auto cycle and delay configuration
-    public static int farCycles = 3; // how many times to cycle through (1 = only score preload)
+    public static int farCycles = 10; // how many times to cycle through (1 = only score preload)
     // array that holds all of our waits before launches
     // this array may be longer than farCycles but must never be shorter
     public static int[] farLaunchWaits = {

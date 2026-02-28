@@ -17,6 +17,6 @@ public class RedFarAuto extends FarAuto {
 
     @Override
     protected double getTurretPos() {
-        return Math.toRadians(76);
+        return Math.toRadians(68);
     }
 }
