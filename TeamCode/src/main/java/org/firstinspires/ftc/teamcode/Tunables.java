@@ -17,28 +17,6 @@ public class Tunables {
     // launch delays
     public static int maxLaunchTime = 500; // max amount of time to complete one launch cycle
 
-    public static int ballCount = 0;
-
-    // rumble effects
-    private static int delay1 = 200; // ms delay for 1ball
-    private static int delay2 = 100; // ms delay for 2balls
-    private static int delay3 = 10; // ms delay for 3balls
-    public static Gamepad.RumbleEffect rumble1 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 1ball
-            .addStep(0.0, 1.0, delay1) // rumble left motor 100% for delay1
-            .addStep(1.0, 0.0, delay1) // rumble right motor 100% for delay1
-            .addStep(0.0, 0.0, delay1) // pause for delay1
-            .build();
-    public static Gamepad.RumbleEffect rumble2 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 2balls
-            .addStep(0.0, 1.0, delay2) // rumble left motor 100% for delay2
-            .addStep(1.0, 0.0, delay2) // rumble right motor 100% for delay2
-            .addStep(0.0, 0.0, delay2) // pause for delay2
-            .build();
-    public static Gamepad.RumbleEffect rumble3 = new Gamepad.RumbleEffect.Builder() // rumble for when we have 3balls (needs to be differentiated)
-            .addStep(1.0, 1.0, delay3) // rumble left motor 100% for delay3
-            .addStep(0.0, 0.0, delay3) // rumble right motor 100% for delay3
-            // no pause (more intensity)
-            .build();
-
     /** intake tunables (used in Intake.java) **/
 
     public static boolean intakeUsePowerSave = false;
@@ -157,14 +135,8 @@ public class Tunables {
     };
 
 
-    // delays (all in millis)
-    public static double launchDelay1 = 0;
-    public static double launchDelay2 = 0;
-    public static double launchDelay3 = 0;
-
     /** vision tunables (used in Vision.java) **/
     public static long maxVisionStaleness = 50; // amount of millis without a reading where vision becomes stale
-    public static double goalOffset = -30; // TODO:
 
     // offsets for translating from limelight->field position
     // TODO: calibrate these
