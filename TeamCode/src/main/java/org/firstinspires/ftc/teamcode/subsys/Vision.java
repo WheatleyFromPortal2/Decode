@@ -29,7 +29,7 @@ public class Vision {
         FULL_POS // pipeline index: 3
     }
 
-    public enum Pattern {
+    public enum Triplet {
         GPP, // green-purple-purple; ID: 21
         PGP, // purple-green-purple; ID: 22
         PPG, // purple-purple-green; ID: 23
@@ -39,7 +39,7 @@ public class Vision {
     private boolean started = false;
     private Timer staleTimer;
     private Pose lastBotPose;
-    private Pattern lastPattern = Pattern.UNKNOWN;
+    private Triplet lastTriplet = Triplet.UNKNOWN;
 
 
     public Vision(HardwareMap hw) {
@@ -79,43 +79,37 @@ public class Vision {
         } else { return null; } // we haven't gotten any new results
     }
 
-    public boolean updateObelisk() { // super simple update, only checks for pattern IDs; doesn't worry about full robot position
+    public void updateObelisk() { // super simple update, only checks for pattern IDs; doesn't worry about full robot position
         /* return values:
             - false: we don't have a valid obelisk ID yet
             - true: we have received a valid obelisk ID
          */
         checkPipelineReadiness(Pipeline.OBELISK);
 
-        if (lastPattern != Pattern.UNKNOWN) {
-            LLResult result = limelight.getLatestResult();
-            if (result != null && result.isValid()) { // if our result is good
-                List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
+        LLResult result = limelight.getLatestResult();
+        if (result != null && result.isValid()) { // if our result is good
+            List<LLResultTypes.FiducialResult> fiducialResults = result.getFiducialResults();
 
+            if (!fiducialResults.isEmpty()) {
                 // loop through every result, checking its ID
                 for (int i = 0; i < fiducialResults.size(); i++) {
-                    LLResultTypes.FiducialResult tag = fiducialResults.get(i);
-                    int id = tag.getFiducialId();
+                    int id = fiducialResults.get(i).getFiducialId();
 
                     switch (id) {
                         case 21:
-                            lastPattern = Pattern.GPP;
-                            return true; // we have an obelisk ID!
+                            lastTriplet = Triplet.GPP;
+                            break;
                         case 22:
-                            lastPattern = Pattern.PGP;
-                            return true; // we have an obelisk ID!
+                            lastTriplet = Triplet.PGP;
+                            break;
                         case 23:
-                            lastPattern = Pattern.PPG;
-                            return true; // we have an obelisk ID!
+                            lastTriplet = Triplet.PPG;
+                            break;
                         default: // any other ID; ID filter on limelight should prevent this, but stuff breaks (tm)
                             break; // we haven't received a valid ID yet
                     }
                 }
-                return false; // after checking all tags, still no good result
-            } else { // we haven't gotten any new results
-                return false;
             }
-        } else { // we have already found out pattern
-            return true;
         }
     }
 
@@ -206,6 +200,7 @@ public class Vision {
     /** getter methods **/
 
     public Pose getLastBotPose() { return lastBotPose; }
+    public Triplet getLastTriplet() { return lastTriplet; }
     public boolean isStale() { return staleTimer.getElapsedTime() >= Tunables.maxVisionStaleness; }
     public double getStaleness() { return staleTimer.getElapsedTime(); }
     public LLStatus getStatus() { return limelight.getStatus(); }
