@@ -12,7 +12,7 @@ import org.firstinspires.ftc.teamcode.subsys.Pattern.Ball;
 
 import java.util.Queue;
 
-@TeleOp(name="Pattern Test", group = "Tuning")
+@TeleOp(name="Pattern Test", group = "Tuner")
 public class PatternTest extends LinearOpMode {
 
     Pattern pattern;
@@ -22,7 +22,7 @@ public class PatternTest extends LinearOpMode {
     public void runOpMode() throws InterruptedException {
         robot = new Robot(hardwareMap);
         pattern = new Pattern(robot);
-        pattern.input(Tunables.patternT);
+        pattern.inputString(Tunables.patternT);
         waitForStart();
 
         while (!isStopRequested() && opModeIsActive()) {

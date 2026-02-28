@@ -7,7 +7,7 @@ import org.firstinspires.ftc.teamcode.subsys.Indexer;
 import org.firstinspires.ftc.teamcode.subsys.launch.Intake;
 import org.firstinspires.ftc.teamcode.subsys.launch.Transfer;
 
-@TeleOp(name = "Indexer Test", group = "tuner")
+@TeleOp(name = "Indexer Test", group = "Tuner")
 public class IndexerTest extends LinearOpMode {
 
     Indexer indexer;
