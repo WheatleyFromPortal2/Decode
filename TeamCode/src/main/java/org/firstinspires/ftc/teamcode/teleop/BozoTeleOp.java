@@ -131,14 +131,25 @@ public abstract class BozoTeleOp extends OpMode {
             isRobotCentric = !isRobotCentric;
         }
         if (gpad1.wasJustPressed(GamepadKeys.Button.X)) {
-            robot.intake.reverse();
+            robot.intake.toggleReverse();
         }
             //isIntakeReversed = !isIntakeReversed; // reverse intake to eject/unclog
 
         if (gamepad1.backWasReleased()) { // reset field-centric heading
+            /*
             Pose headingPose = follower.getPose();
             headingPose = headingPose.setHeading(Math.toRadians(90)); // the driver must point toward the top of the field (goals) to recalibrate the heading
             follower.setPose(headingPose); // see if this works
+             */
+            Pose newPose;
+            double halfLength = 8;
+            if (isBlueTeam()) {
+                newPose = new Pose(144 - halfLength, halfLength, 0);
+            } else {
+                newPose = new Pose(halfLength, halfLength, Math.toRadians(180));
+            }
+
+            follower.setPose(newPose);
         }
 
         if (gpad1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) setpoints.incrementRPM(Tunables.adjustRPM); // increment by adjustRPM (in TPS)

@@ -17,7 +17,7 @@ public class Tunables {
     /** Robot tunables (used in Robot.java) **/
 
     // launch delays
-    public static int maxLaunchTime = 500; // max amount of time to complete one launch cycle
+    public static int maxLaunchTime = 400; // max amount of time to complete one launch cycle
 
     /** intake tunables (used in Intake.java) **/
 
@@ -62,8 +62,8 @@ public class Tunables {
     public static double turretPIDFMargin = Math.toRadians(10);
 
     // calibrated 2-87-26
-    public static double turretMaxLeft = 2;
-    public static double turretMaxRight = -2;
+    public static double turretMaxLeft = 1.8;
+    public static double turretMaxRight = -1.7;
 
     // max servo positions
     public static double turretLimitLeft = 0.25;

@@ -135,6 +135,14 @@ public class Intake {
         }
     }
 
+    public void toggleReverse() {
+        if (state == State.REVERSE) {
+            forward();
+        } else {
+            reverse();
+        }
+    }
+
     public boolean isCurrentTrigger() { // whether our current amps is over our trigger amps
         return getCurrent() >= Tunables.intakePowerSaveTriggerAmps;
     }
