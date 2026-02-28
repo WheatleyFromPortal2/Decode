@@ -8,7 +8,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.ServoImplEx;
 import com.qualcomm.robotcore.util.Range;
 
+import org.firstinspires.ftc.teamcode.HandoffState;
 import org.firstinspires.ftc.teamcode.Tunables;
+import org.firstinspires.ftc.teamcode.subsys.PIDF;
 
 public class Turret {
     private Servo turret1, turret2;
@@ -18,9 +20,11 @@ public class Turret {
     //public static final double TURRET_ENCODER_RATIO = 5.5; // ratio from turretEncoder->turret
     public static final double TURRET_ENCODER_RATIO = (double) 110 / 35;
 
+    private PIDF pidf;
     /** vars that change **/
     private double lastDesiredPos = 0;
     private double desiredPos = 0;
+    private double posOffset = 0;
 
     /** end vars that change **/
 
@@ -30,22 +34,27 @@ public class Turret {
 
         this.encoder = encoder;
 
+        pidf = new PIDF(Tunables.turretP, Tunables.turretI, Tunables.turretD, Tunables.turretF);
+
         resetEncoder();
     }
 
     public void update() {
-        //double newTurretServoPos = Range.scale(desiredPos, Tunables.turretMaxLeft, Tunables.turretMaxRight, Tunables.turretLimitLeft, Tunables.turretLimitRight);
+        pidf.updateTerms(Tunables.turretP, Tunables.turretI, Tunables.turretD, Tunables.turretF);
+        double curPos = getPos();
+        double extraPower = 0;
 
-        if (desiredPos == lastDesiredPos) {
-            // do nothing, save loop time
-        } else {
-            double newTurretServoPos = Range.scale(desiredPos, Tunables.turretMaxRight, Tunables.turretMaxLeft, Tunables.turretLimitRight, Tunables.turretLimitLeft);
-            newTurretServoPos = Range.clip(newTurretServoPos, Tunables.turretLimitLeft, Tunables.turretLimitRight);
-
-            turret1.setPosition(newTurretServoPos);
-            turret2.setPosition(newTurretServoPos);
-            lastDesiredPos = desiredPos;
+        if (Math.abs(curPos - desiredPos) < Tunables.turretPIDFMargin) {
+            extraPower = pidf.calc(desiredPos, getPos());
         }
+
+        double newTurretServoPos = Range.scale(desiredPos, Tunables.turretMaxRight, Tunables.turretMaxLeft, Tunables.turretLimitRight, Tunables.turretLimitLeft);
+        newTurretServoPos -= extraPower;
+        newTurretServoPos = Range.clip(newTurretServoPos, Tunables.turretLimitLeft, Tunables.turretLimitRight);
+
+        turret1.setPosition(newTurretServoPos);
+        turret2.setPosition(newTurretServoPos);
+        lastDesiredPos = desiredPos;
     }
 
     /** internal methods **/
@@ -72,8 +81,12 @@ public class Turret {
     }
 
     public double getPos() { // return our current turret angle in radians +/- from facing forwards
-        return ticksToRadians(encoder.getCurrentPosition());
+        return ticksToRadians(encoder.getCurrentPosition() + posOffset);
         //return -(turret1.getPosition() - 0.5) * 2 * TURRET_SERVO_MAX_RANGE;
+    }
+
+    public void updateOffset() {
+        posOffset = -HandoffState.turretPos;
     }
 
     public double getError() { // get difference between servo set position and measured encoder position

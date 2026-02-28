@@ -55,6 +55,12 @@ public class Tunables {
     /** turret tunables (used in Turret.java) **/
     public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
 
+    public static double turretP = 0.15;
+    public static double turretI = 0.00;
+    public static double turretD = 0.011;
+    public static double turretF = 0;
+    public static double turretPIDFMargin = Math.toRadians(10);
+
     // calibrated 2-87-26
     public static double turretMaxLeft = 1.77;
     public static double turretMaxRight = -1.77;

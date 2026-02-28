@@ -220,6 +220,7 @@ public abstract class FarAuto extends OpMode {
 
     public void updateHandoff() {
         HandoffState.pose = follower.getPose();
+        HandoffState.turretPos = getTurretPos();
     }
 
     public void sendTelemetry(boolean sendInitTime) {

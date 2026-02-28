@@ -444,6 +444,7 @@ public abstract class BozoAuto extends OpMode {
 
     public void updateHandoff() {
         HandoffState.pose = follower.getPose();
+        HandoffState.turretPos = robot.turret.getPos();
     }
 
     public void sendTelemetry(boolean sendInitTime) {
