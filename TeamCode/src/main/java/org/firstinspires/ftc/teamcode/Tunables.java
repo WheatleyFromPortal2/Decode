@@ -17,7 +17,7 @@ public class Tunables {
     /** Robot tunables (used in Robot.java) **/
 
     // launch delays
-    public static int maxLaunchTime = 400; // max amount of time to complete one launch cycle
+    public static int maxLaunchTime = 500; // max amount of time to complete one launch cycle
 
     /** intake tunables (used in Intake.java) **/
 
@@ -53,7 +53,6 @@ public class Tunables {
     // just use a map and save lowest/highest deg vals
 
     /** turret tunables (used in Turret.java) **/
-    public static double turretCenterOffset = -0.11; // 0 turret position as read in ServoTuner OpMode (make sure to start turret straight forward so our encoder is accurate)
 
     public static double turretP = 0.12;
     public static double turretI = 0.00;
@@ -61,9 +60,10 @@ public class Tunables {
     public static double turretF = 0;
     public static double turretPIDFMargin = Math.toRadians(10);
 
+    public static double turretOffset = 0;
     // calibrated 2-87-26
-    public static double turretMaxLeft = 1.8;
-    public static double turretMaxRight = -1.7;
+    public static double turretMaxLeft = 1.81;
+    public static double turretMaxRight = -1.78;
 
     // max servo positions
     public static double turretLimitLeft = 0.25;
@@ -105,7 +105,7 @@ public class Tunables {
     public static boolean useBrakes = true; // whether to use brakes in TeleOp
     public static double farZoneDataStart = 95; // if d > this, use far zone data
     public static boolean isDynamicPhysics = true;
-    public static boolean usingKalman = false;
+    public static boolean usingKalman = true;
 
     /** bozo auto tunables (used in BozoAuto.java) **/
 

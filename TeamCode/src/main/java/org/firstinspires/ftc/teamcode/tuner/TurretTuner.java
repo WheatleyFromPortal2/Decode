@@ -113,7 +113,6 @@ public class TurretTuner extends OpMode {
                         break;
                     case ZERO_CENTER:
                         if (isTurretStopped()) {
-                            Tunables.turretCenterOffset = turret.getPos();
 
                             // test turret left max
                             turret.setRawServoPositions(Tunables.turretLimitLeft);
@@ -158,7 +157,6 @@ public class TurretTuner extends OpMode {
                         break;
                     case END:
                         telemetryM.addLine("turret calibration complete!");
-                        telemetryM.addData("turret center offset", Tunables.turretCenterOffset);
 
                         telemetryM.addLine("");
                         telemetryM.addLine("if these values are reliable after testing, then save them in Tunables.java!");
@@ -185,8 +183,6 @@ public class TurretTuner extends OpMode {
 
         telemetryM.addData("turret max left", Tunables.turretMaxLeft);
         telemetryM.addData("turret max right", Tunables.turretMaxRight);
-
-        telemetryM.addData("turret offset", Tunables.turretCenterOffset);
 
         telemetryM.update(telemetry);
     }

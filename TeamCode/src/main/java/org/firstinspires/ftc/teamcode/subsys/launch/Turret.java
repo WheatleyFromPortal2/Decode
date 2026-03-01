@@ -97,7 +97,7 @@ public class Turret {
 
     public void setDesiredPos(double radians) { // set desired turret angle
         //if (!isPowered) on();
-        desiredPos = normalizeRadians(radians);
+        desiredPos = normalizeRadians(radians + Tunables.turretOffset);
     }
 
     /*

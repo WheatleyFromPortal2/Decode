@@ -83,6 +83,10 @@ public abstract class BozoTeleOp extends OpMode {
         goalPose = getGoalPose();
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        robot.turret.setDesiredPos(0);
+        robot.turret.update();
+
         telemetryM.debug("init time: " + loopTimer.getElapsedTime()); // tell how long our init tool
         telemetryM.update(telemetry);
     }
@@ -91,9 +95,11 @@ public abstract class BozoTeleOp extends OpMode {
     protected abstract Pose getGoalPose(); // this will be filled in by Blue/Red TeleOp
 
     public void start() {
-        follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes
-        robot.transfer.reset();
+        follower.startTeleopDrive(Tunables.useBrakes); // start the teleop, and use brakes robot.transfer.reset();
         robot.intake.forward();
+
+        HandoffState.turretPos = 0;
+        robot.turret.zero();
     }
 
     @Override
@@ -150,6 +156,7 @@ public abstract class BozoTeleOp extends OpMode {
             }
 
             follower.setPose(newPose);
+            fusion.resetFilters(newPose);
         }
 
         if (gpad1.wasJustPressed(GamepadKeys.Button.DPAD_UP)) setpoints.incrementRPM(Tunables.adjustRPM); // increment by adjustRPM (in TPS)
